@@ -1,0 +1,37 @@
+  cat > .gitignore << 'EOF'
+  # Unity
+  [Ll]ibrary/
+  [Tt]emp/
+  [Oo]bj/
+  [Bb]uild/
+  [Bb]uilds/
+  [Ll]ogs/
+  [Uu]ser[Ss]ettings/
+  MemoryCaptures/
+  .DS_Store
+  .vs/
+  .vscode/
+  *.csproj
+  *.sln
+  *.unityproj
+  *.pidb
+  *.suo
+  *.user
+  *.userprefs
+  *.booproj
+  *.svd
+  *.pdb
+  *.mdb
+  *.opendb
+  *.VC.db
+  ExportedObj/
+  Assets/AssetStoreTools*
+  .idea/
+  .gradle/
+  .vsconfig
+  # Addressables
+  /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*
+  !/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*settings.json
+  # Crashlytics
+  crashlytics-build.properties
+  EOF
