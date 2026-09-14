@@ -6,14 +6,20 @@ public enum GameState
 {
     Title,
     Prep,
-    Buttle,
+    Battle,
     Result,
     GameOver,
 }
 
 public class StateManager : MonoBehaviour
 {
-    private GameState currentState;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    [SerializeField] private GameState InitialState = GameState.Title;
+    #else
+    private GameState InitialState = GameState.Title;
+#endif
+
+    private GameState currentState = GameState.Title;
     public GameState Current => currentState;
 
     public event Action<GameState,GameState> OnStateChanged; //(before,after)
@@ -40,7 +46,7 @@ public class StateManager : MonoBehaviour
                 break;
             case GameState.Prep:
                 break;
-            case GameState.Buttle:
+            case GameState.Battle:
                 break;
             case GameState.Result:
                 break;
@@ -58,7 +64,7 @@ public class StateManager : MonoBehaviour
                 break;
             case GameState.Prep:
                 break;
-            case GameState.Buttle:
+            case GameState.Battle:
                 break;
             case GameState.Result:
                 break;
@@ -79,11 +85,11 @@ public class StateManager : MonoBehaviour
             case GameState.Title:
                 return to == GameState.Prep;
             case GameState.Prep:
-                return to == GameState.Buttle;
-            case GameState.Buttle:
-                return to == GameState.Result;
+                return to == GameState.Battle;
+            case GameState.Battle:
+                return to == GameState.Result || to == GameState.GameOver;
             case GameState.Result:
-                return to == GameState.Title || to == GameState.GameOver;
+                return to == GameState.Title;
             case GameState.GameOver:
                 return to == GameState.Title;
             default:

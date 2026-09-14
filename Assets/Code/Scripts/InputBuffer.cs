@@ -103,4 +103,33 @@ public class InputBuffer : MonoBehaviour
         _playIndex = 0;
     }
 
+    public List<InputEvent> GetRecordedEvents()
+    {
+        lock(_lock)
+        {
+            return new List<InputEvent>(_recorded);
+        }
+    }
+
+#if UNITY_EDITOR
+    [Header("Debug Info")]
+    [SerializeField] private bool showDebugInfo = false;
+
+    private void OnGUI()
+    {
+        if (!showDebugInfo) return;
+
+        GUILayout.BeginArea(new Rect(10, 10, 300, 200));
+        GUILayout.Label($"isDragging:{isDragging}");
+        GUILayout.Label($"isDragging: {isDragging}");
+        GUILayout.Label($"startPos: {startPos}");
+        GUILayout.Label($"currentPos: {currentPos}");
+        GUILayout.Label($"dragDelta: {dragDelta}");
+        GUILayout.Label($"RecordMode: {RecordMode}");
+        GUILayout.Label($"PlaybackMode: {PlaybackMode}");
+        GUILayout.Label($"Recorded: {_recorded.Count}events");
+        GUILayout.Label($"Buffer:{_events.Count}events");
+        GUILayout.EndArea();
+    }
+#endif
 }

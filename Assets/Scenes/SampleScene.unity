@@ -371,6 +371,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e6978a5f1d904347bb267bbbcafbd69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameLoopController
+  _dt: 0.016666668
+  _LastTime: 0
+  _deltaTime: 0
+  _unscaledTime: 0
+  _isPaused: 0
+  _acc: 0
+  _stateManager: {fileID: 0}
 --- !u!4 &1385516670
 Transform:
   m_ObjectHideFlags: 0
@@ -398,11 +405,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eebbbd4993779ff4f9adfaca3f008cc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameLoopManager
-  hz: 16
+  timestep: 16
   fps: 60
   seed: 12345
-  inputBuffer: {fileID: 0}
   vSync: 0
+  enableCatchUp: 1
   maxCatchUpIterations: 5
   logCatchUpWarnings: 1
 --- !u!114 &1385516672
@@ -417,6 +424,88 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b8c7412005ee8442b136a90f17bbef4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StateManager
+  InitialState: 0
+--- !u!1 &2111893337
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2111893341}
+  - component: {fileID: 2111893340}
+  - component: {fileID: 2111893339}
+  - component: {fileID: 2111893338}
+  m_Layer: 0
+  m_Name: CoreManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2111893338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111893337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be3f7b81cd8ba1a4dab1626cfe8d99bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputBuffer
+  RecordMode: 0
+  PlaybackMode: 0
+  showDebugInfo: 0
+--- !u!114 &2111893339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111893337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b8c7412005ee8442b136a90f17bbef4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StateManager
+  InitialState: 0
+--- !u!114 &2111893340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111893337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eebbbd4993779ff4f9adfaca3f008cc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameLoopManager
+  timestep: 16
+  fps: 60
+  seed: 12345
+  vSync: 0
+  enableCatchUp: 1
+  maxCatchUpIterations: 5
+  logCatchUpWarnings: 1
+--- !u!4 &2111893341
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111893337}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -424,3 +513,4 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 619394802}
   - {fileID: 1385516670}
+  - {fileID: 2111893341}
