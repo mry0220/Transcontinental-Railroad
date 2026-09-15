@@ -19,10 +19,15 @@ public class StateManager : MonoBehaviour
     private GameState InitialState = GameState.Title;
 #endif
 
-    private GameState currentState = GameState.Title;
+    private GameState currentState;
     public GameState Current => currentState;
 
     public event Action<GameState,GameState> OnStateChanged; //(before,after)
+
+    private void Awake()
+    {
+        currentState = InitialState;
+    }
 
     public void transitionTo(GameState next)
     {
@@ -96,4 +101,19 @@ public class StateManager : MonoBehaviour
                 return false;
         }
     }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+
+    private void OnGUI()
+    {
+        
+    GUILayout.BeginArea(new Rect(10, 400, 400, 150));
+    GUILayout.Label($"=== State Debug===");
+    GUILayout.Label($"Current State: {currentState}");
+    GUILayout.Label($"Total Frame: {Time.frameCount}");
+    GUILayout.Label("");
+    GUILayout.EndArea();
+    }
+
+#endif
 }

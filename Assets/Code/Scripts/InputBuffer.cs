@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class InputBuffer : MonoBehaviour
@@ -16,12 +17,16 @@ public class InputBuffer : MonoBehaviour
         public Vector2 position;
         public Vector2 delta;
         public double timestamp;
-        public InputEvent(InputType t, Vector2 pos, Vector2 d, double ts)
+        public string draggedItemId;
+        public bool isDragFromUI;
+        public InputEvent(InputType t, Vector2 pos, Vector2 d, double ts,string itemId = null,bool fromUI = false)
         {
             type = t;
             position = pos;
             delta = d;
             timestamp = ts;
+            draggedItemId = itemId;
+            isDragFromUI = fromUI;
         }
 
     }
@@ -33,6 +38,8 @@ public class InputBuffer : MonoBehaviour
     public Vector2 startPos{get; private set;}
     public Vector2 currentPos { get; private set; }
     public Vector2 dragDelta { get; private set; }
+    public string currentDraggedItemId { get; private set; }
+    public bool isUIItemDrag { get; private set; }
 
     public bool RecordMode = false;
     public bool PlaybackMode = false;
@@ -53,6 +60,8 @@ public class InputBuffer : MonoBehaviour
                 startPos = e.position;
                 currentPos = e.position;
                 dragDelta = Vector2.zero;
+                currentDraggedItemId = e.draggedItemId;
+                isUIItemDrag = e.isDragFromUI;
                 break;
             case InputType.PointerMove:
                 if(isDragging)
@@ -65,6 +74,8 @@ public class InputBuffer : MonoBehaviour
             isDragging = false;
                 currentPos = e.position;
                 dragDelta = Vector2.zero;
+                currentDraggedItemId = null;
+                isUIItemDrag = false;
                 break;
         }
     }
@@ -98,6 +109,15 @@ public class InputBuffer : MonoBehaviour
         dragDelta = Vector2.zero;
     }
 
+    public void ClearRecorded()
+    {
+        lock (_lock)
+        {
+            _recorded.Clear();
+        }
+        _playIndex = 0;
+    }
+
     public void ResetPlayback()
     {
         _playIndex = 0;
@@ -121,10 +141,11 @@ public class InputBuffer : MonoBehaviour
 
         GUILayout.BeginArea(new Rect(10, 10, 300, 200));
         GUILayout.Label($"isDragging:{isDragging}");
-        GUILayout.Label($"isDragging: {isDragging}");
         GUILayout.Label($"startPos: {startPos}");
         GUILayout.Label($"currentPos: {currentPos}");
         GUILayout.Label($"dragDelta: {dragDelta}");
+        GUILayout.Label($"draggedItemID:{currentDraggedItemId ?? "null"}");
+        GUILayout.Label($"isUIItemDrag:{isUIItemDrag}");
         GUILayout.Label($"RecordMode: {RecordMode}");
         GUILayout.Label($"PlaybackMode: {PlaybackMode}");
         GUILayout.Label($"Recorded: {_recorded.Count}events");

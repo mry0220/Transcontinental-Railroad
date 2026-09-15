@@ -1,0 +1,6 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Level/UI/Unity_CSS/StyleSheet_BattleUI.uss?fileID=7433441132597879392&amp;guid=bc2f4bbb2e517ed4ea70d4b6a2bfb346&amp;type=3#StyleSheet_BattleUI"/>
+    <ui:VisualElement name="root" style="flex-grow: 0; height: 100%; flex-shrink: 0; width: 100%; background-color: rgba(255, 255, 255, 0);">
+        <ui:VisualElement name="unit-container" style="flex-grow: 0; flex-shrink: 1; flex-direction: row; flex-wrap: wrap; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; left: 40%; top: 75%; bottom: 25%; right: 60%; background-color: rgba(255, 255, 255, 0.22);"/>
+    </ui:VisualElement>
+</ui:UXML>

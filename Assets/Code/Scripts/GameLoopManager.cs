@@ -42,6 +42,11 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private int maxCatchUpIterations = 5;
     [SerializeField,Header("Warning Message ON")] private bool logCatchUpWarnings = true;
 #endif
+
+    //Unit Placement
+    [Header("Unit Placement")]
+    private GameObject currentPreviw;
+
     private RNG rng;
     private double clock;
     private double accumulator;
@@ -50,7 +55,8 @@ public class GameLoopManager : MonoBehaviour
     private double dt;
 #endif
     //private const int maxCatchUp = 5;
-    
+
+    private int stateFrameCount = 0; //statemanagerテスト用
 
     private void Awake()
     {
@@ -90,15 +96,19 @@ public class GameLoopManager : MonoBehaviour
     {
         Debug.Log($"[Gameloop]State transition: {prev} -> {next}");
 
+        stateFrameCount = 0;
+
         switch(next)
         {
             case GameState.Title:
                 if(inputBuffer != null)
                 {
                     inputBuffer.Clear();
+                    
                     inputBuffer.RecordMode = false;
                     inputBuffer.PlaybackMode = false;
                 }
+                HideUnitPlacementPreview();
             break;
 
             case GameState.Prep:
@@ -110,6 +120,7 @@ public class GameLoopManager : MonoBehaviour
                 {
                     inputBuffer.Clear();
                     inputBuffer.RecordMode = true;
+                    inputBuffer.PlaybackMode = false;
                 }
             break;
 
@@ -117,6 +128,7 @@ public class GameLoopManager : MonoBehaviour
                 if(inputBuffer != null)
                 {
                     inputBuffer.RecordMode = false;
+                    inputBuffer.PlaybackMode = false;
                 }
             break;
 
@@ -124,6 +136,7 @@ public class GameLoopManager : MonoBehaviour
                 if (inputBuffer != null)
                 {
                     inputBuffer.RecordMode = false;
+                    inputBuffer.PlaybackMode = false;
                 }
             break;
         }
@@ -163,6 +176,8 @@ public class GameLoopManager : MonoBehaviour
     //FixedStep event 
     private void FixedStep(float fixedDt)
     {
+        stateFrameCount++;
+
         var eventsThisStep = inputBuffer != null ? inputBuffer.DequeueAll() : null;
         if (eventsThisStep != null && eventsThisStep.Count > 0)
         {
@@ -198,27 +213,34 @@ public class GameLoopManager : MonoBehaviour
 
     private void UpdateTitle(float fixedDt)
     {
-
+        Debug.Log("TitleMode");
     }
 
     private void UpdatePrep(float fixedDt)
     {
-
+        if(stateFrameCount >= 60)
+        {
+            stateManager?.transitionTo(GameState.Battle);
+        }
     }
 
     private void UpdateBattle(float fixedDt)
     {
-
+        Debug.Log("BattleMode");
+        if(stateFrameCount >= 180)
+        {
+            stateManager.transitionTo(GameState.GameOver);
+        }
     }
 
     private void UpdateResult(float fixedDt)
     {
-
+        Debug.Log("ResultMode");
     }
 
     private void UpdateGameOver(float fixedDt)
     {
-
+        Debug.Log("GameOverMode");
     }
 
 
@@ -259,22 +281,43 @@ public class GameLoopManager : MonoBehaviour
 
     private void HandleInputPrep(InputBuffer.InputEvent evt)
     {
-
+       
     }
 
     private void HandleInputBattle(InputBuffer.InputEvent evt)
     {
-
+        if (evt.type == InputBuffer.InputType.PointerDown && stateFrameCount <= 180)
+        {
+            stateManager?.transitionTo(GameState.Result);
+        }
     }
 
     private void HandleInputResult(InputBuffer.InputEvent evt)
     {
-
+        if (evt.type == InputBuffer.InputType.PointerDown)
+        {
+            stateManager?.transitionTo(GameState.Title);
+        }
     }
 
     private void HandleInputGameOver(InputBuffer.InputEvent evt)
     {
+        if (evt.type == InputBuffer.InputType.PointerDown)
+        {
+            stateManager?.transitionTo(GameState.Title);
+        }
+    }
 
+    private void HideUnitPlacementPreview()
+    {
+        if(currentPreviw != null)
+        {
+            if(currentPreviw != null)
+            {
+                Destroy(currentPreviw);
+                currentPreviw = null;
+            }
+        }
     }
 
 
