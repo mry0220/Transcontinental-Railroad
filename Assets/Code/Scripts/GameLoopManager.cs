@@ -248,7 +248,7 @@ public class GameLoopManager : MonoBehaviour
             }
         }
     }
-
+   
     private void HandleInputTitle(InputBuffer.InputEvent evt)
     {
         if(evt.type == InputBuffer.InputType.PointerDown)
