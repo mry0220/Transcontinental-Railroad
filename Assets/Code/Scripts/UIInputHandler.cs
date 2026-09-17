@@ -5,23 +5,15 @@ public class UIInputHandler : MonoBehaviour
 {
     //UIDocument からrootVisualElementを取得
 
-    
+    //==== References====
     [SerializeField] private InputBuffer inputBuffer;
-    [SerializeField] private DataBase_Unit unitDB;
-
-    private UIDocument uiDocument;
+    
+    //==== Runtime State====
     private VisualElement root;
     private string currentDraggedItemId;
 
     private void Awake()
     {
-        uiDocument = GetComponent<UIDocument>();
-        if (uiDocument == null)
-        {
-            Debug.LogError("UIDocument not found!");
-            return;
-        }
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 
         if (inputBuffer == null)
@@ -36,56 +28,22 @@ public class UIInputHandler : MonoBehaviour
 #endif
     }
 
-    void OnEnable()
+    public void InitializeInputHadler(VisualElement root)
     {
-        Debug.Log("===OnEnable Start===");
-        
-        root = uiDocument.rootVisualElement;
-        
-        if (root == null)
-        {
-            Debug.LogError("rootVisualElement is null!");
-            return;
-        }
-        Debug.Log($"UnitDB:OK,unitscount = {(unitDB.units != null ? unitDB.units.Count : 0)}");
-        if(unitDB.units != null && unitDB.units.Count > 0)
-        {
-            SetupUI();
-        }
+        this.root = root;
 
-        //SetupUI();
-
-        root.RegisterCallback<PointerDownEvent>(OnPointerDown,TrickleDown.TrickleDown);
+        root.RegisterCallback<PointerDownEvent>(OnPointerDown, TrickleDown.TrickleDown);
         root.RegisterCallback<PointerMoveEvent>(OnPointerMove, TrickleDown.TrickleDown);
         root.RegisterCallback<PointerUpEvent>(OnPointerUp, TrickleDown.TrickleDown);
-
-        Debug.Log("UIInputHandler: Events registered");
     }
 
-    //========UI SetUp
-    void SetupUI()
-    {
-        var container = root.Q<VisualElement>("unit-container");
-
-        foreach(var unitData in unitDB.units)
-        {
-            Debug.Log($"setting up unit:id={unitData.id},icon = {unitData.icon}");
-
-            var icon = new VisualElement();
-            icon.AddToClassList("unit-icon");
-            icon.style.backgroundImage = new StyleBackground(unitData.icon);
-            icon.userData = unitData.id;
-
-            container.Add(icon);
-        }
-    }
-
-    private void OnDisable()
+    public void DeinitializeInputHandler()
     {
         if (root == null) return;
         root.UnregisterCallback<PointerDownEvent>(OnPointerDown, TrickleDown.TrickleDown);
         root.UnregisterCallback<PointerMoveEvent>(OnPointerMove, TrickleDown.TrickleDown);
         root.UnregisterCallback<PointerUpEvent>(OnPointerUp, TrickleDown.TrickleDown);
+        root = null;
     }
 
     private void OnPointerDown(PointerDownEvent evt)
@@ -148,7 +106,6 @@ public class UIInputHandler : MonoBehaviour
 
         GUILayout.BeginArea(new Rect(10, 270, 350, 100));
         GUILayout.Label("=== UIInputHandler ===");
-        GUILayout.Label($"UIDocument: {(uiDocument != null ? "OK" : "NULL")}");
         GUILayout.Label($"InputBuffer: {(inputBuffer != null ? "OK" : "NULL")}");
         GUILayout.Label($"Root: {(root != null ? "OK" : "NULL")}");
         GUILayout.Label($"CurrentDragItem: {currentDraggedItemId ?? "null"}");

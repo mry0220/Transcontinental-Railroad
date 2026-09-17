@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
-  m_Name: Item_Unit
+  m_Name: Unit_Lancer
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
   affiliation: 0
-  _id: Unit_Soldier
-  _displayname: "\u5175\u58EB"
-  _icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  _id: Unit_Lancer
+  _displayname: "\u30E9\u30F3\u30B5\u30FC"
+  _icon: {fileID: 2299533977213699898, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
   _prefab: {fileID: 0}

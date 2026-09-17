@@ -8,4 +8,6 @@ public class Base_Item : ScriptableObject
             Ally,
             Enemy,
     }
+
+
 }

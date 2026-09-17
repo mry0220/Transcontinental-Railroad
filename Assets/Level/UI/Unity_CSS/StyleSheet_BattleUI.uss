@@ -5,5 +5,48 @@ VisualElement {
     margin-right: 4px;
     margin-bottom: 4px;
     margin-left: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0);
+}
+
+.unit-icon {
+    top: 5%;
+    bottom: 5%;
+    height: 90%;
+    width: 15.5%;
+}
+
+.fuel-Wrapper {
+    border: 2px;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-top-width: 4px;
+    border-right-width: 4px;    
+    border-bottom-width: 4px;
+    border-left-width: 4px;
+}
+
+.fuel-BackGround {
+    background-color: rgb(30, 30, 30);
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+.fuel-Fill {
+    height: 100%;
+    width: 50%;
+    background-color: rgb(255, 100, 0);
 }

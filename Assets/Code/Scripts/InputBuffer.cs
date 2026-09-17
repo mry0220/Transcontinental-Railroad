@@ -31,8 +31,12 @@ public class InputBuffer : MonoBehaviour
 
     }
 
+    //====Internal Buffer====
+
     private readonly List<InputEvent> _events = new List<InputEvent>(64);
     private readonly object _lock = new object();
+
+    //====Public Drag State ==== 
 
     public bool isDragging { get; private set; }
     public Vector2 startPos{get; private set;}
@@ -41,10 +45,17 @@ public class InputBuffer : MonoBehaviour
     public string currentDraggedItemId { get; private set; }
     public bool isUIItemDrag { get; private set; }
 
+    //==== Record / Playback ====
     public bool RecordMode = false;
     public bool PlaybackMode = false;
     private readonly List<InputEvent> _recorded = new List<InputEvent>(256);
     private int _playIndex = 0;
+
+#if UNITY_EDITOR
+    [Header("Debug Info")]
+    [SerializeField] private bool showDebugInfo = false;
+#endif 
+
     public void EnqueueEvent(InputEvent e)
     {
         lock (_lock)
@@ -131,9 +142,8 @@ public class InputBuffer : MonoBehaviour
         }
     }
 
+
 #if UNITY_EDITOR
-    [Header("Debug Info")]
-    [SerializeField] private bool showDebugInfo = false;
 
     private void OnGUI()
     {

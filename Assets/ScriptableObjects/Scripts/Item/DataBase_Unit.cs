@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "DataBase_Unit", menuName = "Scriptable Objects/DataBase_Unit")]
+[CreateAssetMenu(fileName = "DataBase_Unit", menuName = "Scriptable Objects/Item/DataBase_Unit")]
 public class DataBase_Unit : ScriptableObject
 {
     public List<Item_Unit> units;

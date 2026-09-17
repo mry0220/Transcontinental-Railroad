@@ -13,15 +13,19 @@ public enum GameState
 
 public class StateManager : MonoBehaviour
 {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // ====Inspector Config ====
+#if UNITY_EDITOR
     [SerializeField] private GameState InitialState = GameState.Title;
     #else
     private GameState InitialState = GameState.Title;
 #endif
 
+    //====Runtime State====
     private GameState currentState;
     public GameState Current => currentState;
 
+
+    //====Events====
     public event Action<GameState,GameState> OnStateChanged; //(before,after)
 
     private void Awake()

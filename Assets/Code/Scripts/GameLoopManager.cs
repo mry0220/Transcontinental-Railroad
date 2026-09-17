@@ -11,7 +11,7 @@ public class GameLoopManager : MonoBehaviour
         _144FPS = 144,
     }
 
-    #if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         // デバッグ機能
 
     private enum FixedtimeStep
@@ -20,43 +20,46 @@ public class GameLoopManager : MonoBehaviour
         _60Hz = 16,
         _144Hz = 6,
     }
-
-    [SerializeField] private FixedtimeStep timestep = FixedtimeStep._60Hz;
-#else
-    // 本番: 60Hz固定, Inspector非表示
-
-    private double dt = 1.0 / 60.0; // 16.6667ms
 #endif
 
+    // 本番: 60Hz固定, Inspector非表示
+    //====References====
     private StateManager stateManager;
     private InputBuffer inputBuffer;
+    [SerializeField]private FuelManager fuelManager;
+    [SerializeField] private UIManager uIManager;
 
+    //====Inspector Config
     [SerializeField] private FPS fps = FPS._60FPS;
     [SerializeField] private int seed = 12345;
     [Header("VSync"), SerializeField] private bool vSync = false;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-
+    [SerializeField] private FixedtimeStep timestep = FixedtimeStep._60Hz;
+#endif
+    
+    //====Debug / Catch-up Settings (Editor / DevBuild)====
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     [Header("Catch-up Settings")]
     [SerializeField] private bool enableCatchUp = true;
     [SerializeField] private int maxCatchUpIterations = 5;
     [SerializeField,Header("Warning Message ON")] private bool logCatchUpWarnings = true;
 #endif
 
-    //Unit Placement
-    [Header("Unit Placement")]
-    private GameObject currentPreviw;
-
+    //====Runtime State====
     private RNG rng;
     private double clock;
     private double accumulator;
+    private int stateFrameCount = 0; //statemanagerテスト用
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private double dt;
-#endif
-    //private const int maxCatchUp = 5;
+#else
+    private double dt = 1.0 / 60.0; // 16.6667ms
+    //Unit Placement
 
-    private int stateFrameCount = 0; //statemanagerテスト用
+#endif
+    private GameObject currentPreview;
 
     private void Awake()
     {
@@ -218,7 +221,8 @@ public class GameLoopManager : MonoBehaviour
 
     private void UpdatePrep(float fixedDt)
     {
-        if(stateFrameCount >= 60)
+        uIManager.UpdateFuelUI(fuelManager.CurrentFuel,fuelManager.MaxFuel);
+        if(fuelManager.InitializingFuel())
         {
             stateManager?.transitionTo(GameState.Battle);
         }
@@ -227,9 +231,10 @@ public class GameLoopManager : MonoBehaviour
     private void UpdateBattle(float fixedDt)
     {
         Debug.Log("BattleMode");
-        if(stateFrameCount >= 180)
+        uIManager.UpdateFuelUI(fuelManager.CurrentFuel, fuelManager.MaxFuel);
+        if (!fuelManager.ConsumingFuel())
         {
-            stateManager.transitionTo(GameState.GameOver);
+            stateManager?.transitionTo(GameState.GameOver);
         }
     }
 
@@ -286,7 +291,7 @@ public class GameLoopManager : MonoBehaviour
 
     private void HandleInputBattle(InputBuffer.InputEvent evt)
     {
-        if (evt.type == InputBuffer.InputType.PointerDown && stateFrameCount <= 180)
+        if (evt.type == InputBuffer.InputType.PointerDown && fuelManager.ConsumingFuel())
         {
             stateManager?.transitionTo(GameState.Result);
         }
@@ -310,12 +315,12 @@ public class GameLoopManager : MonoBehaviour
 
     private void HideUnitPlacementPreview()
     {
-        if(currentPreviw != null)
+        if(currentPreview != null)
         {
-            if(currentPreviw != null)
+            if(currentPreview != null)
             {
-                Destroy(currentPreviw);
-                currentPreviw = null;
+                Destroy(currentPreview);
+                currentPreview = null;
             }
         }
     }
