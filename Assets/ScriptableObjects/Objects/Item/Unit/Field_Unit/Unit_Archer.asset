@@ -12,8 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
   m_Name: Unit_Archer
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
-  affiliation: 0
+  _affiliation: 0
+  _maxHP: 10
+  _attackPower: 10
+  _attackInterval: 10
+  _attackPattern: 0
+  _matchCapacity: 1
+  _moveSpeed: 5
+  _targetingStrategy: 0
   _id: Unit_Archer
   _displayname: "\u30A2\u30FC\u30C1\u30E3\u30FC"
   _icon: {fileID: -2176058482784802999, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 3703948109061128580, guid: d00b174220dd4fd44996f021b24973e7, type: 3}

@@ -12,8 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
   m_Name: Unit_Barserkar
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
-  affiliation: 0
+  _affiliation: 0
+  _maxHP: 10
+  _attackPower: 10
+  _attackInterval: 10
+  _attackPattern: 0
+  _matchCapacity: 1
+  _moveSpeed: 5
+  _targetingStrategy: 0
   _id: Unit_Barserkar
   _displayname: "\u30D0\u30FC\u30B5\u30FC\u30AB\u30FC"
   _icon: {fileID: -141872025373446780, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 5594432703933352321, guid: 25c1ed94504060d48bc15841753fb743, type: 3}

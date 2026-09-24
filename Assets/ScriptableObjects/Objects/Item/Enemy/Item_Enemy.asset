@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
-  m_Name: Unit_Saber
-  m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
-  _affiliation: 0
+  m_Script: {fileID: 11500000, guid: 33c987d059c43684eb35f063de5f1d3a, type: 3}
+  m_Name: Item_Enemy
+  m_EditorClassIdentifier: Assembly-CSharp::Item_Enemy
+  _affiliation: 1
   _maxHP: 10
   _attackPower: 10
   _attackInterval: 10
@@ -20,7 +20,7 @@ MonoBehaviour:
   _matchCapacity: 1
   _moveSpeed: 5
   _targetingStrategy: 0
-  _id: Unit_Saber
-  _displayname: "\u30BB\u30A4\u30D0\u30FC"
-  _icon: {fileID: -8482940761734015503, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
+  _id: Enemy_Test
+  _displayname: "\u30C6\u30B9\u30C8"
+  _icon: {fileID: -8293812731248686629, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
   _prefab: {fileID: 4624132937953453636, guid: bfc6cbdd4cf1c074f8e6800d3e3448ff, type: 3}

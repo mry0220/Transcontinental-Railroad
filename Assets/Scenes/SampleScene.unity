@@ -148,8 +148,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a75ef5b700d9b43a6617989a275877, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelManager
-  initialFuel: 600
-  fillingAmount: 5
+  initialFuel: 6000
+  fillingAmount: 20
   consumeAmount: 1
 --- !u!4 &83915110
 Transform:
@@ -303,6 +303,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &569690235
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 569690237}
+  - component: {fileID: 569690236}
+  m_Layer: 0
+  m_Name: WaveManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &569690236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569690235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78231c1519e669a4d9d7864ea91d56bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaveManager
+  _waves:
+  - {fileID: 11400000, guid: 34b0048832b02814a9888738a2bacbab, type: 2}
+--- !u!4 &569690237
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569690235}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,6 +465,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIInputHandler
   inputBuffer: {fileID: 2111893338}
+  unitManager: {fileID: 1775603192}
 --- !u!4 &1376791715
 Transform:
   m_ObjectHideFlags: 0
@@ -470,6 +517,53 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   unitDB: {fileID: 11400000, guid: e4585e16e0cb76a469bf50c64e82e6f4, type: 2}
+--- !u!1 &1775603191
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1775603193}
+  - component: {fileID: 1775603192}
+  m_Layer: 0
+  m_Name: BattleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1775603192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1775603191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 679dd73354341234b83f04ba4a964665, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BattleManager
+  unitDB: {fileID: 11400000, guid: e4585e16e0cb76a469bf50c64e82e6f4, type: 2}
+  mainCamera: {fileID: 519420031}
+  maxDeployCount: 6
+--- !u!4 &1775603193
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1775603191}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2111893337
 GameObject:
   m_ObjectHideFlags: 0
@@ -531,6 +625,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameLoopManager
   fuelManager: {fileID: 83915109}
   uIManager: {fileID: 1376791717}
+  unitManager: {fileID: 1775603192}
+  waveManager: {fileID: 569690236}
   fps: 60
   seed: 12345
   vSync: 0
@@ -562,3 +658,5 @@ SceneRoots:
   - {fileID: 2111893341}
   - {fileID: 1376791715}
   - {fileID: 83915110}
+  - {fileID: 1775603193}
+  - {fileID: 569690237}

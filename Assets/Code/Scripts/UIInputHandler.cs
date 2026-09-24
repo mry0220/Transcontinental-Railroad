@@ -7,10 +7,12 @@ public class UIInputHandler : MonoBehaviour
 
     //==== References====
     [SerializeField] private InputBuffer inputBuffer;
+    [SerializeField] private UnitManager unitManager;
     
     //==== Runtime State====
     private VisualElement root;
     private string currentDraggedItemId;
+    private string tappedItemId;
 
     private void Awake()
     {
@@ -54,6 +56,19 @@ public class UIInputHandler : MonoBehaviour
 
         bool isUIItem = !string.IsNullOrEmpty(currentDraggedItemId);
 
+        if (isUIItem && unitManager != null &&
+            unitManager.GetUnitStatus(currentDraggedItemId) 
+            == UnitManager.UnitBattleStatus.Deployed)
+        {
+            tappedItemId = currentDraggedItemId;
+            currentDraggedItemId = null;
+            isUIItem = false;
+        }
+        else
+        {
+            tappedItemId = null;
+        }
+
         Enqueue(evt,InputBuffer.InputType.PointerDown,Vector2.zero,currentDraggedItemId,isUIItem);
         
     }
@@ -75,14 +90,21 @@ public class UIInputHandler : MonoBehaviour
 
         Enqueue(evt, InputBuffer.InputType.PointerUp, Vector2.zero,currentDraggedItemId,isUIItem);
 
+        if(!string.IsNullOrEmpty(tappedItemId))
+        {
+            unitManager?.ReturnUnit(tappedItemId);
+            tappedItemId = null;
+        }
+
         currentDraggedItemId = null;
     }
 
     private void Enqueue(IPointerEvent evt,InputBuffer.InputType type,Vector2 delta,string itemId,bool fromUI)
     {
         if (inputBuffer == null) return;
-        var pos = evt.position;
-        var ts = Time.timeAsDouble;
+        float scale = (root != null && root.panel != null) ? root.panel.scaledPixelsPerPoint : 1f;
+        var pos = evt.position * scale;
+        var ts = Time.timeAsDouble * scale;
         inputBuffer.EnqueueEvent(new InputBuffer.InputEvent(type, pos, delta, ts,itemId,fromUI));
     }
 

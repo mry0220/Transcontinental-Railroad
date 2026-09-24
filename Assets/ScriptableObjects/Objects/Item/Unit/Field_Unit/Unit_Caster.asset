@@ -12,8 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
   m_Name: Unit_Caster
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
-  affiliation: 0
+  _affiliation: 0
+  _maxHP: 10
+  _attackPower: 10
+  _attackInterval: 10
+  _attackPattern: 0
+  _matchCapacity: 1
+  _moveSpeed: 5
+  _targetingStrategy: 0
   _id: Unit_Caster
   _displayname: "\u30AD\u30E3\u30B9\u30BF\u30FC"
   _icon: {fileID: -8293812731248686629, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 2346520820556441555, guid: c7fefab9120b72a4ca0030b878590cc9, type: 3}

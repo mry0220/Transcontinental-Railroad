@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -13,6 +14,7 @@ public class UIManager : MonoBehaviour
     //==== Runtime UI State
     private VisualElement root;
     private VisualElement fuelBarFill;
+    private Dictionary<string, VisualElement> unitIcons = new();
     
     private void Awake()
     {
@@ -52,7 +54,7 @@ public class UIManager : MonoBehaviour
         SetupUIFuel();
         SetupUIUnit();
     }
-    void SetupUIFuel()
+    private void SetupUIFuel()
     {
         var container = root.Q<VisualElement>("fuel-container");
 
@@ -69,7 +71,21 @@ public class UIManager : MonoBehaviour
         fuelBarWrapper.Add(fuelBarBackGround);
         container.Add(fuelBarWrapper);
     }
-    void SetupUIUnit()
+    public void HandleUnitDeployed(string itemId,GameObject unit)
+    {
+        if(unitIcons.TryGetValue(itemId,out var icon))
+        {
+            icon.AddToClassList("unit-icon-deployed");
+        }
+    }
+    public void HandleUnitReturned(string itemId,GameObject unit)
+    {
+        if(unitIcons.TryGetValue(itemId,out var icon))
+        {
+            icon.RemoveFromClassList("unit-icon-deployed");
+        }
+    }
+    private void SetupUIUnit()
     {
         var container = root.Q<VisualElement>("unit-container");
 
@@ -83,6 +99,7 @@ public class UIManager : MonoBehaviour
             icon.userData = unitData.id;
 
             container.Add(icon);
+            unitIcons[unitData.id] = icon;
         }
     }
 

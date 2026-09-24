@@ -12,8 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
   m_Name: Unit_Lancer
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
-  affiliation: 0
+  _affiliation: 0
+  _maxHP: 10
+  _attackPower: 10
+  _attackInterval: 10
+  _attackPattern: 0
+  _matchCapacity: 1
+  _moveSpeed: 5
+  _targetingStrategy: 0
   _id: Unit_Lancer
   _displayname: "\u30E9\u30F3\u30B5\u30FC"
   _icon: {fileID: 2299533977213699898, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 4317954664168537335, guid: a78452837a6e7124892ae809fd1f428d, type: 3}

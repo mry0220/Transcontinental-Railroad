@@ -50,3 +50,7 @@ VisualElement {
     width: 50%;
     background-color: rgb(255, 100, 0);
 }
+
+.unit-icon-deployed{
+    opacity:0.4; 
+}

@@ -26,8 +26,11 @@ public class GameLoopManager : MonoBehaviour
     //====References====
     private StateManager stateManager;
     private InputBuffer inputBuffer;
-    [SerializeField]private FuelManager fuelManager;
+    [SerializeField] private FuelManager fuelManager;
     [SerializeField] private UIManager uIManager;
+    [SerializeField] private UnitManager unitManager;
+    [SerializeField] private WaveManager waveManager;
+    private MatchManager matchManager;
 
     //====Inspector Config
     [SerializeField] private FPS fps = FPS._60FPS;
@@ -66,6 +69,10 @@ public class GameLoopManager : MonoBehaviour
         stateManager = GetComponent<StateManager>();
         inputBuffer = GetComponent<InputBuffer>();
 
+        matchManager = new();
+        waveManager?.SetMatchManager(matchManager);
+        unitManager?.SetMatchManager(matchManager);
+
         rng = new RNG(seed);
 
         clock  = 0.0;
@@ -87,6 +94,13 @@ public class GameLoopManager : MonoBehaviour
         if (stateManager != null)
         {
             stateManager.OnStateChanged += OnGameStateChanged;
+            
+        }
+
+        if(unitManager != null && uIManager != null)
+        {
+            unitManager.OnUnitDeployed += uIManager.HandleUnitDeployed;
+            unitManager.OnUnitReturned += uIManager.HandleUnitReturned;
         }
 
         if(stateManager == null)
@@ -111,7 +125,7 @@ public class GameLoopManager : MonoBehaviour
                     inputBuffer.RecordMode = false;
                     inputBuffer.PlaybackMode = false;
                 }
-                HideUnitPlacementPreview();
+                unitManager?.HideUnitPlacementPreview();
             break;
 
             case GameState.Prep:
@@ -125,6 +139,8 @@ public class GameLoopManager : MonoBehaviour
                     inputBuffer.RecordMode = true;
                     inputBuffer.PlaybackMode = false;
                 }
+                unitManager?.ResetUnitStatuses();
+                waveManager?.StartBattlePhase();
             break;
 
             case GameState.Result:
@@ -133,6 +149,7 @@ public class GameLoopManager : MonoBehaviour
                     inputBuffer.RecordMode = false;
                     inputBuffer.PlaybackMode = false;
                 }
+                Combatant.DestroyDead();
             break;
 
             case GameState.GameOver:
@@ -141,6 +158,7 @@ public class GameLoopManager : MonoBehaviour
                     inputBuffer.RecordMode = false;
                     inputBuffer.PlaybackMode = false;
                 }
+                Combatant.DestroyDead();
             break;
         }
     }
@@ -158,7 +176,7 @@ public class GameLoopManager : MonoBehaviour
     const int maxSteps = 1;
 #endif
 
-        while (accumulator >= dt && steps < maxCatchUpIterations)
+        while (steps < maxSteps)
         {
             FixedStep((float)dt);
       
@@ -232,6 +250,13 @@ public class GameLoopManager : MonoBehaviour
     {
         Debug.Log("BattleMode");
         uIManager.UpdateFuelUI(fuelManager.CurrentFuel, fuelManager.MaxFuel);
+        
+        foreach(var combatant in Combatant.All)
+        {
+            combatant.Tick(fixedDt);
+        }
+        matchManager.ProcessRequests();
+        
         if (!fuelManager.ConsumingFuel())
         {
             stateManager?.transitionTo(GameState.GameOver);
@@ -291,10 +316,16 @@ public class GameLoopManager : MonoBehaviour
 
     private void HandleInputBattle(InputBuffer.InputEvent evt)
     {
-        if (evt.type == InputBuffer.InputType.PointerDown && fuelManager.ConsumingFuel())
+        if(evt.type == InputBuffer.InputType.PointerMove && evt.isDragFromUI)
         {
-            stateManager?.transitionTo(GameState.Result);
+            unitManager?.UpdateUnitPlacementPreview(evt);
         }
+
+        if (evt.type == InputBuffer.InputType.PointerUp && evt.isDragFromUI)
+        {
+            unitManager?.DeployUnit(evt.draggedItemId);
+        }
+
     }
 
     private void HandleInputResult(InputBuffer.InputEvent evt)
@@ -313,17 +344,7 @@ public class GameLoopManager : MonoBehaviour
         }
     }
 
-    private void HideUnitPlacementPreview()
-    {
-        if(currentPreview != null)
-        {
-            if(currentPreview != null)
-            {
-                Destroy(currentPreview);
-                currentPreview = null;
-            }
-        }
-    }
+   
 
 
 
