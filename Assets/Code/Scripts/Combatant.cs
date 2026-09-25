@@ -60,12 +60,15 @@ public class Combatant : MonoBehaviour,ICombatant
 
         CreateStatusDisplay();
         CreateRangeIndicator();
+        UpdateStatusDisplay();
     }
 
     public void Activate(MatchManager matchManager)
     {
         _matchManager = matchManager;
         _isActive = true;
+
+        DestroyDeploymentVisuals();
     }
 
     private void OnEnable() => _all.Add(this);
