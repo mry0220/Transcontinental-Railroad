@@ -24,11 +24,15 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private float _attackTimer;
 
+    private TextMesh _statusText;
+
     public void Initialize(Base_Item data, MatchManager matchManager)
     {
         _data = data;
         _matchManager = matchManager;
         CurrentHP = _data.maxHP;
+
+        CreateeStatusDisplay();
     }
 
     private void OnEnable() => _all.Add(this);
@@ -44,6 +48,55 @@ public class Combatant : MonoBehaviour,ICombatant
         {
             TryRequestMatch();
         }
+
+        UpdateStatusDisplay();
+    }
+
+    private void CreateeStatusDisplay()
+    {
+        var displayObj = new GameObject("StatusDisplay");
+        displayObj.transform.SetParent(transform);
+        displayObj.transform.localPosition = new Vector3(0f, 1f, 0f);
+
+        _statusText = displayObj.AddComponent<TextMesh>();
+        _statusText.characterSize = 0.1f;
+        _statusText.fontSize = 48;
+        _statusText.anchor = TextAnchor.LowerCenter;
+        _statusText.alignment = TextAlignment.Center;
+    }
+
+    private void UpdateStatusDisplay()
+    {
+        if (_statusText == null) return;
+
+        string strategyLabel = _data.targetingStrategy switch
+        {
+            Base_Item.TargetingStrategy.Nearest => "N",
+            Base_Item.TargetingStrategy.Farthest => "F",
+            Base_Item.TargetingStrategy.LowestHp => "L",
+            _ => "?"
+        };
+
+        string stateLabel;
+        Color color;
+        if(CurrentMatchCount > 0)
+        {
+            stateLabel = "Match";
+            color = Color.red;
+        }
+        else if(_provisionalTarget != null)
+        {
+            stateLabel = "Stand-by";
+            color = Color.yellow;
+        }
+        else
+        {
+            stateLabel = "Free";
+            color = Color.yellow;
+        }
+
+        _statusText.text = $"{MoveSpeed:F1}[{strategyLabel}]\n{stateLabel}";
+        _statusText.color = color;
     }
 
     private void TryRequestMatch()

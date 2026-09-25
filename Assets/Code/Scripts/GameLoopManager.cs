@@ -55,6 +55,7 @@ public class GameLoopManager : MonoBehaviour
     private double accumulator;
     private int stateFrameCount = 0; //statemanagerテスト用
 
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private double dt;
 #else
