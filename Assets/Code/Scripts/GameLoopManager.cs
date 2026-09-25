@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEditor.ShaderKeywordFilter;
 using UnityEngine;
 
 public class GameLoopManager : MonoBehaviour
@@ -48,6 +49,10 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private int maxCatchUpIterations = 5;
     [SerializeField,Header("Warning Message ON")] private bool logCatchUpWarnings = true;
 #endif
+
+    [SerializeField] private DataBase_Train trainDB;
+    [SerializeField] private Vector3 trainSpawnPosition = Vector3.zero;
+    private GameObject _trainInstance;
 
     //====Runtime State====
     private RNG rng;
@@ -130,6 +135,13 @@ public class GameLoopManager : MonoBehaviour
             break;
 
             case GameState.Prep:
+
+                if(_trainInstance == null && trainDB != null && trainDB.train.prefab)
+                {
+                    _trainInstance = Instantiate(trainDB.train.prefab, trainSpawnPosition, Quaternion.identity);
+                    var combatant = _trainInstance.GetComponent<Combatant>();
+                    combatant?.Initialize(trainDB.train,matchManager);
+                }
 
             break;
 

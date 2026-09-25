@@ -287,7 +287,8 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private void TickAttack(float deltaTime)
     {
-        if (_matches.Count == 0 || _movementState != MovementState.InRange) return;
+        bool hasTarget = _matches.Count > 0 || _provisionalTargets.Count > 0;
+        if (!hasTarget || _movementState != MovementState.InRange) return;
 
         _attackTimer += deltaTime;
         if (_attackTimer < _data.attackInterval) return;
@@ -299,6 +300,12 @@ public class Combatant : MonoBehaviour,ICombatant
             if (opponent == null) continue;
             match.ApplyDamage(this, opponent, _data.attackPower);
             Debug.Log("[Combatant] {name}attacked,opponent HP remaining check needed via opponent side");
+        }
+
+        foreach(var target in _provisionalTargets.ToList())
+        {
+            if (target.IsDead) continue;
+            target.ApplyDamage(_data.attackPower);
         }
     }
 
