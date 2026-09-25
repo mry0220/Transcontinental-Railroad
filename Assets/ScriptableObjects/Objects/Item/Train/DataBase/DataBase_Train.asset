@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94a91c1ac34b0e04e88f1fd3c455c796, type: 3}
   m_Name: DataBase_Train
   m_EditorClassIdentifier: Assembly-CSharp::DataBase_Train
-  train: {fileID: 0}
+  train: {fileID: 11400000, guid: 613f919144bf07e41bbab0bad311ca9c, type: 2}

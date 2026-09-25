@@ -148,9 +148,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a75ef5b700d9b43a6617989a275877, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelManager
-  initialFuel: 6000
   fillingAmount: 20
   consumeAmount: 1
+  trainDB: {fileID: 11400000, guid: f8f27df6f3b129c4899c75a6fff7ba54, type: 2}
 --- !u!4 &83915110
 Transform:
   m_ObjectHideFlags: 0
@@ -634,6 +634,8 @@ MonoBehaviour:
   enableCatchUp: 1
   maxCatchUpIterations: 5
   logCatchUpWarnings: 1
+  trainDB: {fileID: 0}
+  trainSpawnPosition: {x: 0, y: 0, z: 0}
 --- !u!4 &2111893341
 Transform:
   m_ObjectHideFlags: 0

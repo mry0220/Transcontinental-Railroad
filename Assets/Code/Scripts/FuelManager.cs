@@ -3,13 +3,13 @@ using UnityEngine;
 public class FuelManager : MonoBehaviour
 {
     //====Inspector Config====
-    [SerializeField] private int initialFuel = 60;
+   // [SerializeField] private int initialFuel = 60;
     [SerializeField] private int fillingAmount = 1;
     [SerializeField] private int consumeAmount = 1;
-
+    [SerializeField] private DataBase_Train trainDB;
     //====Public State====
     public int CurrentFuel { get; private set; }
-    public int MaxFuel => initialFuel;
+    public int MaxFuel => trainDB.train.maxHP;
 
 
     /// <summary>
@@ -18,9 +18,9 @@ public class FuelManager : MonoBehaviour
     /// <returns></returns>
     public bool InitializingFuel()
     {
-        if(CurrentFuel >= initialFuel)
+        if(CurrentFuel >= MaxFuel)
         {
-            CurrentFuel = initialFuel;
+            CurrentFuel = MaxFuel;
             return true;
         }
         CurrentFuel += fillingAmount;
