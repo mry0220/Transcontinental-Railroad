@@ -19,6 +19,8 @@ public class Combatant : MonoBehaviour,ICombatant
     private readonly List<Match> _matches = new();
     public int CurrentMatchCount => _matches.Count;
 
+    public event System.Action<int> OnDamageTaken;
+
     //private Combatant _provisionalTarget;
     private readonly List<Combatant> _provisionalTargets = new();
     private readonly List<Combatant> _waitingOnMe = new();
@@ -312,6 +314,7 @@ public class Combatant : MonoBehaviour,ICombatant
     public void ApplyDamage(int amount)
     {
         CurrentHP = Mathf.Max(0, CurrentHP - amount);
+        OnDamageTaken?.Invoke(amount);
     }
 
     public void NotifyMatchStarted(Match match)

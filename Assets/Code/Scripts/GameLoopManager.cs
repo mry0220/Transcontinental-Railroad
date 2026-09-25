@@ -139,8 +139,12 @@ public class GameLoopManager : MonoBehaviour
                 if(_trainInstance == null && trainDB != null && trainDB.train.prefab)
                 {
                     _trainInstance = Instantiate(trainDB.train.prefab, trainSpawnPosition, Quaternion.identity);
-                    var combatant = _trainInstance.GetComponent<Combatant>();
-                    combatant?.Initialize(trainDB.train,matchManager);
+                    var trainCombatant = _trainInstance.GetComponent<Combatant>();
+                    trainCombatant?.Initialize(trainDB.train,matchManager);
+                    if(trainCombatant != null)
+                    {
+                        trainCombatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
+                    }
                 }
 
             break;
@@ -272,6 +276,8 @@ public class GameLoopManager : MonoBehaviour
         
         if (!fuelManager.ConsumingFuel())
         {
+            var trainCombatant = _trainInstance != null ? _trainInstance.GetComponent<Combatant>() : null;
+            trainCombatant?.ApplyDamage(int.MaxValue);
             stateManager?.transitionTo(GameState.GameOver);
         }
     }

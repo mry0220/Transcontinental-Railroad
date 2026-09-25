@@ -16,27 +16,32 @@ public class FuelManager : MonoBehaviour
     /// 燃料充填中処理
     /// </summary>fuel filling
     /// <returns></returns>
-   public bool InitializingFuel()
-   {
-       if(CurrentFuel >= initialFuel)
-       {
-           CurrentFuel = initialFuel;
-           return true;
-       }
-       CurrentFuel += fillingAmount;
-       return false;
-   }
-
-   public bool ConsumingFuel()
-   {
-        if(CurrentFuel <= 0)
+    public bool InitializingFuel()
+    {
+        if(CurrentFuel >= initialFuel)
         {
-            CurrentFuel = 0;
-            return false;
+            CurrentFuel = initialFuel;
+            return true;
         }
-        CurrentFuel -= consumeAmount;
-        return true;
-   }
+        CurrentFuel += fillingAmount;
+        return false;
+    }
+
+    public bool ConsumingFuel()
+    {
+         if(CurrentFuel <= 0)
+         {
+             CurrentFuel = 0;
+             return false;
+         }
+         CurrentFuel -= consumeAmount;
+         return true;
+    }
+   
+    public void ConsumeAmount(int amount)
+    {
+        CurrentFuel = Mathf.Max(0,CurrentFuel - amount);
+    }
 
    
 }
