@@ -20,6 +20,7 @@ MonoBehaviour:
   _matchCapacity: 1
   _moveSpeed: 5
   _targetingStrategy: 0
+  _attackRange: 2
   _id: Unit_Caster
   _displayname: "\u30AD\u30E3\u30B9\u30BF\u30FC"
   _icon: {fileID: -8293812731248686629, guid: 3a76ee0d906898b479b98055d7741368, type: 3}

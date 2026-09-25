@@ -20,6 +20,7 @@ MonoBehaviour:
   _matchCapacity: 1
   _moveSpeed: 5
   _targetingStrategy: 0
+  _attackRange: 2
   _id: Unit_Saber
   _displayname: "\u30BB\u30A4\u30D0\u30FC"
   _icon: {fileID: -8482940761734015503, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
