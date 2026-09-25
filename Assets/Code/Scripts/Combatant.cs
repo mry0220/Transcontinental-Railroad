@@ -102,11 +102,11 @@ public class Combatant : MonoBehaviour,ICombatant
         }
         else
         {
-           // DestroyDeploymentVisuals();
+            DestroyDeploymentVisuals();
         }
     }
 
-    private void DestroyDeploymentVosuals()
+    private void DestroyDeploymentVisuals()
     {
         if(_statusText != null)
         {
