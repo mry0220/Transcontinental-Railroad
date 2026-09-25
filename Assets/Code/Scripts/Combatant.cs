@@ -26,14 +26,46 @@ public class Combatant : MonoBehaviour,ICombatant
     private float _attackTimer;
 
     private TextMesh _statusText;
+    private LineRenderer _rangeIndicator;
+
+    private bool _isActive;
+
+    private enum MovementState
+    {
+        Idle,
+        Moving,
+        InRange,
+    }
+
+    private MovementState _movementState = MovementState.Idle;
+
+    private float _idleTimer;
+    [SerializeField] private float _matchCooldownDuration = 0.5f;
+   
 
     public void Initialize(Base_Item data, MatchManager matchManager)
     {
         _data = data;
         _matchManager = matchManager;
         CurrentHP = _data.maxHP;
+        _isActive = true;
+        
+    }
 
-        CreateeStatusDisplay();
+    public void InitializeAsPreview(Base_Item data)
+    {
+        _data = data;
+        CurrentHP = data.maxHP;
+        _isActive = false;
+
+        CreateStatusDisplay();
+        CreateRangeIndicator();
+    }
+
+    public void Activate(MatchManager matchManager)
+    {
+        _matchManager = matchManager;
+        _isActive = true;
     }
 
     private void OnEnable() => _all.Add(this);
@@ -41,7 +73,12 @@ public class Combatant : MonoBehaviour,ICombatant
 
     public void Tick(float fixedDt)
     {
-        if (_data == null || IsDead) return;
+        if (!_isActive || _data == null || IsDead) return;
+
+        bool hasAnyTarget = CurrentMatchCount > 0 || _provisionalTargets.Count > 0;
+        _idleTimer = hasAnyTarget ? 0f : _idleTimer + fixedDt;
+
+        
 
         TickAttack(fixedDt);
 
@@ -53,7 +90,7 @@ public class Combatant : MonoBehaviour,ICombatant
         UpdateStatusDisplay();
     }
 
-    private void CreateeStatusDisplay()
+    private void CreateStatusDisplay()
     {
         var displayObj = new GameObject("StatusDisplay");
         displayObj.transform.SetParent(transform);
@@ -64,6 +101,49 @@ public class Combatant : MonoBehaviour,ICombatant
         _statusText.fontSize = 48;
         _statusText.anchor = TextAnchor.LowerCenter;
         _statusText.alignment = TextAlignment.Center;
+    }
+
+    private void CreateRangeIndicator()
+    {
+        var rangeObj = new GameObject("RangeIndicator");
+        rangeObj.transform.SetParent(transform);
+        rangeObj.transform.localPosition = Vector3.zero;
+
+        _rangeIndicator = rangeObj.AddComponent<LineRenderer>();
+        _rangeIndicator.useWorldSpace = false;
+        _rangeIndicator.loop = true;
+        _rangeIndicator.widthMultiplier = 0.03f;
+        _rangeIndicator.positionCount = 32;
+        _rangeIndicator.material = new Material(Shader.Find("Sprites/Default"));
+        _rangeIndicator.startColor = _rangeIndicator.endColor = new Color(1f, 1f, 1f, 0.3f);
+
+        float radius = _data.attackRange;
+        for(int i = 0;i < 32;i++)
+        {
+            float angle = 1 / 32f * Mathf.PI * 2f;
+            _rangeIndicator.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle * radius), 0f));
+        }
+    }
+
+    private void UpdateMovement(float fixedDt)
+    {
+        var primary = GetPrimaryTarget();
+        if(primary == null)
+        {
+            _movementState = MovementState.Idle;
+            return;
+        }
+
+        float distance = Vector3.Distance(transform.position, primary.transform.position);
+        if(distance <= _data.attackRange)
+        {
+            _movementState = MovementState.InRange;
+            return;
+        }
+
+        _movementState = MovementState.Moving;
+        Vector3 dir = (primary.transform.position - transform.position).normalized;
+        transform.position += dir * MoveSpeed * fixedDt;
     }
 
     private void UpdateStatusDisplay()
@@ -100,6 +180,16 @@ public class Combatant : MonoBehaviour,ICombatant
         _statusText.color = color;
     }
 
+    private Combatant GetPrimaryTarget()
+    {
+        foreach ( var match in _matches)
+        {
+            if (match.GetOpponent(this) is Combatant opponent) return this;
+        }
+
+        return _provisionalTargets.Count > 0 ? _provisionalTargets[0] : null;
+    }
+
     private void TryRequestMatch()
     {
        for(int i = _provisionalTargets.Count -1;i >=0;i--)
@@ -123,7 +213,7 @@ public class Combatant : MonoBehaviour,ICombatant
 
         for(int i =0;i < openSlots;i++)
         {
-            var candidates = _all.Where(c => !exculuded.Contains(c) && !c.IsDead && c._data != null && c.Affiliation != Affiliation);
+            var candidates = _all.Where(c => !exculuded.Contains(c) && !c.IsDead && c._isActive && c._data != null && c.Affiliation != Affiliation);
             var target = SelectFromCandidates(candidates);
             if (target == null) break;
 
@@ -162,7 +252,7 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private void TickAttack(float deltaTime)
     {
-        if (_matches.Count == 0) return;
+        if (_matches.Count == 0 || _movementState != MovementState.InRange) return;
 
         _attackTimer += deltaTime;
         if (_attackTimer < _data.attackInterval) return;

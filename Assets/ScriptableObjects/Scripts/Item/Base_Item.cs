@@ -47,4 +47,7 @@ public class Base_Item : ScriptableObject
 
     [SerializeField] private TargetingStrategy _targetingStrategy;
     public TargetingStrategy targetingStrategy => _targetingStrategy;
+
+    [SerializeField] private float _attackRange;
+    public float attackRange => _attackRange;
 }

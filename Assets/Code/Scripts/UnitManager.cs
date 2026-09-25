@@ -61,7 +61,10 @@ public class UnitManager : MonoBehaviour
             if (unitData == null || unitData.prefab == null) return;
              
             currentPreview = Instantiate(unitData.prefab);
-            currentPreviewItemId = evt.draggedItemId;    
+            currentPreviewItemId = evt.draggedItemId;
+
+            var previewCombatant = currentPreview.GetComponent<Combatant>();
+            previewCombatant?.InitializeAsPreview(unitData);
             
         }
 
@@ -116,10 +119,13 @@ public class UnitManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(itemId)) return;
         if (GetUnitStatus(itemId) != UnitBattleStatus.Deployed) return;
-            if (!deployedUnits.TryGetValue(itemId, out var unit)) return;
+        if (!deployedUnits.TryGetValue(itemId, out var unit)) return;
+
+        var combatant = unit != null ? unit.GetComponent<Combatant>() : null;
+        if (combatant != null && combatant.IsDead) return;
 
         deployedUnits.Remove(itemId);
-            unitStatus[itemId] = UnitBattleStatus.Returned;
+        unitStatus[itemId] = UnitBattleStatus.Returned;
 
         if(unit != null)
         {
@@ -144,8 +150,9 @@ public class UnitManager : MonoBehaviour
         var deployedUnit = currentPreview;
         currentPreview = null;
         currentPreviewItemId = null;
+
         var combatant = deployedUnit.GetComponent<Combatant>();
-        combatant?.Initialize(unitDB.GetUnit(itemId), _matchManager);
+        combatant?.Activate(_matchManager);
 
         unitStatus[itemId] = UnitBattleStatus.Deployed;
         deployedUnits[itemId] = deployedUnit;
