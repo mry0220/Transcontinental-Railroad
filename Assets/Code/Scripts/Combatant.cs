@@ -90,6 +90,36 @@ public class Combatant : MonoBehaviour,ICombatant
         UpdateStatusDisplay();
     }
 
+    public void SetPreviewVisualsViisivle(bool visible)
+    {
+        if(visible)
+        {
+            if(_statusText == null ||  _rangeIndicator == null)
+            {
+                CreateStatusDisplay();
+                CreateRangeIndicator();
+            }
+        }
+        else
+        {
+           // DestroyDeploymentVisuals();
+        }
+    }
+
+    private void DestroyDeploymentVosuals()
+    {
+        if(_statusText != null)
+        {
+            Destroy(_statusText.gameObject);
+            _statusText = null;
+        }
+        if(_rangeIndicator != null)
+        {
+            Destroy(_rangeIndicator.gameObject);
+            _rangeIndicator = null;
+        }
+    }
+
     private void CreateStatusDisplay()
     {
         var displayObj = new GameObject("StatusDisplay");
@@ -102,6 +132,8 @@ public class Combatant : MonoBehaviour,ICombatant
         _statusText.anchor = TextAnchor.LowerCenter;
         _statusText.alignment = TextAlignment.Center;
     }
+
+    
 
     private void CreateRangeIndicator()
     {

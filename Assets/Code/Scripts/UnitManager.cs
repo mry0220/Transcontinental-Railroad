@@ -32,6 +32,7 @@ public class UnitManager : MonoBehaviour
 
     private MatchManager _matchManager;
 
+    private bool _isDragging;
     private void Awake()
     {
         if (unitDB == null)
@@ -49,6 +50,12 @@ public class UnitManager : MonoBehaviour
     public void UpdateUnitPlacementPreview(InputBuffer.InputEvent evt)
     {
         if (string.IsNullOrEmpty(evt.draggedItemId)) return;
+
+        if(!_isDragging)
+        {
+            _isDragging = true;
+            SetAllEnemyVisuals(true);
+        }
 
         if(currentPreview != null && currentPreviewItemId != evt.draggedItemId)
         {
@@ -69,6 +76,17 @@ public class UnitManager : MonoBehaviour
         }
 
         currentPreview.transform.position = ScreenToWorldPosition(evt.position);
+    }
+
+    private void SetAllEnemyVisuals(bool visible)
+    {
+        foreach(var combatant in Combatant.All)
+        {
+            if(combatant.Affiliation == Base_Item.Affiliation.Enemy)
+            {
+                combatant.SetPreviewVisualsViisivle(visible);
+            }
+        }
     }
 
     private Vector3 ScreenToWorldPosition(Vector2 uiPosition)
@@ -94,7 +112,11 @@ public class UnitManager : MonoBehaviour
             
                 Destroy(currentPreview);
                 currentPreview = null;
-            
+        }
+        if(_isDragging)
+        {
+            _isDragging = false;
+            SetAllEnemyVisuals(false);
         }
     }
 
@@ -150,6 +172,12 @@ public class UnitManager : MonoBehaviour
         var deployedUnit = currentPreview;
         currentPreview = null;
         currentPreviewItemId = null;
+
+        if(_isDragging)
+        {
+            _isDragging = false;
+            SetAllEnemyVisuals(false);
+        }
 
         var combatant = deployedUnit.GetComponent<Combatant>();
         combatant?.Activate(_matchManager);
