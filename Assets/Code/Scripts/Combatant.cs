@@ -78,11 +78,11 @@ public class Combatant : MonoBehaviour,ICombatant
         bool hasAnyTarget = CurrentMatchCount > 0 || _provisionalTargets.Count > 0;
         _idleTimer = hasAnyTarget ? 0f : _idleTimer + fixedDt;
 
-        
 
+        UpdateMovement(fixedDt);
         TickAttack(fixedDt);
 
-        if(CurrentMatchCount < MatchCapacity)
+        if(CurrentMatchCount < MatchCapacity && (hasAnyTarget || _idleTimer >= _matchCooldownDuration))
         {
             TryRequestMatch();
         }
@@ -120,8 +120,8 @@ public class Combatant : MonoBehaviour,ICombatant
         float radius = _data.attackRange;
         for(int i = 0;i < 32;i++)
         {
-            float angle = 1 / 32f * Mathf.PI * 2f;
-            _rangeIndicator.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle * radius), 0f));
+            float angle = i / 32f * Mathf.PI * 2f;
+            _rangeIndicator.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f));
         }
     }
 
@@ -173,7 +173,7 @@ public class Combatant : MonoBehaviour,ICombatant
         else
         {
             stateLabel = "Free";
-            color = Color.yellow;
+            color = Color.white;
         }
 
         _statusText.text = $"{MoveSpeed:F1}[{strategyLabel}]\n{stateLabel}";
@@ -184,7 +184,7 @@ public class Combatant : MonoBehaviour,ICombatant
     {
         foreach ( var match in _matches)
         {
-            if (match.GetOpponent(this) is Combatant opponent) return this;
+            if (match.GetOpponent(this) is Combatant opponent) return opponent;
         }
 
         return _provisionalTargets.Count > 0 ? _provisionalTargets[0] : null;
