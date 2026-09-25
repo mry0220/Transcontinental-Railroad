@@ -19,7 +19,8 @@ public class Combatant : MonoBehaviour,ICombatant
     private readonly List<Match> _matches = new();
     public int CurrentMatchCount => _matches.Count;
 
-    private Combatant _provisionalTarget;
+    //private Combatant _provisionalTarget;
+    private readonly List<Combatant> _provisionalTargets = new();
     private readonly List<Combatant> _waitingOnMe = new();
 
     private float _attackTimer;
@@ -84,7 +85,7 @@ public class Combatant : MonoBehaviour,ICombatant
             stateLabel = "Match";
             color = Color.red;
         }
-        else if(_provisionalTarget != null)
+        else if(_provisionalTargets.Count > 0)
         {
             stateLabel = "Stand-by";
             color = Color.yellow;
@@ -101,24 +102,36 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private void TryRequestMatch()
     {
-        if(_provisionalTarget != null)
+       for(int i = _provisionalTargets.Count -1;i >=0;i--)
         {
-            if(_provisionalTarget.IsDead)
+            if (_provisionalTargets[i].IsDead)
             {
-                ClearProvisionalTarget();
-            }
-            else
-            {
-                _matchManager?.RequestMatch(this, _provisionalTarget);
-                return;
+                ClearProvisionalTarget(_provisionalTargets[i]);
             }
         }
 
-        var target = SelectFromCandidates(_all.Where(c => c != this && !c.IsDead && c._data != null && c.Affiliation != Affiliation));
-        if (target == null) return;
+       foreach(var t in _provisionalTargets.ToList())
+        {
+            _matchManager?.RequestMatch(this, t);
+        }
 
-        SetProvisionalTarget(target);
-        _matchManager?.RequestMatch(this, target);
+        int openSlots = MatchCapacity - CurrentMatchCount - _provisionalTargets.Count;
+        if (openSlots <= 0) return;
+
+        var exculuded = new HashSet<Combatant>(_provisionalTargets) { this };
+
+
+        for(int i =0;i < openSlots;i++)
+        {
+            var candidates = _all.Where(c => !exculuded.Contains(c) && !c.IsDead && c._data != null && c.Affiliation != Affiliation);
+            var target = SelectFromCandidates(candidates);
+            if (target == null) break;
+
+            SetProvisionalTarget(target);
+            exculuded.Add(target);
+            _matchManager?.RequestMatch(this, target);
+        }
+
     }
 
     private Combatant SelectFromCandidates(IEnumerable<Combatant> candidates)
@@ -137,15 +150,14 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private void SetProvisionalTarget(Combatant target)
     {
-        _provisionalTarget = target;
+        _provisionalTargets.Add(target);
         target._waitingOnMe.Add(this);
     }
 
-    private void ClearProvisionalTarget()
+    private void ClearProvisionalTarget(Combatant target)
     {
-        if (_provisionalTarget == null) return;
-        _provisionalTarget._waitingOnMe.Remove(this);
-        _provisionalTarget = null;
+        if (!_provisionalTargets.Remove(target)) return;
+        target._waitingOnMe.Remove(this);
     }
 
     private void TickAttack(float deltaTime)
@@ -175,9 +187,10 @@ public class Combatant : MonoBehaviour,ICombatant
         _matches.Add(match);
 
         var opponent = match.GetOpponent(this);
-        if(ReferenceEquals(opponent,_provisionalTarget))
+        var provisional = _provisionalTargets.FirstOrDefault(t => ReferenceEquals(t, opponent));
+        if(provisional != null)
         {
-            ClearProvisionalTarget();
+            ClearProvisionalTarget(provisional);
         }
     }
 
