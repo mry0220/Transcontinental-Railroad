@@ -20,6 +20,7 @@ MonoBehaviour:
   _matchCapacity: 1
   _moveSpeed: 5
   _targetingStrategy: 0
+  _attackRange: 2
   _id: Unit_Assasin
   _displayname: "\u30A2\u30B5\u30B7\u30F3"
   _icon: {fileID: 7656903026139115582, guid: 3a76ee0d906898b479b98055d7741368, type: 3}

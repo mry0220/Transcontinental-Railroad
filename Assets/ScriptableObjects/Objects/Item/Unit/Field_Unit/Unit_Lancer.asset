@@ -20,6 +20,7 @@ MonoBehaviour:
   _matchCapacity: 1
   _moveSpeed: 5
   _targetingStrategy: 0
+  _attackRange: 2
   _id: Unit_Lancer
   _displayname: "\u30E9\u30F3\u30B5\u30FC"
   _icon: {fileID: 2299533977213699898, guid: 3a76ee0d906898b479b98055d7741368, type: 3}

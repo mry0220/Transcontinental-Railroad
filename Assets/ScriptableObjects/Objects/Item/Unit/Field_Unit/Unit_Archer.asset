@@ -20,6 +20,7 @@ MonoBehaviour:
   _matchCapacity: 1
   _moveSpeed: 5
   _targetingStrategy: 0
+  _attackRange: 5
   _id: Unit_Archer
   _displayname: "\u30A2\u30FC\u30C1\u30E3\u30FC"
   _icon: {fileID: -2176058482784802999, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
