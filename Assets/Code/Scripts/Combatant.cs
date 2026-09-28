@@ -7,6 +7,14 @@ public class Combatant : MonoBehaviour,ICombatant
     private static readonly List<Combatant> _all = new();
     public static IReadOnlyList<Combatant> All => _all;
 
+    [SerializeField] private float _reviveDuration = 5f;
+    [SerializeField] private int _reviveFuelCost = 100;
+
+    private bool _isReviving;
+    private float _reviveTimer;
+    public bool IsReviving => _isReviving;
+    public bool IsReviveReady => _isReviving && _reviveTimer >= _reviveDuration;
+
     private Base_Item _data;
     private MatchManager _matchManager;
 
@@ -20,6 +28,8 @@ public class Combatant : MonoBehaviour,ICombatant
     public int CurrentMatchCount => _matches.Count;
 
     public event System.Action<int> OnDamageTaken;
+
+    public int ReviveFuelCost => _reviveFuelCost;
 
     //private Combatant _provisionalTarget;
     private readonly List<Combatant> _provisionalTargets = new();
@@ -44,6 +54,18 @@ public class Combatant : MonoBehaviour,ICombatant
     private float _idleTimer;
     [SerializeField] private float _matchCooldownDuration = 0.5f;
    
+
+    /// <summary>
+    /// Move中にUserが復活を開始したときに呼ばれる。Fuel消費を確定
+    /// 取り消し不可
+    /// </summary>
+    public void BeginRevive()
+    {
+        if (!IsDead || _isReviving) return;
+        _isReviving = true;
+        _reviveTimer = 0f;
+    }
+
 
     public void Initialize(Base_Item data, MatchManager matchManager)
     {
@@ -78,6 +100,14 @@ public class Combatant : MonoBehaviour,ICombatant
 
     public void Tick(float fixedDt)
     {
+        if (_data == null) return;
+
+        if(IsDead)
+        {
+            TickRevive(fixedDt);
+            return;
+        }
+
         if (!_isActive || _data == null || IsDead) return;
 
         bool hasAnyTarget = CurrentMatchCount > 0 || _provisionalTargets.Count > 0;
@@ -93,6 +123,29 @@ public class Combatant : MonoBehaviour,ICombatant
         }
 
         UpdateStatusDisplay();
+    }
+
+    /// <summary>
+    /// GameLoopManagerのFixedStepから、Operation中は常に(Move/Battle問わず)呼ばれる
+    /// タイマーのみ、復帰はCompleteReviveで別途行う
+    /// </summary>
+    public void TickRevive(float fixedDt)
+    {
+        if (!_isReviving) return;
+        if(_reviveTimer < _reviveDuration)
+        {
+            _reviveTimer += fixedDt;
+        }
+    }
+
+    public void CompleteRevive()
+    {
+        if (!IsReviveReady) return;
+
+        CurrentHP = Mathf.Max(1, Mathf.RoundToInt(_data.maxHP * 0.5f));
+        _isReviving = false;
+        _reviveTimer = 0f;
+
     }
 
     public void SetPreviewVisualsViisivle(bool visible)

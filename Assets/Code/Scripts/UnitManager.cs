@@ -31,6 +31,7 @@ public class UnitManager : MonoBehaviour
     private string currentPreviewItemId;
 
     private MatchManager _matchManager;
+    private FuelManager _fuelManager;
 
     private bool _isDragging;
     private void Awake()
@@ -42,9 +43,59 @@ public class UnitManager : MonoBehaviour
             mainCamera = Camera.main;
     }
 
+    public void SetFuelManager(FuelManager fuelManager)
+    {
+        _fuelManager = fuelManager;
+    }
+
     public void SetMatchManager(MatchManager matchManager)
     {
         _matchManager = matchManager;
+    }
+
+    public event System.Action<string> OnDeadUnitTapped;
+
+    public Combatant GetDeployedCombatant(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId)) return null;
+        if (!deployedUnits.TryGetValue(itemId, out var unit) || unit == null) return null;
+            return unit.GetComponent<Combatant>();
+    }
+
+    /// <summary>
+    /// 出撃済みアイコンのタップ受け口。生存中なら従来通り帰還、死亡中なら復活タップとして通知
+    /// </summary>
+    public void HandleUnitTap(string itemId,bool isMovePhase)
+    {
+        if (string.IsNullOrEmpty(itemId)) return;
+        if (GetUnitStatus(itemId) != UnitBattleStatus.Deployed) return;
+
+        var combatant = GetDeployedCombatant(itemId);
+        if(combatant != null && combatant.IsDead)
+        {
+            if(isMovePhase)
+            { 
+                OnDeadUnitTapped?.Invoke(itemId); 
+            }
+            return;
+        }
+
+        ReturnUnit(itemId);
+    }
+
+    /// <summary>
+    ///ポップアップの決定タップで呼ばれる。Fuelが足りなければ何もせずFalseを返す 
+    /// </summary>
+    
+    public bool TryConfirmRevive(string itemId)
+    {
+        var combatant = GetDeployedCombatant(itemId);
+        if (combatant == null || _fuelManager == null) return false;
+        if (_fuelManager.CurrentFuel < combatant.ReviveFuelCost) return false;
+
+        _fuelManager.ConsumeAmount(combatant.ReviveFuelCost);
+        combatant.BeginRevive();
+        return true;
     }
 
     public void UpdateUnitPlacementPreview(InputBuffer.InputEvent evt)

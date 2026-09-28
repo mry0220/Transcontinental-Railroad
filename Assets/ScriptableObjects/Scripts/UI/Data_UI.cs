@@ -1,5 +1,4 @@
 using UnityEngine;
-using static Base_Item;
 
 [CreateAssetMenu(fileName = "Data_UI", menuName = "Scriptable Objects/UI/Data_UI")]
 public class Data_UI : ScriptableObject

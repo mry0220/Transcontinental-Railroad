@@ -6,10 +6,9 @@ public class FuelManager : MonoBehaviour
    // [SerializeField] private int initialFuel = 60;
     [SerializeField] private int fillingAmount = 1;
     [SerializeField] private int consumeAmount = 1;
-    [SerializeField] private DataBase_Train trainDB;
     //====Public State====
     public int CurrentFuel { get; private set; }
-    public int MaxFuel => trainDB.train.maxHP;
+    public int MaxFuel { get; private set; }
 
 
     /// <summary>
@@ -25,6 +24,11 @@ public class FuelManager : MonoBehaviour
         }
         CurrentFuel += fillingAmount;
         return false;
+    }
+
+    public void SetMaxFuel(int maxFuel)
+    {
+        MaxFuel = maxFuel;
     }
 
     public bool ConsumingFuel()

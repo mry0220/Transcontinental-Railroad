@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using UnityEditor.ShaderKeywordFilter;
+using System.Linq;
 using UnityEngine;
 
 public class GameLoopManager : MonoBehaviour
@@ -31,7 +30,9 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private UIManager uIManager;
     [SerializeField] private UnitManager unitManager;
     [SerializeField] private WaveManager waveManager;
+    [SerializeField] private UIInputHandler uIInputHandler;
     private MatchManager matchManager;
+    private SectionManager sectionManager;
 
     //====Inspector Config
     [SerializeField] private FPS fps = FPS._60FPS;
@@ -54,12 +55,16 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private Vector3 trainSpawnPosition = Vector3.zero;
     private GameObject _trainInstance;
 
+    [SerializeField] private StageData testStageData; 
+
     //====Runtime State====
     private RNG rng;
     private double clock;
     private double accumulator;
     private int stateFrameCount = 0; //statemanagerテスト用
 
+    private PrepPhaseManager prepPhaseManager;
+    private OperationPhaseManager operationPhaseManager;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private double dt;
@@ -75,11 +80,22 @@ public class GameLoopManager : MonoBehaviour
         stateManager = GetComponent<StateManager>();
         inputBuffer = GetComponent<InputBuffer>();
 
+        rng = new RNG(seed);
+
         matchManager = new();
         waveManager?.SetMatchManager(matchManager);
         unitManager?.SetMatchManager(matchManager);
+        unitManager?.SetFuelManager(fuelManager);
+        uIInputHandler?.SetInputBuffer(inputBuffer);
+        uIInputHandler?.SetUnitManager(unitManager);
+        uIInputHandler?.SetStateManager(stateManager);
+        sectionManager = new();
 
-        rng = new RNG(seed);
+        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,uIManager,sectionManager,testStageData);
+        operationPhaseManager = new OperationPhaseManager(
+            stateManager,unitManager,waveManager,matchManager,
+            fuelManager,uIManager, sectionManager, () => _trainInstance,rng);
+
 
         clock  = 0.0;
         accumulator = 0.0;
@@ -135,30 +151,24 @@ public class GameLoopManager : MonoBehaviour
             break;
 
             case GameState.Prep:
-
-                if(_trainInstance == null && trainDB != null && trainDB.train.prefab)
+                prepPhaseManager.Enter();
+                // 既存の列車生成処理は④でPrepPhaseManager.TickFuelSetへ移植予定、現時点ではここに残す
+                if (_trainInstance == null && trainDB != null && trainDB.train.prefab)
                 {
                     _trainInstance = Instantiate(trainDB.train.prefab, trainSpawnPosition, Quaternion.identity);
                     var trainCombatant = _trainInstance.GetComponent<Combatant>();
-                    trainCombatant?.Initialize(trainDB.train,matchManager);
-                    if(trainCombatant != null)
+                    trainCombatant?.Initialize(trainDB.train, matchManager);
+                    if (trainCombatant != null)
                     {
                         trainCombatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
                     }
+                    fuelManager.SetMaxFuel(trainDB.train.maxHP);
                 }
+                break;
 
-            break;
-
-            case GameState.Battle:
-                if(inputBuffer != null)
-                {
-                    inputBuffer.Clear();
-                    inputBuffer.RecordMode = true;
-                    inputBuffer.PlaybackMode = false;
-                }
-                unitManager?.ResetUnitStatuses();
-                waveManager?.StartBattlePhase();
-            break;
+            case GameState.Operation:
+                operationPhaseManager.Enter();
+                break;
 
             case GameState.Result:
                 if(inputBuffer != null)
@@ -235,10 +245,10 @@ public class GameLoopManager : MonoBehaviour
                 UpdateTitle(fixedDt);
                 break;
             case GameState.Prep:
-                UpdatePrep(fixedDt);
+                prepPhaseManager.Tick(fixedDt);
                 break;
-            case GameState.Battle:
-                UpdateBattle(fixedDt);
+            case GameState.Operation:
+                operationPhaseManager.Tick(fixedDt);
                 break;
             case GameState.Result:
                 UpdateResult(fixedDt);
@@ -254,33 +264,11 @@ public class GameLoopManager : MonoBehaviour
         Debug.Log("TitleMode");
     }
 
-    private void UpdatePrep(float fixedDt)
-    {
-        uIManager.UpdateFuelUI(fuelManager.CurrentFuel,fuelManager.MaxFuel);
-        if(fuelManager.InitializingFuel())
-        {
-            stateManager?.transitionTo(GameState.Battle);
-        }
-    }
+   
 
-    private void UpdateBattle(float fixedDt)
-    {
-        Debug.Log("BattleMode");
-        uIManager.UpdateFuelUI(fuelManager.CurrentFuel, fuelManager.MaxFuel);
-        
-        foreach(var combatant in Combatant.All)
-        {
-            combatant.Tick(fixedDt);
-        }
-        matchManager.ProcessRequests();
-        
-        if (!fuelManager.ConsumingFuel())
-        {
-            var trainCombatant = _trainInstance != null ? _trainInstance.GetComponent<Combatant>() : null;
-            trainCombatant?.ApplyDamage(int.MaxValue);
-            stateManager?.transitionTo(GameState.GameOver);
-        }
-    }
+    
+
+   
 
     private void UpdateResult(float fixedDt)
     {
@@ -305,10 +293,10 @@ public class GameLoopManager : MonoBehaviour
                     HandleInputTitle(evt);
                     break;
                 case GameState.Prep:
-                    HandleInputPrep(evt);
+                    prepPhaseManager.HandleInput(evt);
                     break;
-                case GameState.Battle:
-                    HandleInputBattle(evt);
+                case GameState.Operation:
+                    operationPhaseManager.HandleInput(evt);
                     break;
                 case GameState.Result:
                     HandleInputResult(evt);
@@ -328,24 +316,9 @@ public class GameLoopManager : MonoBehaviour
         }
     }
 
-    private void HandleInputPrep(InputBuffer.InputEvent evt)
-    {
-       
-    }
+   
 
-    private void HandleInputBattle(InputBuffer.InputEvent evt)
-    {
-        if(evt.type == InputBuffer.InputType.PointerMove && evt.isDragFromUI)
-        {
-            unitManager?.UpdateUnitPlacementPreview(evt);
-        }
-
-        if (evt.type == InputBuffer.InputType.PointerUp && evt.isDragFromUI)
-        {
-            unitManager?.DeployUnit(evt.draggedItemId);
-        }
-
-    }
+   
 
     private void HandleInputResult(InputBuffer.InputEvent evt)
     {

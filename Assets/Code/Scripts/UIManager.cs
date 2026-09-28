@@ -15,6 +15,12 @@ public class UIManager : MonoBehaviour
     private VisualElement root;
     private VisualElement fuelBarFill;
     private Dictionary<string, VisualElement> unitIcons = new();
+
+    private VisualElement reviveOverlay;
+    private Label reviveCostLabel;
+
+    public event System.Action OnReviveConfirmed;
+    public event System.Action OnReviveCancelled;
     
     private void Awake()
     {
@@ -46,9 +52,36 @@ public class UIManager : MonoBehaviour
         {
             SetupUI();
         }
-
+        SetupRevivePopup();
         uIInputHandler.InitializeInputHadler(root);
     }
+
+    private void SetupRevivePopup()
+    {
+        reviveOverlay = new VisualElement();
+        reviveOverlay.AddToClassList("revive-overlay");
+
+        var panel = new VisualElement();
+        panel.AddToClassList("revive-panel");
+
+        reviveCostLabel = new Label();
+        reviveCostLabel.AddToClassList("revive-cost-label");
+
+        var confirmButton = new Button(() => OnReviveConfirmed?.Invoke()) { text = "Revive" };
+        confirmButton.AddToClassList("revive-cofirm-button");
+
+        var cancelButton = new Button(() => OnReviveCancelled?.Invoke()) { text = "Cancel" };
+        cancelButton.AddToClassList("revive-cancel-button");
+
+        panel.Add(reviveCostLabel);
+        panel.Add(confirmButton);
+        panel.Add(cancelButton);
+        reviveOverlay.Add(panel);
+
+        reviveOverlay.style.display = DisplayStyle.None;
+        root.Add(reviveOverlay);
+    }
+
     private void SetupUI()
     {
         SetupUIFuel();
@@ -85,6 +118,20 @@ public class UIManager : MonoBehaviour
             icon.RemoveFromClassList("unit-icon-deployed");
         }
     }
+
+    
+
+    public void ShowRevivePopup(int fuelCost)
+    {
+        reviveCostLabel.text = $"必要燃料: {fuelCost}";
+        reviveOverlay.style.display = DisplayStyle.Flex;
+    }
+
+    public void HideRevivePopup()
+    {
+        reviveOverlay.style.display = DisplayStyle.None;
+    }
+
     private void SetupUIUnit()
     {
         var container = root.Q<VisualElement>("unit-container");

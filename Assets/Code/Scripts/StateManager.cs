@@ -1,32 +1,49 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public enum GameState
 {
     Title,
     Prep,
-    Battle,
+    Operation,
     Result,
     GameOver,
 }
 
+public enum PrepPhase
+{
+    StageSelect,
+    UnitSelect,
+    FuelSet,
+}
+
+public enum OperationPhase
+{
+    Move,
+    Battle,
+    Result,
+}
+
 public class StateManager : MonoBehaviour
 {
-    // ====Inspector Config ====
 #if UNITY_EDITOR
     [SerializeField] private GameState InitialState = GameState.Title;
-    #else
+#else
     private GameState InitialState = GameState.Title;
 #endif
 
-    //====Runtime State====
     private GameState currentState;
     public GameState Current => currentState;
 
+    private PrepPhase currentPrepPhase;
+    public PrepPhase CurrentPrepPhase => currentPrepPhase;
 
-    //====Events====
-    public event Action<GameState,GameState> OnStateChanged; //(before,after)
+    private OperationPhase currentOperationPhase;
+    public OperationPhase CurrentOperationPhase => currentOperationPhase;
+
+    public event Action<GameState, GameState> OnStateChanged;
+    public event Action<PrepPhase, PrepPhase> OnPrepPhaseChanged;
+    public event Action<OperationPhase, OperationPhase> OnOperationPhaseChanged;
 
     private void Awake()
     {
@@ -35,67 +52,70 @@ public class StateManager : MonoBehaviour
 
     public void transitionTo(GameState next)
     {
-        if(!isValidTransition(currentState, next))
+        if (!isValidTransition(currentState, next))
         {
-            throw new InvalidOperationException($"遷移禁止");
+            throw new InvalidOperationException($"遷移禁止: {currentState} -> {next}");
         }
 
         var prev = currentState;
-        onExit(currentState);
         currentState = next;
-        onEnter(next);
+
+        // MasterStateが切り替わった瞬間、対応するServantStateを初期値にリセットする
+        if (next == GameState.Prep)
+        {
+            currentPrepPhase = PrepPhase.StageSelect;
+        }
+        else if (next == GameState.Operation)
+        {
+            currentOperationPhase = OperationPhase.Move;
+        }
+
         OnStateChanged?.Invoke(prev, next);
     }
 
-    private void onEnter(GameState state)
+    public void TransitionPrepPhase(PrepPhase next)
     {
-        switch (state)
+        if (currentState != GameState.Prep)
         {
-            case GameState.Title:
-                break;
-            case GameState.Prep:
-                break;
-            case GameState.Battle:
-                break;
-            case GameState.Result:
-                break;
-            case GameState.GameOver:
-                break;
-         
+            throw new InvalidOperationException($"PrepPhase遷移はGameState.Prep中のみ有効(現在: {currentState})");
         }
+        if (!isValidPrepPhaseTransition(currentPrepPhase, next))
+        {
+            throw new InvalidOperationException($"PrepPhase遷移禁止: {currentPrepPhase} -> {next}");
+        }
+
+        var prev = currentPrepPhase;
+        currentPrepPhase = next;
+        OnPrepPhaseChanged?.Invoke(prev, next);
     }
 
-    private void onExit(GameState state)
+    public void TransitionOperationPhase(OperationPhase next)
     {
-        switch (state)
+        if (currentState != GameState.Operation)
         {
-            case GameState.Title:
-                break;
-            case GameState.Prep:
-                break;
-            case GameState.Battle:
-                break;
-            case GameState.Result:
-                break;
-            case GameState.GameOver:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            throw new InvalidOperationException($"OperationPhase遷移はGameState.Operation中のみ有効(現在: {currentState})");
         }
-    }
+        if (!isValidOperationPhaseTransition(currentOperationPhase, next))
+        {
+            throw new InvalidOperationException($"OperationPhase遷移禁止: {currentOperationPhase} -> {next}");
+        }
 
+        var prev = currentOperationPhase;
+        currentOperationPhase = next;
+        OnOperationPhaseChanged?.Invoke(prev, next);
+    }
 
     private bool isValidTransition(GameState from, GameState to)
     {
-        if(from == to ) return false;
+        if (from == to) return false;
 
         switch (from)
         {
             case GameState.Title:
                 return to == GameState.Prep;
             case GameState.Prep:
-                return to == GameState.Battle;
-            case GameState.Battle:
+                return to == GameState.Operation;
+            case GameState.Operation:
                 return to == GameState.Result || to == GameState.GameOver;
             case GameState.Result:
                 return to == GameState.Title;
@@ -106,18 +126,37 @@ public class StateManager : MonoBehaviour
         }
     }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-
-    private void OnGUI()
+    private bool isValidPrepPhaseTransition(PrepPhase from, PrepPhase to)
     {
-        
-    GUILayout.BeginArea(new Rect(10, 400, 400, 150));
-    GUILayout.Label($"=== State Debug===");
-    GUILayout.Label($"Current State: {currentState}");
-    GUILayout.Label($"Total Frame: {Time.frameCount}");
-    GUILayout.Label("");
-    GUILayout.EndArea();
+        if (from == to) return false;
+
+        switch (from)
+        {
+            case PrepPhase.StageSelect:
+                return to == PrepPhase.UnitSelect;
+            case PrepPhase.UnitSelect:
+                return to == PrepPhase.FuelSet;
+            case PrepPhase.FuelSet:
+                return false; // ここから先はMasterState側のtransitionTo(Operation)で抜ける
+            default:
+                return false;
+        }
     }
 
-#endif
+    private bool isValidOperationPhaseTransition(OperationPhase from, OperationPhase to)
+    {
+        if (from == to) return false;
+
+        switch (from)
+        {
+            case OperationPhase.Move:
+                return to == OperationPhase.Battle;
+            case OperationPhase.Battle:
+                return to == OperationPhase.Result;
+            case OperationPhase.Result:
+                return to == OperationPhase.Move;
+            default:
+                return false;
+        }
+    }
 }

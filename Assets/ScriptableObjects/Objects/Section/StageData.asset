@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16380343ca6efea4d9b94d1ab1fedd83, type: 3}
+  m_Name: StageData
+  m_EditorClassIdentifier: Assembly-CSharp::StageData
+  _stageName: "\u30C6\u30B9\u30C8\u30B9\u30C6\u30FC\u30B8"
+  _sections:
+  - {fileID: 11400000, guid: a3dd725b64c4fbd4a93ed7d8e562a0fd, type: 2}
+  - {fileID: 11400000, guid: 1ed4c66d982f9214bbba36d1bcec6082, type: 2}

@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 public class UIInputHandler : MonoBehaviour
@@ -6,28 +5,29 @@ public class UIInputHandler : MonoBehaviour
     //UIDocument からrootVisualElementを取得
 
     //==== References====
-    [SerializeField] private InputBuffer inputBuffer;
-    [SerializeField] private UnitManager unitManager;
+    private InputBuffer _inputBuffer;
+    private UnitManager _unitManager;
+    private StateManager _stateManager;
     
     //==== Runtime State====
     private VisualElement root;
     private string currentDraggedItemId;
     private string tappedItemId;
 
-    private void Awake()
+    
+    public void SetInputBuffer(InputBuffer inputBuffer)
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        _inputBuffer = inputBuffer;
+    }
 
-        if (inputBuffer == null)
-        {
-            inputBuffer = FindAnyObjectByType<InputBuffer>();
-            if (inputBuffer == null)
-            {
-                Debug.LogError("InputBuffer not found!");
-                return;
-            }
-        }
-#endif
+    public void SetUnitManager(UnitManager unitManager)
+    {
+        _unitManager = unitManager;
+    }
+    
+    public void SetStateManager(StateManager stateManager)
+    {
+        _stateManager = stateManager;
     }
 
     public void InitializeInputHadler(VisualElement root)
@@ -56,8 +56,8 @@ public class UIInputHandler : MonoBehaviour
 
         bool isUIItem = !string.IsNullOrEmpty(currentDraggedItemId);
 
-        if (isUIItem && unitManager != null &&
-            unitManager.GetUnitStatus(currentDraggedItemId) 
+        if (isUIItem && _unitManager != null &&
+            _unitManager.GetUnitStatus(currentDraggedItemId) 
             == UnitManager.UnitBattleStatus.Deployed)
         {
             tappedItemId = currentDraggedItemId;
@@ -92,7 +92,7 @@ public class UIInputHandler : MonoBehaviour
 
         if(!string.IsNullOrEmpty(tappedItemId))
         {
-            unitManager?.ReturnUnit(tappedItemId);
+            _unitManager?.HandleUnitTap(tappedItemId,_stateManager.CurrentOperationPhase == OperationPhase.Move);
             tappedItemId = null;
         }
 
@@ -101,11 +101,11 @@ public class UIInputHandler : MonoBehaviour
 
     private void Enqueue(IPointerEvent evt,InputBuffer.InputType type,Vector2 delta,string itemId,bool fromUI)
     {
-        if (inputBuffer == null) return;
+        if (_inputBuffer == null) return;
         float scale = (root != null && root.panel != null) ? root.panel.scaledPixelsPerPoint : 1f;
         var pos = evt.position * scale;
         var ts = Time.timeAsDouble * scale;
-        inputBuffer.EnqueueEvent(new InputBuffer.InputEvent(type, pos, delta, ts,itemId,fromUI));
+        _inputBuffer.EnqueueEvent(new InputBuffer.InputEvent(type, pos, delta, ts,itemId,fromUI));
     }
 
     private string GetDraggedItemId(VisualElement target)
@@ -124,11 +124,11 @@ public class UIInputHandler : MonoBehaviour
 #if UNITY_EDITOR
     void OnGUI()
     {
-        if (inputBuffer == null) return;
+        if (_inputBuffer == null) return;
 
         GUILayout.BeginArea(new Rect(10, 270, 350, 100));
         GUILayout.Label("=== UIInputHandler ===");
-        GUILayout.Label($"InputBuffer: {(inputBuffer != null ? "OK" : "NULL")}");
+        GUILayout.Label($"InputBuffer: {(_inputBuffer != null ? "OK" : "NULL")}");
         GUILayout.Label($"Root: {(root != null ? "OK" : "NULL")}");
         GUILayout.Label($"CurrentDragItem: {currentDraggedItemId ?? "null"}");
         GUILayout.EndArea();

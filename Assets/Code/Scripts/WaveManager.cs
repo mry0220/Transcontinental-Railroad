@@ -3,49 +3,34 @@ using UnityEngine;
 
 public class WaveManager : MonoBehaviour
 {
-    [SerializeField] private List<Data_Wave> _waves;
-    public List<Data_Wave> Waves => _waves;
-
     private MatchManager _matchManager;
-
-    private int _currentWaveIndex;
-    public int CurrentWaveIndex => _currentWaveIndex;
-
     private readonly List<GameObject> _spawnedEnemies = new();
-    private IReadOnlyList<GameObject> SpawnedEnemies => _spawnedEnemies;
 
-    public void StartBattlePhase()
+    public void SetMatchManager(MatchManager matchManger)
     {
-        _currentWaveIndex = 0;
-        SpawnWaveImmediate(CurrentWaveIndex);
+        _matchManager = matchManger;
     }
 
-    private void SpawnWaveImmediate(int waveIndex)
+    ///<summary>BattleSection突入時にOperationPhaseManagerから呼ばれる</summary>
+    public void StartBattlePhase(Data_Wave wave)
     {
-        if(_waves == null || waveIndex < 0||waveIndex >= _waves.Count)
+        if(wave == null)
         {
-            Debug.LogWarning($"WaveManager: 無効なwaveIndexが指定された({waveIndex})");
+            Debug.LogWarning("WaveManager: Data_Waveがnull");
             return;
         }
 
-        Data_Wave wave = _waves[waveIndex];
         foreach(EnemySpawnData spawnData in wave.spawns)
         {
             SpawnEnemy(spawnData);
         }
-
-    }
-
-    public void SetMatchManager(MatchManager matchManager)
-    {
-        _matchManager = matchManager;
     }
 
     private void SpawnEnemy(EnemySpawnData spawnData)
     {
-        if(spawnData.enemyData  == null || spawnData.enemyData.prefab == null)
+        if(spawnData.enemyData == null || spawnData.enemyData.prefab == null)
         {
-            Debug.LogWarning("WaveManager: EnemySpawnDataのenemyDataまたはprefabが未設定");
+            Debug.LogWarning("WaveManager: EnemySpawnDataのEnemyDataまたはprefabが未設定");
             return;
         }
 
@@ -54,7 +39,6 @@ public class WaveManager : MonoBehaviour
             spawnData.spawnPosition,
             Quaternion.identity
             );
-
         var combatant = enemyObject.GetComponent<Combatant>();
         combatant?.Initialize(spawnData.enemyData, _matchManager);
 
