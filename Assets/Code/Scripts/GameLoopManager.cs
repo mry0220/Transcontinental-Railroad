@@ -120,6 +120,8 @@ public class GameLoopManager : MonoBehaviour
         {
             unitManager.OnUnitDeployed += uIManager.HandleUnitDeployed;
             unitManager.OnUnitReturned += uIManager.HandleUnitReturned;
+            unitManager.OnUnitDied += uIManager.HandleUnitDied;
+            unitManager.OnUnitRevived += uIManager.HandleUnitRevived;
         }
 
         if(stateManager == null)

@@ -84,17 +84,7 @@ public class OperationPhaseManager
 
     private void TickAllRevivals(float fixedDt)
     {
-        foreach(var combatant in Combatant.All)
-        {
-            if (!combatant.IsDead || !combatant.IsReviving) continue;
-
-            combatant.TickRevive(fixedDt);
-
-            if(_stateManager.CurrentOperationPhase == OperationPhase.Move && combatant.IsReviveReady)
-            {
-                combatant.CompleteRevive();
-            }
-        }
+        _unitManager?.TickRevivals(fixedDt, _stateManager.CurrentOperationPhase == OperationPhase.Move);
     }
 
     /// <summary> GameLoopManagerのConsumeInputから、GameState.Operation中のみ呼ばれる </summary>
@@ -176,7 +166,6 @@ public class OperationPhaseManager
         switch (entry.section.type)
         {
             case SectionType.Battle:
-                _unitManager?.ResetUnitStatuses();
                 _waveManager?.StartBattlePhase(entry.section.wave);
                 _stateManager.TransitionOperationPhase(OperationPhase.Battle); ;
                 break;
@@ -205,11 +194,11 @@ public class OperationPhaseManager
 
     private bool CheckBattleClear()
     {
-       // if (_waveManager != null && _waveManager.HasPendingWaves) return false;
-
         bool anyEnemyAlive = Combatant.All.Any(c => c.Affiliation == Base_Item.Affiliation.Enemy && !c.IsDead);
         if (!anyEnemyAlive)
         {
+            Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
+            _unitManager?.SettleBattle();
             _stateManager.TransitionOperationPhase(OperationPhase.Result);
             return true;
         }
@@ -250,8 +239,7 @@ public class OperationPhaseManager
         _pendingReviveItemId = itemId;
         _isRevivePopupOpen = true;
 
-        var combatant = _unitManager.GetDeployedCombatant(itemId);
-        _uIManager.ShowRevivePopup(combatant != null ? combatant.ReviveFuelCost : 0);
+        _uIManager.ShowRevivePopup(_unitManager.GetReviveFuelCost(itemId));
     }
 
     private void ConfirmRevive()

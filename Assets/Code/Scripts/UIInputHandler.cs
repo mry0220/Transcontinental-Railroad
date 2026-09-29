@@ -56,9 +56,12 @@ public class UIInputHandler : MonoBehaviour
 
         bool isUIItem = !string.IsNullOrEmpty(currentDraggedItemId);
 
-        if (isUIItem && _unitManager != null &&
-            _unitManager.GetUnitStatus(currentDraggedItemId) 
-            == UnitManager.UnitBattleStatus.Deployed)
+        var status = (isUIItem && _unitManager != null)
+            ? _unitManager.GetUnitStatus(currentDraggedItemId)
+            : UnitManager.UnitBattleStatus.Standby;
+
+        if(status == UnitManager.UnitBattleStatus.Deployed
+            || status == UnitManager.UnitBattleStatus.Dead)
         {
             tappedItemId = currentDraggedItemId;
             currentDraggedItemId = null;

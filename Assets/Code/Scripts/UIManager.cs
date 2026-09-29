@@ -145,6 +145,23 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void HandleUnitDied(string itemId)
+    {
+        if(unitIcons.TryGetValue(itemId,out var icon))
+        {
+            icon.RemoveFromClassList("unit-icon-deployed");
+            icon.AddToClassList("unit-icon-dead");
+        }
+    }
+
+    public void HandleUnitRevived(string itemId)
+    {
+        if(unitIcons.TryGetValue(itemId,out var icon))
+        {
+            icon.RemoveFromClassList("unit-icon-dead");
+        }
+    }
+
     
 
     public void ShowRevivePopup(int fuelCost)
@@ -172,6 +189,7 @@ public class UIManager : MonoBehaviour
         foreach(var icon in unitIcons.Values)
         {
             icon.RemoveFromClassList("unit-icon-deployed");
+            icon.RemoveFromClassList("uit-icon-dead");
         }
         HideRevivePopup();
     }

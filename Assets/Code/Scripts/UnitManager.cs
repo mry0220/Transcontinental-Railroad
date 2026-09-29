@@ -20,10 +20,22 @@ public class UnitManager : MonoBehaviour
         Standby,
         Deployed,
         Returned,
+        Dead,
+    }
+
+    private class DeadRecoad
+    {
+        public bool isReviving;
+        public float timer;
     }
 
     private readonly Dictionary<string, UnitBattleStatus> unitStatus = new();
     private readonly Dictionary<string, GameObject> deployedUnits = new();
+    private readonly Dictionary<string, DeadRecoad> deadRecords = new();
+    private readonly List<string> _reviveCompleted = new();
+
+    public event Action<string> OnUnitDied;
+    public event Action<string> OnUnitRevived;
 
     [Header("最大出撃数")]
     [SerializeField] private int maxDeployCount = 6;
@@ -68,19 +80,64 @@ public class UnitManager : MonoBehaviour
     public void HandleUnitTap(string itemId,bool isMovePhase)
     {
         if (string.IsNullOrEmpty(itemId)) return;
-        if (GetUnitStatus(itemId) != UnitBattleStatus.Deployed) return;
-
-        var combatant = GetDeployedCombatant(itemId);
-        if(combatant != null && combatant.IsDead)
+        
+        switch(GetUnitStatus(itemId))
         {
-            if(isMovePhase)
-            { 
-                OnDeadUnitTapped?.Invoke(itemId); 
+            case UnitBattleStatus.Deployed:
+                ReturnUnit(itemId);
+                break;
+            case UnitBattleStatus.Dead:
+                if(isMovePhase && !IsReviving(itemId))
+                {
+                    OnDeadUnitTapped?.Invoke(itemId);
+                }
+                break;
+        }
+    }
+
+    private bool IsReviving(string itemId)
+    {
+        return deadRecords.TryGetValue(itemId, out var recoad) && recoad.isReviving;
+    }
+
+    public int GetReviveFuelCost(string itemId)
+    {
+        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
+        return data != null ? data.reviveFuelCost : 0;
+    }
+
+    public void SettleBattle()
+    {
+        foreach(var pair in new List<KeyValuePair<string,GameObject>>(deployedUnits))
+        {
+            var itemId = pair.Key;
+            var unit = pair.Value;
+            var combatant = unit != null ? unit.GetComponent<Combatant>() : null;
+            bool isDead = combatant != null && combatant.IsDead;
+
+            if (unit != null) Destroy(unit);
+            deployedUnits.Remove(itemId);
+
+            if(isDead)
+            {
+                unitStatus[itemId] = UnitBattleStatus.Dead;
+                deadRecords[itemId] = new DeadRecoad();
+                OnUnitDied?.Invoke(itemId);
             }
-            return;
+            else
+            {
+                unitStatus.Remove(itemId);
+                OnUnitReturned?.Invoke(itemId, null);
+            }
         }
 
-        ReturnUnit(itemId);
+        foreach(var itemId in new List<string>(unitStatus.Keys))
+        {
+            if (unitStatus[itemId] == UnitBattleStatus.Returned)
+            {
+                unitStatus.Remove(itemId);
+            }
+        }
     }
 
     /// <summary>
@@ -89,13 +146,47 @@ public class UnitManager : MonoBehaviour
     
     public bool TryConfirmRevive(string itemId)
     {
-        var combatant = GetDeployedCombatant(itemId);
-        if (combatant == null || _fuelManager == null) return false;
-        if (_fuelManager.CurrentFuel < combatant.ReviveFuelCost) return false;
+        if (_fuelManager == null) return false;
+        if (!deadRecords.TryGetValue(itemId, out var recoad) || recoad.isReviving) return false;
 
-        _fuelManager.ConsumeAmount(combatant.ReviveFuelCost);
-        combatant.BeginRevive();
+        int cost = GetReviveFuelCost(itemId);
+        if (_fuelManager.CurrentFuel < cost) return false;
+
+        _fuelManager.ConsumeAmount(cost);
+        recoad.isReviving = true;
+        recoad.timer = 0f;
         return true;
+    }
+
+    /// <summary>
+    /// Operation中は毎tick呼ぶ。タイマーは常にすすみ、完了はMoveの間だけ
+    /// </summary>
+    public void TickRevivals(float fixedDt,bool canComplete)
+    {
+        _reviveCompleted.Clear();
+
+        foreach(var pair in deadRecords)
+        {
+            var record = pair.Value;
+            if (!record.isReviving) continue;
+
+            var data = unitDB != null ? unitDB.GetUnit(pair.Key) : null;
+            float duration = data != null ? data.reviveRuration : 0f;
+
+            if (record.timer < duration) record.timer += fixedDt;
+            if(canComplete && record.timer >= duration)
+            {
+                _reviveCompleted.Add(pair.Key);
+            }
+        }
+
+        foreach(var itemId in _reviveCompleted)
+        {
+            deadRecords.Remove(itemId);
+            unitStatus.Remove(itemId);
+            OnUnitRevived?.Invoke(itemId);
+            
+        }
     }
 
     public void UpdateUnitPlacementPreview(InputBuffer.InputEvent evt)
@@ -182,11 +273,7 @@ public class UnitManager : MonoBehaviour
         return GetUnitStatus(itemId) == UnitBattleStatus.Standby && deployedUnits.Count < maxDeployCount;
     }
 
-    public void ResetUnitStatuses()
-    {
-        unitStatus.Clear();
-        deployedUnits.Clear();
-    }
+
 
 
 
@@ -246,5 +333,6 @@ public class UnitManager : MonoBehaviour
         HideUnitPlacementPreview();
         unitStatus.Clear();
         deployedUnits.Clear();
+        deadRecords.Clear();
     }
 }

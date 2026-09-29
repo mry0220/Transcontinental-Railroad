@@ -110,3 +110,8 @@ VisualElement {
     font-size:20px;
     color:rgb(200,200,200);
 }
+
+.unit-icon-dead{
+    opacity:0.6;
+    -unity-background-image-tint-color:rgb(90,90,90);
+}

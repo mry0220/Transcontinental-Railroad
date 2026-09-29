@@ -8,7 +8,6 @@ public class Item_Unit : Base_Item
     [SerializeField] private string _displayname; public string displayname => _displayname;
     [SerializeField] private Sprite _icon; public Sprite icon => _icon;
     [SerializeField] private GameObject _prefab; public GameObject prefab => _prefab;
-
-   
-    
+    [SerializeField] private float _reviveDuration = 5f; public float reviveRuration => _reviveDuration;
+    [SerializeField] private int _reviveFuelCost = 100;public int reviveFuelCost => _reviveFuelCost;
 }
