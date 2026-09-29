@@ -57,6 +57,7 @@ public class OperationPhaseManager
     public void Enter()
     {
         Debug.Log("[OperationPhaseManager] Enter: Moveから開始");
+        ClosePopup();
         EnterMove();
     }
 
@@ -157,6 +158,8 @@ public class OperationPhaseManager
 
     private void TickMove(float fixedDt) 
     {
+        if (!TickFuel(true, fixedDt)) return;
+
         _moveElapsed += fixedDt;
         if (_moveElapsed < _moveDuration) return;
 
@@ -165,6 +168,7 @@ public class OperationPhaseManager
 
     private void ProcessCurrentSection()
     {
+        ClosePopup();
         var entry = _sectionManager.CurrentSection;
 
         switch (entry.section.type)
@@ -179,7 +183,7 @@ public class OperationPhaseManager
                 _stateManager.TransitionOperationPhase(OperationPhase.Result);
                 break;
             case SectionType.Goal:
-                _stateManager.transitionTo(GameState.Result);
+                _stateManager.TransitionToResult(RunOutcome.Cleared);
                 break;
         }
     }
@@ -195,14 +199,7 @@ public class OperationPhaseManager
 
         if (CheckBattleClear()) return;
 
-        if (!_fuelManager.ConsumingFuel())
-        {
-            var trainInstance = _getTrainInstance();
-            var trainCombatant = trainInstance != null ? trainInstance.GetComponent<Combatant>() : null;
-            trainCombatant?.ApplyDamage(int.MaxValue);
-            
-            _stateManager?.transitionTo(GameState.GameOver);
-        }
+        TickFuel(false,fixedDt);
     }
 
     private bool CheckBattleClear()
@@ -216,6 +213,25 @@ public class OperationPhaseManager
             return true;
         }
         return false;
+    }
+
+    private bool TickFuel(bool isMoving,float fixedDt)
+    {
+        var trainCombatant = GetTrainCombatant();
+        float attackPower = trainCombatant != null ? trainCombatant.AttackPower : 0f;
+        float speed = GetTrainMoveSpeed();
+
+        if (_fuelManager.ConsumeOperationFuel(attackPower, speed, isMoving, fixedDt)) return true;
+
+        trainCombatant?.ApplyDamage(int.MaxValue);
+        _stateManager.TransitionToResult(RunOutcome.Failed);
+        return false;
+    }
+
+    private Combatant GetTrainCombatant()
+    {
+        var trainInstance = _getTrainInstance();
+        return trainInstance != null ? trainInstance.GetComponent<Combatant>() : null;
     }
 
     private void TickResult(float fixedDt) { /* ④で実装 */ }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,6 +19,9 @@ public class UIManager : MonoBehaviour
 
     private VisualElement reviveOverlay;
     private Label reviveCostLabel;
+
+    private VisualElement resultOverlay;
+    private Label resultHeaderLabel;
 
     public event System.Action OnReviveConfirmed;
     public event System.Action OnReviveCancelled;
@@ -53,6 +57,7 @@ public class UIManager : MonoBehaviour
             SetupUI();
         }
         SetupRevivePopup();
+        SetupResultScreen();
         uIInputHandler.InitializeInputHadler(root);
     }
 
@@ -80,6 +85,28 @@ public class UIManager : MonoBehaviour
 
         reviveOverlay.style.display = DisplayStyle.None;
         root.Add(reviveOverlay);
+    }
+
+    private void SetupResultScreen()
+    {
+        resultOverlay = new VisualElement();
+        resultOverlay.AddToClassList("result-overlay");
+
+        var panel = new VisualElement();
+        panel.AddToClassList("result-panel");
+
+        resultHeaderLabel = new Label();
+        resultHeaderLabel.AddToClassList("result-header");
+
+        var hintLabel = new Label("タップでリトライ");
+        hintLabel.AddToClassList("result-hint");
+
+        panel.Add(resultHeaderLabel);
+        panel.Add(hintLabel);
+        resultOverlay.Add(panel);
+
+        resultOverlay.style.display = DisplayStyle.None;
+        root.Add(resultOverlay);
     }
 
     private void SetupUI()
@@ -126,6 +153,30 @@ public class UIManager : MonoBehaviour
         reviveCostLabel.text = $"必要燃料: {fuelCost}";
         reviveOverlay.style.display = DisplayStyle.Flex;
     }
+
+    public void ShowResult(RunOutcome outcome)
+    {
+        bool cleared = outcome == RunOutcome.Cleared;
+        resultHeaderLabel.text = cleared ? "complete" : "failed";
+        resultHeaderLabel.EnableInClassList("result-header-cleared", cleared);
+        resultHeaderLabel.EnableInClassList("result-header-failed", !cleared);
+        resultOverlay.style.display = DisplayStyle.Flex;
+    }
+
+    public void HideResult()
+    {
+        resultOverlay.style.display = DisplayStyle.None;
+    }
+
+    public void ResetUnitIcons()
+    {
+        foreach(var icon in unitIcons.Values)
+        {
+            icon.RemoveFromClassList("unit-icon-deployed");
+        }
+        HideRevivePopup();
+    }
+
 
     public void HideRevivePopup()
     {

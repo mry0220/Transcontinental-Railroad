@@ -102,8 +102,6 @@ public class GameLoopManager : MonoBehaviour
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         dt = (double)timestep /1000.0; // 16.6667ms
-#else
-        dt = fixedDt; // 16.6667ms
 #endif
 
         Application.targetFrameRate = (int)fps;
@@ -151,6 +149,11 @@ public class GameLoopManager : MonoBehaviour
             break;
 
             case GameState.Prep:
+                if(prev == GameState.Result)
+                {
+                    ResetForNewRun();
+                }
+
                 prepPhaseManager.Enter();
                 // ä˘ë∂ÇÃóÒé‘ê∂ê¨èàóùÇÕáCÇ≈PrepPhaseManager.TickFuelSetÇ÷à⁄êAó\íËÅAåªéûì_Ç≈ÇÕÇ±Ç±Ç…écÇ∑
                 if (_trainInstance == null && trainDB != null && trainDB.train.prefab)
@@ -177,17 +180,26 @@ public class GameLoopManager : MonoBehaviour
                     inputBuffer.PlaybackMode = false;
                 }
                 Combatant.DestroyDead();
-            break;
-
-            case GameState.GameOver:
-                if (inputBuffer != null)
-                {
-                    inputBuffer.RecordMode = false;
-                    inputBuffer.PlaybackMode = false;
-                }
-                Combatant.DestroyDead();
+                uIManager?.ShowResult(stateManager.CurrentOutcome);
             break;
         }
+    }
+
+    private void ResetForNewRun()
+    {
+        inputBuffer?.Clear();
+
+        unitManager?.ResetForNewRun();
+        waveManager?.ResetForNewRun();
+        matchManager.Clear();
+
+        Combatant.DestroyAll();
+        _trainInstance = null;
+
+        fuelManager.ResetFuel();
+        uIManager?.HideResult();
+        uIManager?.ResetUnitIcons();
+        uIManager?.UpdateFuelUI(0,fuelManager.MaxFuel);
     }
 
     private void Update()
@@ -200,10 +212,10 @@ public class GameLoopManager : MonoBehaviour
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         int maxSteps = enableCatchUp ? maxCatchUpIterations : 1;
 #else
-    const int maxSteps = 1;
+    const int maxSteps = 5;
 #endif
 
-        while (steps < maxSteps)
+        while (accumulator >= dt && steps < maxSteps)
         {
             FixedStep((float)dt);
       
@@ -253,9 +265,7 @@ public class GameLoopManager : MonoBehaviour
             case GameState.Result:
                 UpdateResult(fixedDt);
                 break;
-            case GameState.GameOver:
-                UpdateGameOver(fixedDt);
-                break;
+            
         }
     }
 
@@ -301,9 +311,7 @@ public class GameLoopManager : MonoBehaviour
                 case GameState.Result:
                     HandleInputResult(evt);
                     break;
-                case GameState.GameOver:
-                    HandleInputGameOver(evt);
-                    break;
+               
             }
         }
     }
@@ -324,7 +332,7 @@ public class GameLoopManager : MonoBehaviour
     {
         if (evt.type == InputBuffer.InputType.PointerDown)
         {
-            stateManager?.transitionTo(GameState.Title);
+            stateManager?.transitionTo(GameState.Prep);
         }
     }
 

@@ -7,7 +7,13 @@ public enum GameState
     Prep,
     Operation,
     Result,
-    GameOver,
+}
+
+public enum RunOutcome
+{
+    None,
+    Cleared,
+    Failed,
 }
 
 public enum PrepPhase
@@ -41,6 +47,9 @@ public class StateManager : MonoBehaviour
     private OperationPhase currentOperationPhase;
     public OperationPhase CurrentOperationPhase => currentOperationPhase;
 
+    private RunOutcome currentOutcome = RunOutcome.None;
+    public RunOutcome CurrentOutcome => currentOutcome;
+
     public event Action<GameState, GameState> OnStateChanged;
     public event Action<PrepPhase, PrepPhase> OnPrepPhaseChanged;
     public event Action<OperationPhase, OperationPhase> OnOperationPhaseChanged;
@@ -57,6 +66,11 @@ public class StateManager : MonoBehaviour
             throw new InvalidOperationException($"遷移禁止: {currentState} -> {next}");
         }
 
+        if(next == GameState.Result && currentOutcome == RunOutcome.None)
+        {
+            throw new InvalidOperationException("ResultへはTransitionToResult経由で遷移してください");
+        }
+
         var prev = currentState;
         currentState = next;
 
@@ -64,6 +78,7 @@ public class StateManager : MonoBehaviour
         if (next == GameState.Prep)
         {
             currentPrepPhase = PrepPhase.StageSelect;
+            currentOutcome = RunOutcome.None;
         }
         else if (next == GameState.Operation)
         {
@@ -116,11 +131,10 @@ public class StateManager : MonoBehaviour
             case GameState.Prep:
                 return to == GameState.Operation;
             case GameState.Operation:
-                return to == GameState.Result || to == GameState.GameOver;
+                return to == GameState.Result;
             case GameState.Result:
-                return to == GameState.Title;
-            case GameState.GameOver:
-                return to == GameState.Title;
+                return to == GameState.Prep;
+            
             default:
                 return false;
         }
@@ -158,5 +172,20 @@ public class StateManager : MonoBehaviour
             default:
                 return false;
         }
+    }
+
+    public void TransitionToResult(RunOutcome outcome)
+    {
+        if(currentState != GameState.Operation)
+        {
+            throw new InvalidOperationException($"TransitionToResultはGameState.Operation中のみ有効:現在{currentState}");
+        }
+        if(outcome == RunOutcome.None)
+        {
+            throw new InvalidOperationException("outcomeにNoneは指定できません");
+        }
+
+        currentOutcome = outcome;
+        transitionTo(GameState.Result);
     }
 }

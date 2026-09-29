@@ -238,4 +238,11 @@ public class UnitManager : MonoBehaviour
 
         OnUnitDeployed?.Invoke(itemId, deployedUnit);
     }
+
+    public void ResetForNewRun()
+    {
+        HideUnitPlacementPreview();
+        unitStatus.Clear();
+        deployedUnits.Clear();
+    }
 }

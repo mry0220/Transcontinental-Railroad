@@ -23,6 +23,7 @@ public class Combatant : MonoBehaviour,ICombatant
     public bool IsDead => CurrentHP <= 0;
     public int MatchCapacity => _data.matchCapacity;
     public float MoveSpeed => _data.moveSpeed;
+    public int AttackPower => _data.attackPower;
 
     private readonly List<Match> _matches = new();
     public int CurrentMatchCount => _matches.Count;
@@ -103,10 +104,7 @@ public class Combatant : MonoBehaviour,ICombatant
         if (_data == null) return;
 
         if(IsDead)
-        {
-            TickRevive(fixedDt);
             return;
-        }
 
         if (!_isActive || _data == null || IsDead) return;
 
@@ -405,6 +403,14 @@ public class Combatant : MonoBehaviour,ICombatant
     public static void DestroyDead()
     {
         foreach(var combatant in _all.Where(c => c.IsDead).ToList())
+        {
+            Destroy(combatant.gameObject);
+        }
+    }
+
+    public static void DestroyAll()
+    {
+        foreach(var combatant in _all.ToList())
         {
             Destroy(combatant.gameObject);
         }

@@ -126,8 +126,11 @@ public class UIInputHandler : MonoBehaviour
     {
         if (_inputBuffer == null) return;
 
-        GUILayout.BeginArea(new Rect(10, 270, 350, 100));
+        GUILayout.BeginArea(new Rect(10, 270, 350, 200));
         GUILayout.Label("=== UIInputHandler ===");
+        GUILayout.Label($"CurrentState:{_stateManager.Current}");
+        GUILayout.Label($"CurrentPrepState:{_stateManager.CurrentPrepPhase}");
+        GUILayout.Label($"CurrentOperationState:{_stateManager.CurrentOperationPhase}");
         GUILayout.Label($"InputBuffer: {(_inputBuffer != null ? "OK" : "NULL")}");
         GUILayout.Label($"Root: {(root != null ? "OK" : "NULL")}");
         GUILayout.Label($"CurrentDragItem: {currentDraggedItemId ?? "null"}");

@@ -18,7 +18,7 @@ MonoBehaviour:
   _attackInterval: 0
   _attackPattern: 0
   _matchCapacity: 0
-  _moveSpeed: 0
+  _moveSpeed: 10
   _targetingStrategy: 0
   _attackRange: 0
   _id: 

@@ -91,4 +91,16 @@ public class MatchManager
         match.Left.NotifyMatchEnded(match);
         match.Right.NotifyMatchEnded(match);
     }
+
+    public void Clear()
+    {
+        foreach(var match in _activeMatches)
+        {
+            match.OnFinished -= HandleMatchFinished;
+        }
+
+        _activeMatches.Clear();
+        _requests.Clear();
+        _priorityRequests.Clear();
+    }
 }

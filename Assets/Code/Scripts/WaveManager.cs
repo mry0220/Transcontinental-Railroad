@@ -44,4 +44,9 @@ public class WaveManager : MonoBehaviour
 
         _spawnedEnemies.Add(enemyObject);
     }
+
+    public void ResetForNewRun()
+    {
+        _spawnedEnemies.Clear();
+    }
 }

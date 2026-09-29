@@ -13,6 +13,10 @@ MonoBehaviour:
   m_Name: StageData
   m_EditorClassIdentifier: Assembly-CSharp::StageData
   _stageName: "\u30C6\u30B9\u30C8\u30B9\u30C6\u30FC\u30B8"
-  _sections:
-  - {fileID: 11400000, guid: a3dd725b64c4fbd4a93ed7d8e562a0fd, type: 2}
-  - {fileID: 11400000, guid: 1ed4c66d982f9214bbba36d1bcec6082, type: 2}
+  _entries:
+  - _section: {fileID: 11400000, guid: a3dd725b64c4fbd4a93ed7d8e562a0fd, type: 2}
+    _distanceMin: 0
+    _distanceMax: 30
+  - _section: {fileID: 11400000, guid: 1ed4c66d982f9214bbba36d1bcec6082, type: 2}
+    _distanceMin: 1200
+    _distanceMax: 1600

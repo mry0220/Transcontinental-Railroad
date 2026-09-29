@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class StageEntry
 {
     [SerializeField] private SectionData _section;

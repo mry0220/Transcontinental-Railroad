@@ -59,6 +59,10 @@ VisualElement {
 }
 
 .revive-overlay{
+    position:absolute;
+    width:100%;
+    height:100%;
+    margin:0;
 }
 
 .revive-cost-label{
@@ -68,4 +72,20 @@ VisualElement {
 }
 
 .revive-cancel-button{
+}
+
+.result-overlay{
+    position:absolute;
+    width:100%;
+    height:100%;
+    margin:0;
+}
+
+.result-panel{
+}
+
+.result-header{
+}
+
+.result-hint{
 }
