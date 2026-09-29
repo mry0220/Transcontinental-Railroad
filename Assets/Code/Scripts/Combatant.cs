@@ -352,7 +352,7 @@ public class Combatant : MonoBehaviour,ICombatant
             var opponent = match.GetOpponent(this);
             if (opponent == null) continue;
             match.ApplyDamage(this, opponent, _data.attackPower);
-            Debug.Log("[Combatant] {name}attacked,opponent HP remaining check needed via opponent side");
+            Debug.Log($"[Combatant] {name}attacked,opponent HP remaining check needed via opponent side");
         }
 
         foreach(var target in _provisionalTargets.ToList())
@@ -403,6 +403,14 @@ public class Combatant : MonoBehaviour,ICombatant
     public static void DestroyDead()
     {
         foreach(var combatant in _all.Where(c => c.IsDead).ToList())
+        {
+            Destroy(combatant.gameObject);
+        }
+    }
+
+    public static void DestroyDead(Base_Item.Affiliation affiliation)
+    {
+        foreach (var combatant in _all.Where(c => c.IsDead && c.Affiliation == affiliation).ToList())
         {
             Destroy(combatant.gameObject);
         }

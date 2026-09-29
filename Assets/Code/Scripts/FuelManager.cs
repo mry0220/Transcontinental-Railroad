@@ -56,7 +56,7 @@ public class FuelManager : MonoBehaviour
 
     public void ConsumeAmount(int amount)
     {
-        CurrentFuel = Mathf.Max(0,CurrentFuel - amount);
+        CurrentFuel = Mathf.Clamp(CurrentFuel - amount,0,MaxFuel);
     }
 
     public void ResetFuel()

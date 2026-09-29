@@ -79,13 +79,34 @@ VisualElement {
     width:100%;
     height:100%;
     margin:0;
+    align-items:center;
+    justify-content:center;
+    background-color:rgba(0,0,0,6);
 }
 
 .result-panel{
+    width:auto;
+    height:auto;
+    margin:0;
+    align-items:center;
 }
 
 .result-header{
+    font-size:48px;
+    -unity-font-size-style:bold;
+    color:rgb(255,255,255);
+}
+
+.result-header-cleared{
+    color:rgb(120,220,140);
+}
+
+.result-header-failed{
+    color:rgb(230,90,90);
 }
 
 .result-hint{
+    margin-top:24px;
+    font-size:20px;
+    color:rgb(200,200,200);
 }

@@ -78,6 +78,8 @@ public class OperationPhaseManager
                // TickResult(fixedDt);
                 break;
         }
+
+        _uIManager.UpdateFuelUI(_fuelManager.CurrentFuel, _fuelManager.MaxFuel); ;
     }
 
     private void TickAllRevivals(float fixedDt)
@@ -126,7 +128,7 @@ public class OperationPhaseManager
             Debug.LogWarning("[OperationPhaseManager]次のSectionがない状態でResultからの進行が呼ばれた");
             return;
         }
-
+        Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
         _stateManager.TransitionOperationPhase(OperationPhase.Move);
         EnterMove();
     }
@@ -189,7 +191,6 @@ public class OperationPhaseManager
     }
     private void TickBattle(float fixedDt) 
     {
-        _uIManager.UpdateFuelUI(_fuelManager.CurrentFuel, _fuelManager.MaxFuel);
 
         foreach (var combatant in Combatant.All)
         {

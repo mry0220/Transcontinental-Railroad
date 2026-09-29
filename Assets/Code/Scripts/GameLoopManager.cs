@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class GameLoopManager : MonoBehaviour
@@ -271,7 +270,6 @@ public class GameLoopManager : MonoBehaviour
 
     private void UpdateTitle(float fixedDt)
     {
-        Debug.Log("TitleMode");
     }
 
    
@@ -282,13 +280,9 @@ public class GameLoopManager : MonoBehaviour
 
     private void UpdateResult(float fixedDt)
     {
-        Debug.Log("ResultMode");
     }
 
-    private void UpdateGameOver(float fixedDt)
-    {
-        Debug.Log("GameOverMode");
-    }
+   
 
 
     private void ConsumeInput(List<InputBuffer.InputEvent> eventsList)
@@ -336,13 +330,7 @@ public class GameLoopManager : MonoBehaviour
         }
     }
 
-    private void HandleInputGameOver(InputBuffer.InputEvent evt)
-    {
-        if (evt.type == InputBuffer.InputType.PointerDown)
-        {
-            stateManager?.transitionTo(GameState.Title);
-        }
-    }
+ 
 
    
 

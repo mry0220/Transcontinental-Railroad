@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -73,7 +72,7 @@ public class UIManager : MonoBehaviour
         reviveCostLabel.AddToClassList("revive-cost-label");
 
         var confirmButton = new Button(() => OnReviveConfirmed?.Invoke()) { text = "Revive" };
-        confirmButton.AddToClassList("revive-cofirm-button");
+        confirmButton.AddToClassList("revive-confirm-button");
 
         var cancelButton = new Button(() => OnReviveCancelled?.Invoke()) { text = "Cancel" };
         cancelButton.AddToClassList("revive-cancel-button");
