@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
+  m_Name: item_unit_0027
+  m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
+  _affiliation: 0
+  _maxHP: 5
+  _attackPower: 3
+  _attackInterval: 1
+  _attackPattern: 0
+  _matchCapacity: 1
+  _moveSpeed: 5
+  _targetingStrategy: 0
+  _attackRange: 3
+  _id: unit-0027
+  _displayname: "\u5948\u6D25\u5B50"
+  _icon: {fileID: 5784186892286947790, guid: 3ad630482eb0f59418d24a608e22bdb2, type: 3}
+  _prefab: {fileID: 0}
+  _reviveDuration: 5
+  _reviveFuelCost: 100

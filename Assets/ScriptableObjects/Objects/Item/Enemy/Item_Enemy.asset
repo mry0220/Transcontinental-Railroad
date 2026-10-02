@@ -23,5 +23,5 @@ MonoBehaviour:
   _attackRange: 1
   _id: Enemy_Test
   _displayname: "\u30C6\u30B9\u30C8"
-  _icon: {fileID: -8293812731248686629, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _prefab: {fileID: 4624132937953453636, guid: bfc6cbdd4cf1c074f8e6800d3e3448ff, type: 3}
+  _icon: {fileID: 5147264757854351283, guid: 2d9fe25e783475d4393da6cfd839b9dc, type: 3}
+  _prefab: {fileID: 278440121867527400, guid: cff4d68f4b4763346817635632af20ed, type: 3}
