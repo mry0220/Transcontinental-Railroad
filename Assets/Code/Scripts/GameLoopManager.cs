@@ -30,6 +30,7 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private UnitManager unitManager;
     [SerializeField] private WaveManager waveManager;
     [SerializeField] private UIInputHandler uIInputHandler;
+    [SerializeField] private ParallaxBackground background;
     private MatchManager matchManager;
     private SectionManager sectionManager;
 
@@ -95,7 +96,7 @@ public class GameLoopManager : MonoBehaviour
         operationPhaseManager = new OperationPhaseManager(
             stateManager,unitManager,waveManager,matchManager,
             fuelManager,uIManager, sectionManager, () => _trainInstance,rng);
-
+        operationPhaseManager.SetBackground(background);
 
         clock  = 0.0;
         accumulator = 0.0;

@@ -31,7 +31,8 @@
     position:absolute;
     top:14px;
     width:18px;
-    margin:9px 0 0 -9px;
+    height:18px;
+    margin: -9px 0 0 -9px;
     border-radius : 9px;
     border-width:2px;
     border-color:rgb(255,255,255);
@@ -57,7 +58,7 @@
     opacity : 0.35;
 }
 
-route-train{
+.route-train{
     position:absolute;
     top:14px;
     width:14px;

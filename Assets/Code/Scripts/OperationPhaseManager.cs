@@ -19,6 +19,8 @@ public class OperationPhaseManager
     private readonly System.Func<GameObject> _getTrainInstance;
     private readonly RNG _rng;
 
+    private ParallaxBackground _background;
+
     private float _moveElapsed;
     private float _moveDuration;
 
@@ -65,6 +67,7 @@ public class OperationPhaseManager
     public void Enter()
     {
         Debug.Log("[OperationPhaseManager] Enter: Moveから開始");
+        _background?.ResetScroll();
         ClosePopup();
         EnterMove();
     }
@@ -170,6 +173,8 @@ public class OperationPhaseManager
     private void TickMove(float fixedDt) 
     {
         if (!TickFuel(true, fixedDt)) return;
+
+        _background?.Scroll(_moveSpeed * fixedDt);
 
         _moveElapsed += fixedDt;
         if (_moveElapsed < _moveDuration) return;
@@ -278,6 +283,11 @@ public class OperationPhaseManager
         _isRevivePopupOpen = false;
         _pendingReviveItemId = null;
         _uIManager.HideRevivePopup();
+    }
+
+    public void SetBackground(ParallaxBackground background)
+    {
+        _background = background;
     }
 }
 
