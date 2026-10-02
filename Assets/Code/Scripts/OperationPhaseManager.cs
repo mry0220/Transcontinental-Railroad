@@ -25,6 +25,14 @@ public class OperationPhaseManager
     private bool _isRevivePopupOpen;
     private string _pendingReviveItemId;
 
+    private float _moveDistance;
+    private float _moveSpeed;
+
+    public float MoveDistance => _moveDistance;
+    public float MoveSpeed => _moveSpeed;
+    public float MoveElapsed => _moveElapsed;
+    public float MoveDuration => _moveDuration;
+    public float MoveProgress => _moveDuration > 0f ? Mathf.Clamp01(_moveElapsed / _moveDuration) : 1f;
     
 
     public OperationPhaseManager(
@@ -134,6 +142,9 @@ public class OperationPhaseManager
 
         float distance = _rng.Range(entry.distanceMin,entry.distanceMax);
         float trainSpeed = GetTrainMoveSpeed();
+
+        _moveDistance = _rng.Range(entry.distanceMin, entry.distanceMax);
+        _moveSpeed = GetTrainMoveSpeed();
 
         _moveElapsed = 0f;
         _moveDuration = trainSpeed > 0f ? distance / trainSpeed : 0f;

@@ -623,8 +623,6 @@ MonoBehaviour:
   unitManager: {fileID: 1775603192}
   waveManager: {fileID: 569690236}
   uIInputHandler: {fileID: 1376791714}
-  stages:
-  - {fileID: 11400000, guid: 287122036ceb8274bbe29b98eaac8016, type: 2}
   fps: 60
   seed: 12345
   vSync: 0

@@ -149,7 +149,7 @@ public class StateManager : MonoBehaviour
             case PrepPhase.StageSelect:
                 return to == PrepPhase.UnitSelect;
             case PrepPhase.UnitSelect:
-                return to == PrepPhase.FuelSet;
+                return to == PrepPhase.FuelSet || to == PrepPhase.StageSelect;
             case PrepPhase.FuelSet:
                 return false; // ここから先はMasterState側のtransitionTo(Operation)で抜ける
             default:

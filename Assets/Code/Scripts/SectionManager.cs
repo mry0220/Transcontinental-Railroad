@@ -16,6 +16,9 @@ public class SectionManager
 
     public bool HasNextSection => _StageData != null && _currentSectionIndex + 1 < _StageData.entries.Count;
 
+    public int CurrentIndex => _currentSectionIndex;
+    public int SectionCount => _StageData != null ? _StageData.entries.Count : 0;
+
     public StageEntry CurrentEntry =>
         (_StageData != null && _currentSectionIndex < _StageData.entries.Count)
         ? _StageData.entries[_currentSectionIndex] : null;

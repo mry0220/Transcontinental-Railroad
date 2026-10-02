@@ -34,6 +34,7 @@ public class GameLoopManager : MonoBehaviour
     private SectionManager sectionManager;
 
     //====Inspector Config
+    [SerializeField] private List<StageData> stages;
     [SerializeField] private FPS fps = FPS._60FPS;
     [SerializeField] private int seed = 12345;
     [Header("VSync"), SerializeField] private bool vSync = false;
@@ -90,7 +91,7 @@ public class GameLoopManager : MonoBehaviour
         uIInputHandler?.SetStateManager(stateManager);
         sectionManager = new();
 
-        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,uIManager,sectionManager,testStageData);
+        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,uIManager,sectionManager);
         operationPhaseManager = new OperationPhaseManager(
             stateManager,unitManager,waveManager,matchManager,
             fuelManager,uIManager, sectionManager, () => _trainInstance,rng);
@@ -113,8 +114,29 @@ public class GameLoopManager : MonoBehaviour
         if (stateManager != null)
         {
             stateManager.OnStateChanged += OnGameStateChanged;
-            
+            stateManager.OnPrepPhaseChanged += OnPrepPhaseChanged;
         }
+
+        if(uIManager != null)
+        {
+            uIManager.SetStageList(stages);
+
+            uIManager.SetUnitSelectCandidates(trainDB != null ? trainDB.trains : null);
+
+            uIManager.OnTrainChosen += prepPhaseManager.ChooseTrain;
+            uIManager.OnUnitCandidateChosen += prepPhaseManager.ToggleUnit;
+            uIManager.OnUnitSlotChosen += prepPhaseManager.ClearUnitSlot;
+            uIManager.OnUnitSelectConfirmed += prepPhaseManager.ConfirmUnitSelect;
+            uIManager.OnUnitSelectBack += prepPhaseManager.BackToStageSelect;
+
+            uIManager.OnStageChosen += HandleStageChosen;
+            uIManager.OnTitleTapped += HandleTitleTapped;
+            uIManager.OnFuelSetTapped += prepPhaseManager.ConfirmFuelSet;
+
+            uIManager.ShowTitleScreen(stateManager != null && stateManager.Current == GameState.Title);
+        }
+
+        prepPhaseManager.OnLoadoutConfirmed += HandleLoadoutConfirmed;
 
         if(unitManager != null && uIManager != null)
         {
@@ -122,6 +144,8 @@ public class GameLoopManager : MonoBehaviour
             unitManager.OnUnitReturned += uIManager.HandleUnitReturned;
             unitManager.OnUnitDied += uIManager.HandleUnitDied;
             unitManager.OnUnitRevived += uIManager.HandleUnitRevived;
+            unitManager.OnReviveStarted += uIManager.HandleReviveStarted;
+            unitManager.OnReviveProgress += uIManager.HandleReviveProgress;
         }
 
         if(stateManager == null)
@@ -130,9 +154,33 @@ public class GameLoopManager : MonoBehaviour
         Debug.LogError("InputBuffer not found!");
     }
 
+    private void HandleLoadoutConfirmed(Loadout loadout)
+    {
+        SpawnTrain(loadout.Train);
+        uIManager?.BuildUnitIcons(loadout.GetSelectedUnits());
+        uIManager?.SetFuelSetTrain(loadout.Train);
+    }
+
+    private void SpawnTrain(Item_Train train)
+    {
+        if (_trainInstance != null) Destroy(_trainInstance);
+        if (train == null || train.prefab == null) return;
+
+        _trainInstance = Instantiate(train.prefab, trainSpawnPosition, Quaternion.identity);
+        var trainConbatant = _trainInstance.GetComponent < Combatant>();
+        trainConbatant?.Initialize(train, matchManager);
+        if(trainConbatant != null)
+        {
+            trainConbatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
+        }
+        fuelManager.SetMaxFuel(train.maxHP);
+    }
+
     private void OnGameStateChanged(GameState prev, GameState next)
     {
         Debug.Log($"[Gameloop]State transition: {prev} -> {next}");
+        uIManager?.ShowTitleScreen(next == GameState.Title);
+        if (next != GameState.Prep) uIManager?.HidePrepScreens();
 
         stateFrameCount = 0;
 
@@ -156,18 +204,19 @@ public class GameLoopManager : MonoBehaviour
                 }
 
                 prepPhaseManager.Enter();
+                uIManager?.ShowPrepScreen(stateManager.CurrentPrepPhase);
                 // ä˘ë∂ÇÃóÒé‘ê∂ê¨èàóùÇÕáCÇ≈PrepPhaseManager.TickFuelSetÇ÷à⁄êAó\íËÅAåªéûì_Ç≈ÇÕÇ±Ç±Ç…écÇ∑
-                if (_trainInstance == null && trainDB != null && trainDB.train.prefab)
-                {
-                    _trainInstance = Instantiate(trainDB.train.prefab, trainSpawnPosition, Quaternion.identity);
-                    var trainCombatant = _trainInstance.GetComponent<Combatant>();
-                    trainCombatant?.Initialize(trainDB.train, matchManager);
-                    if (trainCombatant != null)
-                    {
-                        trainCombatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
-                    }
-                    fuelManager.SetMaxFuel(trainDB.train.maxHP);
-                }
+                //if (_trainInstance == null && trainDB != null && trainDB.train.prefab)
+                //{
+                //    _trainInstance = Instantiate(trainDB.trains., trainSpawnPosition, Quaternion.identity);
+                //    var trainCombatant = _trainInstance.GetComponent<Combatant>();
+                //    trainCombatant?.Initialize(trainDB.train, matchManager);
+                //    if (trainCombatant != null)
+                //    {
+                //        trainCombatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
+                //    }
+                //    fuelManager.SetMaxFuel(trainDB.train.maxHP);
+                //}
                 break;
 
             case GameState.Operation:
@@ -201,6 +250,12 @@ public class GameLoopManager : MonoBehaviour
         uIManager?.HideResult();
         uIManager?.ResetUnitIcons();
         uIManager?.UpdateFuelUI(0,fuelManager.MaxFuel);
+    }
+
+    private void HandleTitleTapped()
+    {
+        if (stateManager == null || stateManager.Current != GameState.Title) return;
+        stateManager.transitionTo(GameState.Prep);
     }
 
     private void Update()
@@ -274,7 +329,16 @@ public class GameLoopManager : MonoBehaviour
     {
     }
 
-   
+    private void OnPrepPhaseChanged(PrepPhase prev,PrepPhase next)
+    {
+        uIManager?.ShowPrepScreen(next);
+    }
+
+    private void HandleStageChosen(int index)
+    {
+        if (stages == null || index < 0 || index >= stages.Count) return;
+        prepPhaseManager.SelectStage(stages[index]);
+    }
 
     
 
@@ -332,9 +396,29 @@ public class GameLoopManager : MonoBehaviour
         }
     }
 
- 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private void OnGUI()
+    {
+        if (stateManager == null || stateManager.Current != GameState.Operation) return;
 
-   
+        var entry = sectionManager.CurrentSection;
+        string typeText = (entry != null && entry.section != null) ? entry.section.type.ToString() : "-";
+        string rangeText = entry != null ? entry.distanceMin.ToString("F1") + " - " + entry.distanceMax.ToString("F1") : "-";
+
+        GUILayout.BeginArea(new Rect(10, 480, 350, 220));
+        GUILayout.Label("=== Move ===");
+        GUILayout.Label($"Phase: {stateManager.CurrentOperationPhase}");
+        GUILayout.Label($"Section: {sectionManager.CurrentIndex + 1} / {sectionManager.SectionCount} ({typeText})");
+        GUILayout.Label($"Distance Range: {rangeText}");
+        GUILayout.Label($"Distance (RNG): {operationPhaseManager.MoveDistance:F2}");
+        GUILayout.Label($"Train Speed: {operationPhaseManager.MoveSpeed:F2}");
+        GUILayout.Label($"Elapsed / Duration: {operationPhaseManager.MoveElapsed:F2} / {operationPhaseManager.MoveDuration:F2} s");
+        GUILayout.Label($"Progress: {operationPhaseManager.MoveProgress * 100f:F0} %");
+        GUILayout.EndArea();
+    }
+#endif
+
+
 
 
 

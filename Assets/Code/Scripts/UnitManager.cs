@@ -15,6 +15,9 @@ public class UnitManager : MonoBehaviour
     /// <summary> unitが帰還時に発火 </summary>
     public event Action<string, GameObject> OnUnitReturned;
 
+    public event Action<string> OnReviveStarted;
+    public event Action<string, float, float> OnReviveProgress; //ItemId,残り秒,進行度
+    
     public enum UnitBattleStatus
     {
         Standby,
@@ -155,7 +158,10 @@ public class UnitManager : MonoBehaviour
         _fuelManager.ConsumeAmount(cost);
         recoad.isReviving = true;
         recoad.timer = 0f;
+
+        OnReviveStarted?.Invoke(itemId);
         return true;
+
     }
 
     /// <summary>
@@ -171,9 +177,14 @@ public class UnitManager : MonoBehaviour
             if (!record.isReviving) continue;
 
             var data = unitDB != null ? unitDB.GetUnit(pair.Key) : null;
-            float duration = data != null ? data.reviveRuration : 0f;
+            float duration = data != null ? data.reviveDuration : 0f;
 
             if (record.timer < duration) record.timer += fixedDt;
+
+            float progress = duration > 0f ? Mathf.Clamp01(record.timer / duration) : 1f;
+            float remaining = Mathf.Max(0f, duration - record.timer);
+            OnReviveProgress?.Invoke(pair.Key, remaining, progress);
+
             if(canComplete && record.timer >= duration)
             {
                 _reviveCompleted.Add(pair.Key);
