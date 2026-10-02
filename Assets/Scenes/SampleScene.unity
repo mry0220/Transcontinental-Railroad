@@ -559,6 +559,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1890116379
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1890116381}
+  - component: {fileID: 1890116380}
+  m_Layer: 0
+  m_Name: Background
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1890116380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890116379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5eee5fd9cf6a30142a3bd2fb78167e11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParallaxBackground
+  targetCamera: {fileID: 519420031}
+  layers:
+  - sprite: {fileID: 7520494279255852340, guid: b59747b4cd8938f4d8cf9b8a21be5f27, type: 3}
+    speedFactor: 0.3
+    y: -2
+    sortingOrder: -1
+  - sprite: {fileID: 5147264757854351283, guid: 2d9fe25e783475d4393da6cfd839b9dc, type: 3}
+    speedFactor: 1
+    y: -2
+    sortingOrder: -1
+  - sprite: {fileID: -353522424053517125, guid: 984138b5701f407488fcea5da8274f55, type: 3}
+    speedFactor: -1
+    y: -1
+    sortingOrder: -1
+  - sprite: {fileID: -4237443128374831612, guid: 1ab1703eac8c0604a988edbf92c3a41f, type: 3}
+    speedFactor: 10
+    y: -2
+    sortingOrder: -1
+--- !u!4 &1890116381
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890116379}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2111893337
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,6 +685,7 @@ MonoBehaviour:
   unitManager: {fileID: 1775603192}
   waveManager: {fileID: 569690236}
   uIInputHandler: {fileID: 1376791714}
+  background: {fileID: 1890116380}
   stages:
   - {fileID: 11400000, guid: 287122036ceb8274bbe29b98eaac8016, type: 2}
   fps: 60
@@ -661,3 +724,4 @@ SceneRoots:
   - {fileID: 83915110}
   - {fileID: 1775603193}
   - {fileID: 569690237}
+  - {fileID: 1890116381}

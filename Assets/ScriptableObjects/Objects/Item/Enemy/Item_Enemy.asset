@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Item_Enemy
   m_EditorClassIdentifier: Assembly-CSharp::Item_Enemy
   _affiliation: 1
-  _maxHP: 10
+  _maxHP: 60
   _attackPower: 10
-  _attackInterval: 10
+  _attackInterval: 3
   _attackPattern: 0
   _matchCapacity: 1
   _moveSpeed: 5
