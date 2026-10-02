@@ -151,14 +151,12 @@ public class OperationPhaseManager
             return;
         }
 
-        float distance = _rng.Range(entry.distanceMin,entry.distanceMax);
-        float trainSpeed = GetTrainMoveSpeed();
-
+        
         _moveDistance = _rng.Range(entry.distanceMin, entry.distanceMax);
         _moveSpeed = GetTrainMoveSpeed();
 
         _moveElapsed = 0f;
-        _moveDuration = trainSpeed > 0f ? distance / trainSpeed : 0f;
+        _moveDuration = _moveSpeed > 0f ? _moveDistance / _moveSpeed : 0f;
 
         
     }
