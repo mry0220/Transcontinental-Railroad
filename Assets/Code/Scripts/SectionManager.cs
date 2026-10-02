@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -37,5 +38,16 @@ public class SectionManager
         return true;
     }
 
+    public List<SectionType> GetSectionTypes()
+    {
+        var list = new List<SectionType>();
+        if (_StageData == null) return list;
+
+        foreach(var entry in _StageData.entries)
+        {
+            list.Add(entry.section != null ? entry.section.type : SectionType.Battle);
+        }
+        return list;
+    }
   
 }

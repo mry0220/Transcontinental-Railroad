@@ -346,4 +346,10 @@ public class UnitManager : MonoBehaviour
         deployedUnits.Clear();
         deadRecords.Clear();
     }
+
+    public Sprite GetUnitIcon(string itemId)
+    {
+        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
+        return data != null ? data.icon : null;
+    }
 }

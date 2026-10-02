@@ -181,6 +181,7 @@ public class GameLoopManager : MonoBehaviour
         Debug.Log($"[Gameloop]State transition: {prev} -> {next}");
         uIManager?.ShowTitleScreen(next == GameState.Title);
         if (next != GameState.Prep) uIManager?.HidePrepScreens();
+        uIManager?.SetRouteBarVisible(next == GameState.Operation);
 
         stateFrameCount = 0;
 
@@ -220,6 +221,7 @@ public class GameLoopManager : MonoBehaviour
                 break;
 
             case GameState.Operation:
+                uIManager?.BuildRouteBar(sectionManager.GetSectionTypes());
                 operationPhaseManager.Enter();
                 break;
 

@@ -19,11 +19,18 @@ public class UIManager : MonoBehaviour
     private Dictionary<string, VisualElement> reviveFills = new();
     private Dictionary<string, Label> reviveLabels = new();
 
+    private VisualElement routeBar;
+    private VisualElement routeTrain;
+    private readonly List<VisualElement> routeMarkers = new();
+    private int routePassedCount = -1;
+
     private VisualElement reviveOverlay;
     private Label reviveCostLabel;
 
     private VisualElement resultOverlay;
     private Label resultHeaderLabel;
+
+    private VisualElement reviveIcon;
 
     private VisualElement stageSelectScreen;
     private VisualElement stageListPanel;
@@ -42,6 +49,7 @@ public class UIManager : MonoBehaviour
     private VisualElement unitContainer;
     private readonly Dictionary<Item_Train, Button> trainCandidateButtons = new();
     private readonly Dictionary<Item_Unit, Button> unitCandidateButtons = new();
+
 
     public event System.Action<Item_Train> OnTrainChosen;
     public event System.Action<Item_Unit> OnUnitCandidateChosen;
@@ -95,6 +103,7 @@ public class UIManager : MonoBehaviour
         {
             SetupUI();
         }
+        SetupRouteBar();
         SetupTitleScreen();
         SetupStageSelectScreen();
         SetupUnitSelectScreen();
@@ -113,8 +122,14 @@ public class UIManager : MonoBehaviour
         var panel = new VisualElement();
         panel.AddToClassList("revive-panel");
 
+        reviveIcon = new VisualElement();
+        reviveIcon.AddToClassList("revive-icon");
+
         reviveCostLabel = new Label();
         reviveCostLabel.AddToClassList("revive-cost-label");
+
+        var buttonRow = new VisualElement();
+        buttonRow.AddToClassList("revive-button-row");
 
         var confirmButton = new Button(() => OnReviveConfirmed?.Invoke()) { text = "Revive" };
         confirmButton.AddToClassList("revive-confirm-button");
@@ -122,13 +137,36 @@ public class UIManager : MonoBehaviour
         var cancelButton = new Button(() => OnReviveCancelled?.Invoke()) { text = "Cancel" };
         cancelButton.AddToClassList("revive-cancel-button");
 
-        panel.Add(reviveCostLabel);
         panel.Add(confirmButton);
         panel.Add(cancelButton);
+
+        panel.Add(reviveIcon);
+        panel.Add(reviveCostLabel);
+        panel.Add(buttonRow);
         reviveOverlay.Add(panel);
 
         reviveOverlay.style.display = DisplayStyle.None;
         root.Add(reviveOverlay);
+    }
+
+    private void SetupRouteBar()
+    {
+        routeBar = new VisualElement();
+        routeBar.AddToClassList("route-bar");
+        routeBar.pickingMode = PickingMode.Ignore;
+
+        var line = new VisualElement();
+        line.AddToClassList("route-line");
+        line.pickingMode = PickingMode.Ignore;
+        routeBar.Add(line);
+
+        routeTrain = new VisualElement();
+        routeTrain.AddToClassList("route-train");
+        routeTrain.pickingMode = PickingMode.Ignore;
+        routeBar.Add(routeTrain);
+
+        routeBar.style.display = DisplayStyle.None;
+        root.Add(routeBar);
     }
 
     private void SetupFuelSetScreen()
@@ -261,6 +299,65 @@ public class UIManager : MonoBehaviour
             }
              
         }
+    }
+
+    /// <summary>
+    /// Operation突入時に、Sectionの種類に合わせ印を作りなおす
+    /// </summary>
+    public void BuildRouteBar(List<SectionType> sectionTypes)
+    {
+        foreach (var marker in routeMarkers) marker.RemoveFromHierarchy();
+        routeMarkers.Clear();
+        routePassedCount = -1;
+
+        int count = sectionTypes != null ? sectionTypes.Count : 0;
+        for(int i = 0;i < count;i++)
+        {
+            var marker = new VisualElement();
+            marker.AddToClassList("route-marker");
+            marker.AddToClassList(sectionTypes[i] switch
+            {
+                SectionType.Battle => "route-marker-battle",
+                SectionType.Event => "route-marker-event",
+                _ => "route-marker-goal"
+            });
+            marker.pickingMode = PickingMode.Ignore;
+            marker.style.left = new Length((i + 1) * 100f / count,LengthUnit.Percent);
+
+            routeBar.Add(marker);
+            routeMarkers.Add(marker);
+        }
+
+        routeTrain.BringToFront();
+        UpdateRouteProgress(0, count, 0f);
+    }
+
+    /// <summary>
+    /// currentIndexのSectionへ向かう道のりのうち、LegProgressだけ進んだ位置に列車を置く
+    /// </summary>
+    /// <param name="currentIndex"></param>
+    /// <param name="sectionCount"></param>
+    /// <param name="legProgress"></param>
+    public void UpdateRouteProgress(int currentIndex,int sectionCount,float legProgress)
+    {
+        if (routeBar == null || sectionCount <= 0) return;
+
+        routeTrain.style.left = new Length((currentIndex + legProgress) * 100f / sectionCount,LengthUnit.Percent);
+
+        int passed = currentIndex + (legProgress >= 1f ? 1 : 0);
+        if (passed == routePassedCount) return;
+
+        routePassedCount = passed;
+        for(int i = 0;i<routeMarkers.Count;i++)
+        {
+            routeMarkers[i].EnableInClassList("route-marker-passed", i < passed);
+        }
+    }
+
+    public void SetRouteBarVisible(bool visible)
+    {
+        if (routeBar == null) return;
+        routeBar.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     public void RefreshUnitSelect(Loadout loadout)
@@ -498,8 +595,9 @@ public class UIManager : MonoBehaviour
 
     
 
-    public void ShowRevivePopup(int fuelCost)
+    public void ShowRevivePopup(Sprite icon,int fuelCost)
     {
+        SetIcon(reviveIcon, icon);
         reviveCostLabel.text = $"必要燃料: {fuelCost}";
         reviveOverlay.style.display = DisplayStyle.Flex;
     }

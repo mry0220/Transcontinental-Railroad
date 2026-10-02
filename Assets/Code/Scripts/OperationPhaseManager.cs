@@ -69,9 +69,17 @@ public class OperationPhaseManager
         EnterMove();
     }
 
+    private void UpdateRouteBar()
+    {
+        float leg = _stateManager.CurrentOperationPhase == OperationPhase.Move ? MoveProgress : 1f;
+        _uIManager.UpdateRouteProgress(_sectionManager.CurrentIndex, _sectionManager.SectionCount, leg);
+    }
+
     /// <summary> GameLoopManagerのFixedStepから、GameState.Operation中のみ呼ばれる </summary>
     public void Tick(float fixedDt)
     {
+        if (_isRevivePopupOpen) return;
+
         TickAllRevivals(fixedDt);
 
         switch (_stateManager.CurrentOperationPhase)
@@ -86,7 +94,7 @@ public class OperationPhaseManager
                // TickResult(fixedDt);
                 break;
         }
-
+        UpdateRouteBar();
         _uIManager.UpdateFuelUI(_fuelManager.CurrentFuel, _fuelManager.MaxFuel); ;
     }
 
@@ -250,7 +258,7 @@ public class OperationPhaseManager
         _pendingReviveItemId = itemId;
         _isRevivePopupOpen = true;
 
-        _uIManager.ShowRevivePopup(_unitManager.GetReviveFuelCost(itemId));
+        _uIManager.ShowRevivePopup(_unitManager.GetUnitIcon(itemId),_unitManager.GetReviveFuelCost(itemId));
     }
 
     private void ConfirmRevive()

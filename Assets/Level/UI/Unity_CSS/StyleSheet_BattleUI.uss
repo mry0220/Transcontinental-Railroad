@@ -7,6 +7,66 @@
     width: 15.5%;
 }
 
+.route-bar{
+    position : absolute;
+    top : 18px;
+    right : 11%;
+    width : 34%;
+    height : 28px;
+    margin : 0;
+}
+
+.route-line{
+    position : absolute;
+    left:0;
+    right:0;
+    top:12px;
+    width:auto;
+    height:4px;
+    margin:0;
+    background-color:rgb(200,200,200);
+}
+
+.route-marker{
+    position:absolute;
+    top:14px;
+    width:18px;
+    margin:9px 0 0 -9px;
+    border-radius : 9px;
+    border-width:2px;
+    border-color:rgb(255,255,255);
+}
+
+.route-marker-battle{
+   background-color: rgb(220,70,70);
+}
+
+.route-marker-event{
+    background-color : rgb(240,200,60);
+}
+
+.route-marker-goal{
+    width:26px;
+    height:26px;
+    margin:-13px 0 0 -13px;
+    border-radius : 13px;
+    background-color :rgb(110,210,130);
+}
+
+.route-marker-passed{
+    opacity : 0.35;
+}
+
+route-train{
+    position:absolute;
+    top:14px;
+    width:14px;
+    height:14px;
+    margin:-7px 0 0 -7px;
+    border-radius: 7px;
+    background-color:rgb(255,255,255);
+}
+
 .fuel-Wrapper {
     border: 2px;
     width: 100%;
@@ -47,23 +107,59 @@
     opacity: 0.4;
 }
 
-.revive-panel {
-}
-
 .revive-overlay {
     position: absolute;
+    left:0;
+    top:0;
     width: 100%;
     height: 100%;
     margin: 0;
+    align-items:center;
+    justify-content:center;
+    background-color:rgba(0,0,0,0.6);
 }
 
-.revive-cost-label {
+.revive-panel{
+    width:auto;
+    height:auto;
+    margin:0;
+    padding:24px 40px;
+    align-items:center;
+    background-color:rgb(20,20,24);
+    border-width:3px;
+    border-color:rgb(255,255,255);
+    border-radius:12px;
 }
 
-.revive-confirm-button {
+.revive-icon{
+    width : 96px;
+    height : 96px;
+    margin : 0 0 12px 0;
+    border-width: 2px;
+    border-color:rgb(200,200,200);
+    border-radius:24px;
+    -unity-background-scale-mode:scale-to-fit;
 }
 
-.revive-cancel-button {
+.revive-cost-label{
+    margin:0 0 16px 0;
+    font-size : 24px;
+    color : rgb(255,255,255);
+}
+
+.revive-button-row{
+    flex-direction : row;
+    width : auto;
+    height : auto;
+    margin : 0;
+}
+
+.revive-confirm-button,
+.revive-cancel-button{
+    width : 120px;
+    height : 48px;
+    margin : 0 8px;
+    font-size:22px;
 }
 
 .unit-icon-revive-fill {
