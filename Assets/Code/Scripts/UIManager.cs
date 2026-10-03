@@ -50,12 +50,19 @@ public class UIManager : MonoBehaviour
     private readonly Dictionary<Item_Train, Button> trainCandidateButtons = new();
     private readonly Dictionary<Item_Unit, Button> unitCandidateButtons = new();
 
+    private VisualElement alertOverlay;
+    private IVisualElementScheduledItem alertBlink;
+    private VisualElement battleButtons;
+
 
     public event System.Action<Item_Train> OnTrainChosen;
     public event System.Action<Item_Unit> OnUnitCandidateChosen;
     public event System.Action<int> OnUnitSlotChosen;
     public event System.Action OnUnitSelectConfirmed;
     public event System.Action OnUnitSelectBack;
+    public event System.Action OnRamRequested;
+    public event System.Action OnReturnAllRequested;
+
 
     private VisualElement fuelSetScreen;
     private VisualElement fuelSetBarFill;
@@ -108,6 +115,7 @@ public class UIManager : MonoBehaviour
         SetupStageSelectScreen();
         SetupUnitSelectScreen();
         SetupFuelSetScreen();
+        SetupBattleControls();
         SetupMenuButton();
         SetupRevivePopup();
         SetupResultScreen();
@@ -147,6 +155,50 @@ public class UIManager : MonoBehaviour
 
         reviveOverlay.style.display = DisplayStyle.None;
         root.Add(reviveOverlay);
+    }
+
+    private void SetupBattleControls()
+    {
+        alertOverlay = new VisualElement();
+        alertOverlay.AddToClassList("alert-overlay");
+        alertOverlay.pickingMode = PickingMode.Ignore;
+        alertOverlay.style.display = DisplayStyle.None;
+        root.Add(alertOverlay);
+
+        alertBlink = alertOverlay.schedule
+            .Execute(() => alertOverlay.ToggleInClassList("alert-overlay-dim"))
+            .Every(250);
+        alertBlink.Pause();
+
+        battleButtons = new VisualElement();
+        battleButtons.AddToClassList("battle-buttons");
+        battleButtons.pickingMode = PickingMode.Ignore;
+
+        var returnAll = new Button(() => OnReturnAllRequested?.Invoke()) { text = "RETURN" };
+        returnAll.AddToClassList("battle-return-button");
+
+        var ram = new Button(() => OnRamRequested?.Invoke()) { text = "RAM" };
+        ram.AddToClassList("battle-ram-button");
+
+        battleButtons.Add(returnAll);
+        battleButtons.Add(ram);
+        battleButtons.style.display = DisplayStyle.None;
+        root.Add(battleButtons);
+    }
+
+    public void SetAlert(bool on)
+    {
+        if (alertOverlay == null) return;
+
+        alertOverlay.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+        if (on) alertBlink?.Resume();
+        else alertBlink?.Pause();
+    }
+
+    public void SetBattleButtonsVisible(bool visible)
+    {
+        if (battleButtons == null) return;
+        battleButtons.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     private void SetupRouteBar()

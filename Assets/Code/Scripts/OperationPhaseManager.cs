@@ -35,6 +35,16 @@ public class OperationPhaseManager
     public float MoveElapsed => _moveElapsed;
     public float MoveDuration => _moveDuration;
     public float MoveProgress => _moveDuration > 0f ? Mathf.Clamp01(_moveElapsed / _moveDuration) : 1f;
+
+    private enum RamStage { Alert,Charge}
+
+    private RamSettings _ramSettings = new();
+    private RamStage _ramStage;
+    private float _ramTimer;
+    private float _ramSpeed;
+    private Vector3 _trainHome;
+    private bool _trainNeedsReset;
+
     
 
     public OperationPhaseManager(
@@ -61,6 +71,11 @@ public class OperationPhaseManager
         _unitManager.OnDeadUnitTapped += HandleDeadUnitTapped;
         _uIManager.OnReviveConfirmed += ConfirmRevive;
         _uIManager.OnReviveCancelled += CancelRevive;
+    }
+
+    public void SetRamSettings(RamSettings settings)
+    {
+        _ramSettings = settings ?? new RamSettings();
     }
 
     /// <summary> GameState.Operation突入時にGameLoopManagerから呼ばれる </summary>
@@ -92,6 +107,9 @@ public class OperationPhaseManager
                 break;
             case OperationPhase.Battle:
                 TickBattle(fixedDt);
+                break;
+            case OperationPhase.Ram:
+                TickRam(fixedDt);
                 break;
             case OperationPhase.Result:
                // TickResult(fixedDt);
@@ -286,6 +304,116 @@ public class OperationPhaseManager
     public void SetBackground(ParallaxBackground background)
     {
         _background = background;
+    }
+
+    /// <summary>
+    /// RAMボタンから呼ばれるBattle中のみ有効
+    /// </summary>
+    public void RequestRam()
+    {
+        if (_stateManager.Current != GameState.Operation) return;
+        if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
+
+        _unitManager?.HideUnitPlacementPreview();
+
+        var train = _getTrainInstance();
+        _trainHome = train != null ? train.transform.position : Vector3.zero;
+        _ramStage = RamStage.Alert;
+        _ramTimer = 0f;
+        _ramSpeed = 0f;
+
+        _stateManager.TransitionOperationPhase(OperationPhase.Ram);
+        _uIManager.SetAlert(true);
+    }
+
+    /// <summary>
+    /// RETURNボタンから呼ばれる。Battle中のみ有効
+    /// </summary>
+    public void RequestReturnAll()
+    {
+        if (_stateManager.Current != GameState.Operation) return;
+        if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
+
+        _unitManager?.ReturnAllAliveUnits();
+    }
+
+    private void TickRam(float fixedDt)
+    {
+        var train = _getTrainInstance();
+        if(train = null)
+        {
+            FinishRam(null);
+            return;
+        }
+
+        if(_ramStage == RamStage.Alert)
+        {
+            _ramTimer += fixedDt;
+            if(_ramTimer >= _ramSettings.alertDuration)
+            {
+                _uIManager.SetAlert(false);
+                _ramStage = RamStage.Charge;
+            }
+            return;
+        }
+
+        _ramSpeed = Mathf.Min(_ramSpeed + _ramSettings.alertDuration * fixedDt, _ramSettings.maxSpeed);
+        train.transform.position += Vector3.right * (_ramSpeed * fixedDt);
+        CrushEntitiesUpTo(train.transform.position.x + _ramSettings.frontOffset, train);
+
+
+        if (train.transform.position.x > GetScreenRightEdge() + _ramSettings.exitMargin)
+        {
+            FinishRam(train);
+        }
+    }
+
+    private void CrushEntitiesUpTo(float frontX,GameObject train)
+    {
+        foreach (var combatant in Combatant.All)
+        {
+            if (train != null && combatant.gameObject == train) continue;
+            if (combatant.IsDead) continue;
+            if (combatant.transform.position.x > frontX) continue;
+
+            bool isAlly = combatant.Affiliation == Base_Item.Affiliation.Ally;
+            combatant.ApplyDamage(int.MaxValue);
+
+            if (isAlly && _unitManager != null && _unitManager.CrushUnit(combatant))
+            {
+                _fuelManager.ConsumeAmount(-_ramSettings.allyCrushFuelRefund);
+            }
+        }
+    }
+
+    private void FinishRam(GameObject train)
+    {
+        _uIManager.SetAlert(false);
+
+        CrushEntitiesUpTo(float.PositiveInfinity,train);
+
+        Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
+        _matchManager.Clear();
+        _unitManager?.SettleBattle();
+
+        _trainNeedsReset = true;
+        _stateManager.TransitionOperationPhase(OperationPhase.Result);
+    }
+
+    private static float GetScreenRightEdge()
+    {
+        var cam = Camera.main;
+        if (cam == null) return 20f;
+        return cam.transform.position.x + cam.orthographicSize * cam.aspect;
+    }
+
+    private void ResetTrainPosition()
+    {
+        if (!_trainNeedsReset) return;
+        _trainNeedsReset = false;
+
+        var train = _getTrainInstance();
+        if (train != null) train.transform.position = _trainHome;
     }
 }
 

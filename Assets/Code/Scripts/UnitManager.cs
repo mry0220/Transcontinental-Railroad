@@ -30,6 +30,7 @@ public class UnitManager : MonoBehaviour
     {
         public bool isReviving;
         public float timer;
+        public bool crushed;
     }
 
     private readonly Dictionary<string, UnitBattleStatus> unitStatus = new();
@@ -49,6 +50,8 @@ public class UnitManager : MonoBehaviour
     private FuelManager _fuelManager;
 
     private bool _isDragging;
+
+    private float _crushedReviveCostMultiplier = 1f;
     private void Awake()
     {
         if (unitDB == null)
@@ -66,6 +69,11 @@ public class UnitManager : MonoBehaviour
     public void SetMatchManager(MatchManager matchManager)
     {
         _matchManager = matchManager;
+    }
+
+    public void SetCrushedReviveCostMultiplier(float multiplier)
+    {
+        _crushedReviveCostMultiplier = Mathf.Max(0f, multiplier);
     }
 
     public event System.Action<string> OnDeadUnitTapped;
@@ -106,7 +114,14 @@ public class UnitManager : MonoBehaviour
     public int GetReviveFuelCost(string itemId)
     {
         var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
-        return data != null ? data.reviveFuelCost : 0;
+        if (data == null) return 0;
+
+        int cost = data.reviveFuelCost;
+        if(deadRecords.TryGetValue(itemId,out var recoad) && recoad.crushed)
+        {
+            cost = Mathf.RoundToInt(cost * _crushedReviveCostMultiplier);
+        }
+        return cost;
     }
 
     public void SettleBattle()
@@ -351,5 +366,40 @@ public class UnitManager : MonoBehaviour
     {
         var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
         return data != null ? data.icon : null;
+    }
+
+    /// <summary>
+    /// 轢かれた味方を、死亡状態にして破棄する
+    /// </summary>
+    public bool CrushUnit(Combatant combatant)
+    {
+        string foundId = null;
+        foreach(var pair in deployedUnits)
+        {
+            if(pair.Value != null && pair.Value.GetComponent<Combatant>() == combatant)
+            {
+                foundId = pair.Key;
+                break;
+            }
+        }
+        if (foundId == null) return false;
+
+        var unit = deployedUnits[foundId];
+        deployedUnits.Remove(foundId);
+        unitStatus[foundId] = UnitBattleStatus.Dead;
+        deadRecords[foundId] = new DeadRecoad { crushed = true };
+
+        if (unit != null) Destroy(unit);
+        OnUnitDied?.Invoke(foundId);
+        return true;
+    }
+
+    ///<summary>出撃中の生存Unitをすべて帰還させる</summary>
+    public void ReturnAllAliveUnits()
+    {
+        foreach(var itemId in new List<string>(deployedUnits.Keys))
+        {
+            ReturnUnit(itemId);
+        }
     }
 }

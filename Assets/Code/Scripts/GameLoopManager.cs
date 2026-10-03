@@ -31,6 +31,7 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private WaveManager waveManager;
     [SerializeField] private UIInputHandler uIInputHandler;
     [SerializeField] private ParallaxBackground background;
+    [SerializeField] private RamSettings ramSettings = new();
     private MatchManager matchManager;
     private SectionManager sectionManager;
 
@@ -97,6 +98,7 @@ public class GameLoopManager : MonoBehaviour
             stateManager,unitManager,waveManager,matchManager,
             fuelManager,uIManager, sectionManager, () => _trainInstance,rng);
         operationPhaseManager.SetBackground(background);
+        operationPhaseManager.SetRamSettings(ramSettings);
 
         clock  = 0.0;
         accumulator = 0.0;
@@ -116,6 +118,8 @@ public class GameLoopManager : MonoBehaviour
         {
             stateManager.OnStateChanged += OnGameStateChanged;
             stateManager.OnPrepPhaseChanged += OnPrepPhaseChanged;
+            stateManager.OnOperationPhaseChanged += (prev, next) =>
+                uIManager?.SetBattleButtonsVisible(next == OperationPhase.Battle);
         }
 
         if(uIManager != null)
@@ -134,8 +138,12 @@ public class GameLoopManager : MonoBehaviour
             uIManager.OnTitleTapped += HandleTitleTapped;
             uIManager.OnFuelSetTapped += prepPhaseManager.ConfirmFuelSet;
 
+            uIManager.OnRamRequested += operationPhaseManager.RequestRam;
+            uIManager.OnReturnAllRequested += operationPhaseManager.RequestReturnAll;
+
             uIManager.ShowTitleScreen(stateManager != null && stateManager.Current == GameState.Title);
         }
+        unitManager?.SetCrushedReviveCostMultiplier(ramSettings.crushedReviveCostMultiplier);
 
         prepPhaseManager.OnLoadoutConfirmed += HandleLoadoutConfirmed;
 
@@ -183,6 +191,8 @@ public class GameLoopManager : MonoBehaviour
         uIManager?.ShowTitleScreen(next == GameState.Title);
         if (next != GameState.Prep) uIManager?.HidePrepScreens();
         uIManager?.SetRouteBarVisible(next == GameState.Operation);
+        uIManager?.SetBattleButtonsVisible(false);
+        uIManager?.SetAlert(false);
 
         stateFrameCount = 0;
 

@@ -27,6 +27,7 @@ public enum OperationPhase
 {
     Move,
     Battle,
+    Ram,
     Result,
 }
 
@@ -166,6 +167,8 @@ public class StateManager : MonoBehaviour
             case OperationPhase.Move:
                 return to == OperationPhase.Battle;
             case OperationPhase.Battle:
+                return to == OperationPhase.Result || to == OperationPhase.Ram;
+            case OperationPhase.Ram:
                 return to == OperationPhase.Result;
             case OperationPhase.Result:
                 return to == OperationPhase.Move;
