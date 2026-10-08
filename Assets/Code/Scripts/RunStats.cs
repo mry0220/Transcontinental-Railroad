@@ -40,7 +40,7 @@ public class RunStats
     {
         if (_lookup.TryGetValue(itemId, out var r)) r.dealt += amount;
     }
-    public void AddToken(string itemId,int amount)
+    public void AddTaken(string itemId,int amount)
     {
         if (_lookup.TryGetValue((itemId), out var r)) r.taken += amount;
     }

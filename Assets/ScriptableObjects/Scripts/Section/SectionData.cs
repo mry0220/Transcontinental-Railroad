@@ -20,8 +20,8 @@ public class SectionData : ScriptableObject
     public Data_Wave wave => _wave;
 
     [Header("Event用")]
-    [SerializeField] private int _fuelRestoreAmount;
-    public int fuelRestoreAmount => _fuelRestoreAmount;
+    [SerializeField] private EventData _eventData;
+    public EventData eventData => _eventData;
 
     [SerializeField] private float _enemyStatModifier = 1f;
     public float enemyStatModifier => _enemyStatModifier;

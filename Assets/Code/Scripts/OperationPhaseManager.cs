@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// Operation(MasterState)配下のServantState(Move/Battle/Result)を進行させる。
@@ -20,8 +21,10 @@ public class OperationPhaseManager : ITickable
     private readonly System.Func<GameObject> _getTrainInstance;
     private readonly RNG _rng;
 
-
     private RamSettings _ramSettings = new();
+    private OperationModifiers _modifiers;
+    private readonly List<Data_Wave> _pendingBattleWaves = new();
+    private EventData _currentEvent;
 
     private TickScheduler _scheduler;
     private TickScheduler.PauseHandle _popupPause;
@@ -50,6 +53,8 @@ public class OperationPhaseManager : ITickable
     public event System.Action OnRevivePopupClosed;
     public event System.Action<int, List<UnitManager.BattleDamageEntry>> OnServantResultShown;
     public event System.Action OnServantResultHidden;
+    public event System.Action<EventData> OnEventRequested;
+    public event System.Action OnEventClosed;
     #endregion
 
     #region RevivePopupState
@@ -121,9 +126,12 @@ public class OperationPhaseManager : ITickable
     public void ResetForNewRun()
     {
         ClosePopup();
+        CloseEvent();
+        _pendingBattleWaves.Clear();
         _trainNeedsReset = false;
     }
 
+    public void SetModifiers(OperationModifiers modifiers) => _modifiers = modifiers;
     #endregion
 
     #region EntryAndTick
@@ -133,6 +141,8 @@ public class OperationPhaseManager : ITickable
     {
         Debug.Log("[OperationPhaseManager] Enter: Moveから開始");
         ClosePopup();
+        CloseEvent();
+        _pendingBattleWaves.Clear();
         EnterMove();
     }
 
@@ -154,6 +164,8 @@ public class OperationPhaseManager : ITickable
                 TickRam(fixedDt);
                 break;
             case OperationPhase.Result:
+                break;
+            case OperationPhase.Event:
                 break;
         }
     }
@@ -238,20 +250,84 @@ public class OperationPhaseManager : ITickable
             case SectionType.Battle:
                 _unitManager?.BeginBattleStats();
                 _waveManager?.StartBattlePhase(entry.section.wave);
+                foreach(var extra in _pendingBattleWaves)
+                {
+                    _waveManager?.StartBattlePhase(extra);
+                }
+                _pendingBattleWaves.Clear();
                 _stateManager.TransitionOperationPhase(OperationPhase.Battle);
                 break;
             case SectionType.Event:
-                ApplyEventEffect(entry.section);
-                _stateManager.TransitionOperationPhase(OperationPhase.Result);
+                EnterEvent(entry.section.eventData);
                 break;
             case SectionType.Goal:
                 _stateManager.TransitionToResult(RunOutcome.Cleared);
                 break;
         }
     }
-    private void ApplyEventEffect(SectionData section)
+
+    private void EnterEvent(EventData data)
     {
-        _fuelManager.ConsumeAmount(-section.fuelRestoreAmount);
+        _stateManager.TransitionOperationPhase(OperationPhase.Event);
+
+        if (data == null || data.choices.Count == 0)
+        {
+            Debug.LogWarning("[OperationPhaseManager] EventDataが未設定か選択が空。何も起こさず進行");
+            _stateManager.TransitionOperationPhase(OperationPhase.Result);
+            return;
+        }
+
+        _currentEvent = data;
+        OnEventRequested?.Invoke(data);
+    }
+
+    public void ChooseEventOption(int index)
+    {
+        if (_stateManager.Current != GameState.Operation) return;
+        if (_stateManager.CurrentOperationPhase != OperationPhase.Event) return;
+        if (_currentEvent == null || index < 0 || index >= _currentEvent.choices.Count) return;
+
+        foreach(var effect in _currentEvent.choices[index].effects)
+        {
+            ApplyEventEffect(effect);
+        }
+        CloseEvent();
+
+        if(_fuelManager.CurrentFuel <= 0)
+        {
+            GetTrainCombatant()?.ApplyDamage(int.MaxValue);
+            _stateManager.TransitionToResult(RunOutcome.Failed);
+            return;
+        }
+        _stateManager.TransitionOperationPhase(OperationPhase.Result);
+    }
+
+    private void ApplyEventEffect(EventEffect effect)
+    {
+        switch(effect.type)
+        {
+            case EventEffectType.Fuel:
+                _fuelManager.ConsumeAmount(-effect.fuelAmount);
+                break;
+            case EventEffectType.KillUnit:
+                _unitManager?.KillRandomAliveUnits(effect.count,PickIndex);
+                break;
+            case EventEffectType.ReviveUnit:
+                _modifiers?.ApplyMultiplier(effect.target, effect.multiplier);
+                break;
+            case EventEffectType.ChangeBattle:
+                if (effect.extraWave != null) _pendingBattleWaves.Add(effect.extraWave);
+                break;
+
+        }
+    }
+
+    private int PickIndex(int n) => Mathf.Min(n - 1, Mathf.FloorToInt(_rng.NextFloat() * n));
+
+    private void CloseEvent()
+    {
+        _currentEvent = null;
+        OnEventClosed?.Invoke();
     }
 
     #endregion

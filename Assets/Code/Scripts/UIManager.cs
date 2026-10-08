@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using UnityEngine;
+using UnityEngine.iOS;
 using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
@@ -40,6 +42,7 @@ public class UIManager : MonoBehaviour
 
     public event System.Action OnMenuResumeResuested;
     public event System.Action OnMenuReturnRequested;
+    public event System.Action<int> OnEventChoiceChosen;
 
     #endregion
 
@@ -79,6 +82,7 @@ public class UIManager : MonoBehaviour
         SetupFuelSetScreen();
         SetupBattleControls();
         SetupServantResultScreen();
+        SetupEventPopup();
         SetupMenuButton();
         SetupRevivePopup();
         SetupResultScreens();
@@ -167,7 +171,7 @@ public class UIManager : MonoBehaviour
         var header = new Label("MENU");
         header.AddToClassList("menu-header");
 
-        var resumeButton = new Button(() => OnMenuRequested?.Invoke()) { text = "再開" };
+        var resumeButton = new Button(() => OnMenuResumeResuested?.Invoke()) { text = "再開" };
         resumeButton.AddToClassList("menu-item-button");
 
         menuReturnButton = new Button(() => OnMenuReturnRequested?.Invoke());
@@ -517,6 +521,51 @@ public class UIManager : MonoBehaviour
     private void RegisterStatusPopup(VisualElement element,System.Func<Base_Item> getItem)
     {
 #if UNITY_ANDROID || UNITY_IOS
+        const float MoveTolerance = 12f;
+        IVisualElementScheduledItem press = null;
+        Vector2 downPos = Vector2.zero;
+
+        void Cancel()
+        {
+            press?.Pause();
+            press = null;
+            HideStatusPopup();
+        }
+
+        element.RegisterCallback<PointerDownEvent>(e =>
+        {
+            Debug.Log("[LongPress]Down");
+            _suppressNextClick = false;
+            press?.Pause();
+            downPos = e.position;
+            press = element.schedule.Execute(() =>
+            {
+                Debug.Log("[LongPress]Fire");
+                var item = getItem();
+                if (item == null) return;
+                ShowStatusPopup(item, element);
+                _suppressNextClick = true;
+            }).StartingIn(LongPressMs);
+        }, TrickleDown.TrickleDown);
+
+        element.RegisterCallback<PointerMoveEvent>(e =>
+        {
+            if (press == null) return;
+            if (((Vector2)e.position - downPos).sqrMagnitude > MoveTolerance * MoveTolerance) Cancel();
+        });
+        element.RegisterCallback<PointerUpEvent>(_ => Cancel());
+        element.RegisterCallback<PointerCancelEvent>(_ => Cancel());
+#else
+        element.RegisterCallback<PointerEnterEvent>(_ =>
+        {
+            var item = getItem();
+            if(item != null) ShowStatusPopup(item,element);
+        });
+        element.RegisterCallback<PointerLeaveEvent>(_ => HideStatusPopup());
+#endif
+    }
+
+/*#if true //UNITY_ANDROID || UNITY_IOS
         IVisualElementScheduledItem press = null;
         element.RegisterCallback<PointerDownEvent>(_ =>
         {
@@ -528,12 +577,13 @@ public class UIManager : MonoBehaviour
                 if (item == null) return;
                 ShowStatusPopup(item, element);
                 _suppressNextClick = true;
+                Debug.Log("[UIManager] : PointerDown");
             });
             press.ExecuteLater(LongPressMs);
         });
         element.RegisterCallback<PointerUpEvent>(_ => { press?.Pause(); HideStatusPopup(); });
         element.RegisterCallback<PointerCancelEvent>(_ => { press?.Pause(); HideStatusPopup(); });
-        element.RegisterCallback<PointerLeaveEvent>(_ => { press?.Pause(); HideStatusPopup(); });
+        element.RegisterCallback<PointerLeaveEvent>(_ => { press?.Pause(); HideStatusPopup(); Debug.Log("[UIManagr] : PointerLeave"); });
 #else
         element.RegisterCallback<PointerEnterEvent>(_ =>
         {
@@ -541,8 +591,7 @@ public class UIManager : MonoBehaviour
             if (item != null) ShowStatusPopup(item, element);
         });
         element.RegisterCallback<PointerLeaveEvent>(_ => HideStatusPopup());
-#endif
-    }
+#endif*/
 
     private void ShowStatusPopup(Base_Item item, VisualElement anchor)
     {
@@ -1000,6 +1049,82 @@ public class UIManager : MonoBehaviour
         reviveOverlay.style.display = DisplayStyle.None;
     }
 
+    #endregion
+
+    #region EventPopup
+    private VisualElement eventOverlay;
+    private VisualElement eventImage;
+    private Label eventTitleLabel;
+    private Label eventBodyLabel;
+    private VisualElement eventChoiceContainer;
+
+    private void SetupEventPopup()
+    {
+        eventOverlay = new VisualElement();
+        eventOverlay.AddToClassList("ev_overlay");
+
+        var panel = new VisualElement();
+        panel.AddToClassList("ev-panel");
+
+        eventImage = new VisualElement();
+        eventImage.AddToClassList("ev-image");
+
+        eventTitleLabel = new Label();
+        eventTitleLabel.AddToClassList("ev-title");
+        eventBodyLabel = new Label();
+        eventBodyLabel.AddToClassList("ev-body");
+
+        eventChoiceContainer = new VisualElement();
+        eventChoiceContainer.AddToClassList("ev-choices");
+
+        panel.Add(eventImage);
+        panel.Add(eventTitleLabel);
+        panel.Add(eventBodyLabel);
+        panel.Add(eventChoiceContainer);
+        eventOverlay.Add(panel);
+
+        eventOverlay.style.display = DisplayStyle.None;
+        root.Add(eventOverlay);
+    }
+
+    public void ShowEventPopup(EventData data)
+    {
+        if (data == null) return;
+        SetIcon(eventImage, data.image);
+        eventImage.style.display = data.image != null ? DisplayStyle.Flex : DisplayStyle.None;
+        eventTitleLabel.text = data.title;
+        eventBodyLabel.text = data.body;
+
+        eventChoiceContainer.Clear();
+        for(int i = 0;i < data.choices.Count;i++)
+        {
+            int index = i;
+            var choice = data.choices[i];
+
+            var button = new Button(() => OnEventChoiceChosen?.Invoke(index));
+            button.AddToClassList("ev-choice-button");
+
+            var label = new Label(choice.label);
+            label.AddToClassList("ev-choice-label");
+            label.pickingMode = PickingMode.Ignore;
+            button.Add(label);
+
+            if(!string.IsNullOrEmpty(choice.description))
+            {
+                var desc = new Label(choice.description);
+                desc.AddToClassList("ev-choice-desc");
+                desc.pickingMode = PickingMode.Ignore;
+                button.Add(desc);
+            }
+            eventChoiceContainer.Add(button);
+        }
+        eventOverlay.style.display = DisplayStyle.Flex;
+    }
+
+    public void HideEventPopup()
+    {
+        if (eventOverlay != null) eventOverlay.style.display = DisplayStyle.None;
+    }
     #endregion
 
     #region ServantResultScreen

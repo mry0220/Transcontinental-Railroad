@@ -914,3 +914,73 @@
     bottom: 0;
     background-color: rgba(110, 110, 110, 0.6);
 }
+
+.ev-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.ev-panel {
+    width: 640px;
+    height: auto;
+    margin: 0;
+    padding: 24px 32px;
+    align-items: center;
+    background-color: rgb(20,20,24);
+    border-width: 3px;
+    border-color: rgb(255,255,255);
+    border-radius: 12px;
+}
+
+.ev-image {
+    width: 240px;
+    height: 160px;
+    margin: 0 0 12px 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.ev-title {
+    font-size: 30px;
+    color: rgb(255,255,255);
+    -unity-font-style: bold;
+    margin: 0 0 8px 0;
+}
+
+.ev-body {
+    font-size: 20px;
+    color: rgb(220,220,220);
+    white-space: normal;
+    -unity-text-align: upper-center;
+    margin: 0 0 16px 0;
+}
+
+.ev-choices {
+    width: 100%;
+    margin: 0;
+}
+
+.ev-choice-button {
+    width: 100%;
+    height: auto;
+    margin: 4px 0;
+    padding: 10px 16px;
+    align-items: flex-start;
+}
+
+.ev-choice-label {
+    font-size: 22px;
+    color: rgb(255,255,255);
+}
+
+.ev-choice-desc {
+    font-size: 16px;
+    color: rgb(190,190,190);
+    white-space: normal;
+}

@@ -5,6 +5,8 @@ public class WaveManager : MonoBehaviour
 {
     private MatchManager _matchManager;
     private readonly List<GameObject> _spawnedEnemies = new();
+    private OperationModifiers _modifiers;
+    public void SetModifiers(OperationModifiers modifiers) => _modifiers = modifiers;
 
     public void SetMatchManager(MatchManager matchManger)
     {
@@ -41,8 +43,12 @@ public class WaveManager : MonoBehaviour
             );
         var combatant = enemyObject.GetComponent<Combatant>();
         combatant?.Initialize(spawnData.enemyData, _matchManager);
+        combatant?.SetStatMultiplier(
+            _modifiers != null ? _modifiers.GetMultiplier(Base_Item.Affiliation.Enemy) : 1f);
 
         _spawnedEnemies.Add(enemyObject);
+
+        
     }
 
     public void ResetForNewRun()

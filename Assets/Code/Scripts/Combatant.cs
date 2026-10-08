@@ -67,9 +67,9 @@ public class Combatant : MonoBehaviour,ICombatant
     public bool IsDead => CurrentHP <= 0;
     public int MatchCapacity => _data.matchCapacity;
     public float MoveSpeed => _data.moveSpeed;
-    public int AttackPower => _data.attackPower;
+    public int AttackPower => Mathf.RoundToInt(_data.attackPower * _statMultiplier);
     public int CurrentMatchCount => _matches.Count;
-    public int MaxHp => _data.maxHP;
+    public int MaxHp => Mathf.RoundToInt(_data.maxHP * _statMultiplier);
     public bool IsActive => _isActive && _data != null;
     public bool IsTrain => _data is Item_Train;
     public Sprite Icon => _data switch
@@ -79,6 +79,9 @@ public class Combatant : MonoBehaviour,ICombatant
         Item_Train t => t.icon,
         _ => null
     };
+
+    private float _statMultiplier = 1f;
+
     #endregion
 
     #region Events
@@ -145,6 +148,13 @@ public class Combatant : MonoBehaviour,ICombatant
         _hpBar.Refrash(CurrentHP, MaxHp);
     }
 
+    public void SetStatMultiplier(float multiplier)
+    {
+        _statMultiplier = Mathf.Max(0.01f, multiplier);
+        CurrentHP = MaxHp;
+        if (_hpBar != null) _hpBar.Refrash(CurrentHP, MaxHp);
+    }
+
     #endregion
 
     #region Tick
@@ -205,8 +215,8 @@ public class Combatant : MonoBehaviour,ICombatant
             var opponent = match.GetOpponent(this);
             if (opponent == null || match.IsFinished) continue;
 
-            int dealt = Mathf.Min(_data.attackPower, opponent.CurrentHP);
-            match.ApplyDamage(this, opponent, _data.attackPower);
+            int dealt = Mathf.Min(AttackPower, opponent.CurrentHP);
+            match.ApplyDamage(this, opponent, AttackPower);
             ReportDealtDamage(dealt);
         }
 
@@ -214,8 +224,8 @@ public class Combatant : MonoBehaviour,ICombatant
         {
             if (target.IsDead) continue;
 
-            int dealt = Mathf.Min(_data.attackPower, target.CurrentHP);
-            target.ApplyDamage(_data.attackPower);
+            int dealt = Mathf.Min(AttackPower, target.CurrentHP);
+            target.ApplyDamage(AttackPower);
             ReportDealtDamage(dealt);
         }
     }

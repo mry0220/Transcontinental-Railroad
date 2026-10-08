@@ -40,6 +40,8 @@ public class UnitManager : MonoBehaviour
     #region References
     private MatchManager _matchManager;
     private FuelManager _fuelManager;
+    private OperationModifiers _modifiers;
+    private readonly List<string> _roster = new();
     #endregion
 
     #region RuntimeState
@@ -102,6 +104,7 @@ public class UnitManager : MonoBehaviour
         deployedUnits.Clear();
         deadRecords.Clear();
         _battleDamage.Clear();
+        _roster.Clear();
     }
 
     public void BeginBattleStats()
@@ -112,6 +115,16 @@ public class UnitManager : MonoBehaviour
     public void SetRunStats(RunStats runStats)
     {
         _runStats = runStats;
+    }
+
+
+
+    public void SetModifiers(OperationModifiers modifiers) => _modifiers = modifiers;
+
+    public void SetRoster(IEnumerable<string> itemIds)
+    {
+        _roster.Clear();
+        _roster.AddRange(itemIds);
     }
 
     #endregion
@@ -270,12 +283,14 @@ public class UnitManager : MonoBehaviour
 
         var combatant = deployedUnit.GetComponent<Combatant>();
         combatant?.Activate(_matchManager);
+        combatant?.SetStatMultiplier(
+            _modifiers != null ? _modifiers.GetMultiplier(Base_Item.Affiliation.Ally) : 1f);
 
         if (!_battleDamage.ContainsKey(itemId)) _battleDamage[itemId] = 0;
         if(combatant != null)
         {
             combatant.OnDealtDamage += dmg => AddBattleDamage(itemId, dmg);
-            combatant.OnActualDamageTaken += dmg => _runStats?.AddToken(itemId, dmg);
+            combatant.OnActualDamageTaken += dmg => _runStats?.AddTaken(itemId, dmg);
         }
 
         unitStatus[itemId] = UnitBattleStatus.Deployed;
@@ -309,6 +324,54 @@ public class UnitManager : MonoBehaviour
         {
             ReturnUnit(itemId);
         }
+    }
+
+    #endregion
+
+    #region EventEffects
+    /// <summary>編成中の生存ユニットをランダムにcount人、死亡させる。実際に死亡させた人数を返す</summary>
+    public int KillRandomAliveUnits(int count,Func<int,int>pickIndex)
+    {
+        var alive = new List<string>();
+        foreach(var id in _roster)
+        {
+            if (GetUnitStatus(id) != UnitBattleStatus.Dead) alive.Add(id);
+        }
+
+        int killed = 0;
+        while (killed < count && alive.Count > 0)
+        {
+            int i = pickIndex(alive.Count);
+            string id = alive[i];
+            alive.RemoveAt(i);
+
+            unitStatus[id] = UnitBattleStatus.Dead;
+            deadRecords[id] = new DeadRecoad();
+            OnUnitDied?.Invoke(id);
+            killed++;
+        }
+
+        return killed;
+    }
+
+    public int ReviveDeadUnitsFree(int count,Func<int,int>pickIndex)
+    {
+        var dead = new List<string>(deadRecords.Keys);
+        int target = count <= 0 ? dead.Count : Mathf.Min(count, dead.Count);
+
+        int revived = 0;
+        while (revived < target && dead.Count > 0)
+        {
+            int i = pickIndex(dead.Count);
+            string id = dead[i];
+            dead.RemoveAt(i);
+
+            deadRecords.Remove(id);
+            unitStatus.Remove(id);
+            OnUnitRevived?.Invoke(id);
+            revived++;
+        }
+        return revived;
     }
 
     #endregion

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.Search;
 using UnityEngine;
 
 public class GameLoopManager : MonoBehaviour
@@ -73,6 +72,7 @@ public class GameLoopManager : MonoBehaviour
     private BattleIndicators _indicators;
     private RunStats _runStats;
     private Item_Train _runTrain;
+    private OperationModifiers _modifiers;
     //====Runtime State====
     private RNG rng;
     private double clock;
@@ -115,6 +115,10 @@ public class GameLoopManager : MonoBehaviour
         _runStats = new RunStats();
         unitManager?.SetRunStats(_runStats);
         operationPhaseManager.SetRunStats(_runStats);
+        _modifiers = new OperationModifiers();
+        waveManager?.SetModifiers(_modifiers);
+        unitManager?.SetModifiers(_modifiers);
+        operationPhaseManager.SetModifiers(_modifiers);
 
         Scheduler.Register(prepPhaseManager, TickPhase.Simulation, 0,
             () => stateManager != null && stateManager.Current == GameState.Prep);
@@ -193,6 +197,9 @@ public class GameLoopManager : MonoBehaviour
             prepPhaseManager.OnFuelSetReadyChanged += uIManager.SetFuelSetStatus;
             uIManager.OnReviveConfirmed += operationPhaseManager.ConfirmRevive;
             uIManager.OnReviveCancelled += operationPhaseManager.CancelRevive;
+            uIManager.OnEventChoiceChosen += operationPhaseManager.ChooseEventOption;
+            operationPhaseManager.OnEventRequested += uIManager.ShowEventPopup;
+            operationPhaseManager.OnEventClosed += uIManager.HideEventPopup;
         }
         unitManager?.SetCrushedReviveCostMultiplier(ramSettings.crushedReviveCostMultiplier);
 
@@ -321,7 +328,11 @@ public class GameLoopManager : MonoBehaviour
         uIManager?.SetRouteBarVisible(next == GameState.Operation);
         uIManager?.SetBattleButtonsVisible(false);
         uIManager?.SetAlert(false);
-        if (next != GameState.Operation) uIManager?.HideServantResult();
+        if (next != GameState.Operation)
+        {
+            uIManager?.HideServantResult();
+            uIManager?.HideEventPopup();
+        }
 
         stateFrameCount = 0;
 
@@ -374,6 +385,9 @@ public class GameLoopManager : MonoBehaviour
     }
     private void ResetForNewRun()
     {
+        _modifiers.Reset();
+        operationPhaseManager.ResetForNewRun();
+
         _effects.Clear();
         inputBuffer?.Clear();
 
@@ -407,10 +421,13 @@ public class GameLoopManager : MonoBehaviour
     {
         _runTrain = loadout.Train;
         _runStats.Reset();
+        var ids = new List<string>();
         foreach(var unit in loadout.GetSelectedUnits())
         {
             _runStats.RegisterUnit(unit.id);
+            ids.Add(unit.id);
         }
+        unitManager?.SetRoster(ids);
 
         SpawnTrain(loadout.Train);
         uIManager?.BuildUnitIcons(loadout.GetSelectedUnits());

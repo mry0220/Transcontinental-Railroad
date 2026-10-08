@@ -21,4 +21,10 @@ public class OperationModifiers
         else
             _enemyMultiplier *= multiplier;
     }
+
+    public void Reset()
+    {
+        _allyMultiplier = 1f;
+        _enemyMultiplier = 1f;
+    }
 }
