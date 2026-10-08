@@ -16,6 +16,9 @@ public class ParallaxBackground : MonoBehaviour
         public float speedFactor = 1f;
         [Tooltip("ワールド座標のY")]
         public float y = 0f;
+        [Tooltip("初期のXずらし量。正の値で左へずれる。層ごとに変え継ぎ目をそろえない")]
+        public float offsetX = 0f;
+
         [Tooltip("負の値ほど後ろ。列車や敵のSpriteより小さくすること")]
         public int sortingOrder = -10;
     }
@@ -47,6 +50,8 @@ public class ParallaxBackground : MonoBehaviour
             return;
         }
 
+        
+
         float cameraWidth = targetCamera.orthographicSize * 2f * targetCamera.aspect;
 
         foreach (var layer in layers)
@@ -58,6 +63,7 @@ public class ParallaxBackground : MonoBehaviour
                 layer = layer,
                 tileWidth = layer.sprite.bounds.size.x,
             };
+            runtime.offset = Mathf.Repeat(layer.offsetX, runtime.tileWidth);
 
             int count = Mathf.CeilToInt(cameraWidth / runtime.tileWidth) + 3;
             for(int i = 0; i<count;i++)
@@ -106,7 +112,7 @@ public class ParallaxBackground : MonoBehaviour
     {
         foreach(var runtime in _runtimes)
         {
-            runtime.offset = 0f;
+            runtime.offset = Mathf.Repeat(runtime.layer.offsetX,runtime.tileWidth);
             Layout(runtime);
         }
     }
