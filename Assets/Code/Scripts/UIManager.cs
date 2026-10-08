@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.iOS;
 using UnityEngine.UIElements;
@@ -1133,6 +1134,7 @@ public class UIManager : MonoBehaviour
     private VisualElement srMvpImage;
     private Label srFuelLabel;
     private VisualElement srRowContainer;
+    private VisualElement srNoteContainer;
 
     public event System.Action OnServantResultTapped;
 
@@ -1154,6 +1156,9 @@ public class UIManager : MonoBehaviour
         srFuelLabel = new Label();
         srFuelLabel.AddToClassList("sr-fuel-label");
         right.Add(srFuelLabel);
+        srNoteContainer = new VisualElement();
+        srNoteContainer.AddToClassList("sr-note-container");
+        right.Add(srNoteContainer);
 
         srRowContainer = new VisualElement();
         srRowContainer.AddToClassList("sr-row-container");
@@ -1166,10 +1171,21 @@ public class UIManager : MonoBehaviour
         root.Add(servantResultScreen);
     }
 
-    public void ShowServantResult(int fuelDelta,List<UnitManager.BattleDamageEntry> ranking)
+    public void ShowServantResult(int fuelDelta,List<UnitManager.BattleDamageEntry> ranking,IReadOnlyList<string> notes)
     {
         srFuelLabel.text = fuelDelta >= 0 ? $"FUEL +{fuelDelta}" : $"FUEL {fuelDelta}";
         srFuelLabel.EnableInClassList("sr-fuel-negative", fuelDelta < 0);
+
+        srNoteContainer.Clear();
+        if(notes != null)
+        {
+            foreach (var note in notes)
+            {
+                var label = new Label(note);
+                label.AddToClassList("sr-note");
+                srNoteContainer.Add(label);
+            }
+        }
 
         bool hasDamage = ranking.Count > 0 && ranking[0].damage > 0;
         SetIcon(srMvpImage, hasDamage ? ranking[0].icon : null);

@@ -222,7 +222,7 @@ public class StateManager : MonoBehaviour
             case OperationPhase.Event:
                 return to == OperationPhase.Result;
             case OperationPhase.Result:
-                return to == OperationPhase.Move;
+                return to == OperationPhase.Move || to == OperationPhase.Battle;
             default:
                 return false;
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitManager : MonoBehaviour
@@ -329,17 +330,26 @@ public class UnitManager : MonoBehaviour
     #endregion
 
     #region EventEffects
-    /// <summary>編成中の生存ユニットをランダムにcount人、死亡させる。実際に死亡させた人数を返す</summary>
-    public int KillRandomAliveUnits(int count,Func<int,int>pickIndex)
+
+    public string GetUnitName(string itemId)
     {
+        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
+        return data != null && !string.IsNullOrEmpty(data.displayname) ? data.displayname : itemId;
+    }
+
+    
+
+    /// <summary>編成中の生存ユニットをランダムにcount人、死亡させる。実際に死亡させたunitIdを返す</summary>
+    public List<string> KillRandomAliveUnits(int count,Func<int,int>pickIndex)
+    {
+        var result = new List<string>();
         var alive = new List<string>();
         foreach(var id in _roster)
         {
             if (GetUnitStatus(id) != UnitBattleStatus.Dead) alive.Add(id);
         }
 
-        int killed = 0;
-        while (killed < count && alive.Count > 0)
+        while (result.Count < count && alive.Count > 0)
         {
             int i = pickIndex(alive.Count);
             string id = alive[i];
@@ -348,19 +358,19 @@ public class UnitManager : MonoBehaviour
             unitStatus[id] = UnitBattleStatus.Dead;
             deadRecords[id] = new DeadRecoad();
             OnUnitDied?.Invoke(id);
-            killed++;
+            result.Add(id);
         }
 
-        return killed;
+        return result;
     }
-
-    public int ReviveDeadUnitsFree(int count,Func<int,int>pickIndex)
+    /// <summary>死亡Unitを無料で即時復活させる。countが0以下なら全員。復活させたUnitのIdを返す</summary>
+    public List<string> ReviveDeadUnitsFree(int count,Func<int,int>pickIndex)
     {
+        var result = new List<string>();
         var dead = new List<string>(deadRecords.Keys);
         int target = count <= 0 ? dead.Count : Mathf.Min(count, dead.Count);
 
-        int revived = 0;
-        while (revived < target && dead.Count > 0)
+        while (result.Count < target && dead.Count > 0)
         {
             int i = pickIndex(dead.Count);
             string id = dead[i];
@@ -369,9 +379,9 @@ public class UnitManager : MonoBehaviour
             deadRecords.Remove(id);
             unitStatus.Remove(id);
             OnUnitRevived?.Invoke(id);
-            revived++;
+            result.Add(id);
         }
-        return revived;
+        return result;
     }
 
     #endregion

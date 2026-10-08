@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 /// <summary>
 /// Operation(MasterState)配下のServantState(Move/Battle/Result)を進行させる。
@@ -25,6 +24,10 @@ public class OperationPhaseManager : ITickable
     private OperationModifiers _modifiers;
     private readonly List<Data_Wave> _pendingBattleWaves = new();
     private EventData _currentEvent;
+
+    private readonly List<string> _eventLog = new();
+    private Data_Wave _eventBattleWave;
+    private bool _sectionHadBattle;
 
     private TickScheduler _scheduler;
     private TickScheduler.PauseHandle _popupPause;
@@ -51,7 +54,7 @@ public class OperationPhaseManager : ITickable
     public event System.Action<bool> OnAlertChanged;
     public event System.Action<Sprite, int> OnRevivePopupRequested;
     public event System.Action OnRevivePopupClosed;
-    public event System.Action<int, List<UnitManager.BattleDamageEntry>> OnServantResultShown;
+    public event System.Action<int, List<UnitManager.BattleDamageEntry>,IReadOnlyList<string>> OnServantResultShown;
     public event System.Action OnServantResultHidden;
     public event System.Action<EventData> OnEventRequested;
     public event System.Action OnEventClosed;
@@ -109,12 +112,12 @@ public class OperationPhaseManager : ITickable
     {
         if (next == OperationPhase.Result)
         {
-            bool hadBattle = _sectionManager.CurrentSection?.section?.type == SectionType.Battle;
-            var ranking = hadBattle && _unitManager != null
+            var ranking = _sectionHadBattle && _unitManager != null
                 ? _unitManager.GetBattleDamageRanking()
                 : new List<UnitManager.BattleDamageEntry>();
 
-            OnServantResultShown?.Invoke(_fuelManager.CurrentFuel - _fuelAtSectionStart, ranking);
+            OnServantResultShown?.Invoke(
+                _fuelManager.CurrentFuel - _fuelAtSectionStart, ranking,_eventLog);
         }
         else if(prev == OperationPhase.Result)
         {
@@ -201,6 +204,9 @@ public class OperationPhaseManager : ITickable
     #region Move
     private void EnterMove()
     {
+        _eventLog.Clear();
+        _eventBattleWave = null;
+        _sectionHadBattle = false;
         _fuelAtSectionStart = _fuelManager.CurrentFuel;
 
         var entry = _sectionManager.CurrentSection;
@@ -242,12 +248,14 @@ public class OperationPhaseManager : ITickable
     #region SectionProcessing
     private void ProcessCurrentSection()
     {
+
         ClosePopup();
         var entry = _sectionManager.CurrentSection;
 
         switch (entry.section.type)
         {
             case SectionType.Battle:
+                _sectionHadBattle = true;
                 _unitManager?.BeginBattleStats();
                 _waveManager?.StartBattlePhase(entry.section.wave);
                 foreach(var extra in _pendingBattleWaves)
@@ -287,6 +295,9 @@ public class OperationPhaseManager : ITickable
         if (_stateManager.CurrentOperationPhase != OperationPhase.Event) return;
         if (_currentEvent == null || index < 0 || index >= _currentEvent.choices.Count) return;
 
+        _eventLog.Clear();
+        _eventBattleWave = null;
+
         foreach(var effect in _currentEvent.choices[index].effects)
         {
             ApplyEventEffect(effect);
@@ -307,17 +318,48 @@ public class OperationPhaseManager : ITickable
         switch(effect.type)
         {
             case EventEffectType.Fuel:
-                _fuelManager.ConsumeAmount(-effect.fuelAmount);
+                { 
+                    _fuelManager.ConsumeAmount(-effect.fuelAmount);
+                    _eventLog.Add(effect.fuelAmount >= 0
+                        ? $"燃料が{effect.fuelAmount}回復した"
+                        : $"燃料が{-effect.fuelAmount}失った");
                 break;
+                }
             case EventEffectType.KillUnit:
-                _unitManager?.KillRandomAliveUnits(effect.count,PickIndex);
-                break;
+                {
+                    if (_unitManager == null) break;
+                    foreach(var id in _unitManager.KillRandomAliveUnits(effect.count,PickIndex))
+                    {
+                        _eventLog.Add($"{_unitManager.GetUnitName(id)}が死亡した");
+                    }
+                    break;
+                }
             case EventEffectType.ReviveUnit:
-                _modifiers?.ApplyMultiplier(effect.target, effect.multiplier);
-                break;
+                {
+                    if (_unitManager == null) break;
+                    foreach(var id in _unitManager.ReviveDeadUnitsFree(effect.count,PickIndex))
+                    {
+                        _eventLog.Add($"{_unitManager.GetUnitName(id)}が再構築された");
+                    }
+                    break;
+                }
+            case EventEffectType.StatModifier:
+                {
+                    _modifiers?.ApplyMultiplier(effect.target, effect.multiplier);
+                    string who = effect.target == Base_Item.Affiliation.Ally ? "味方" : "敵";
+                    int percent = Mathf.RoundToInt((effect.multiplier - 1f) * 100f);
+                    _eventLog.Add($"{who}のステータスが{percent:+0;-0}%された");
+                    break;
+                }
             case EventEffectType.ChangeBattle:
-                if (effect.extraWave != null) _pendingBattleWaves.Add(effect.extraWave);
-                break;
+                {
+                    if(effect.extraWave != null)
+                    {
+                        _eventBattleWave = effect.extraWave;
+                        _eventLog.Add("久保が怒って殴ってきた");
+                    }
+                    break;
+                }
 
         }
     }
@@ -501,7 +543,25 @@ public class OperationPhaseManager : ITickable
         if (_stateManager.Current != GameState.Operation) return;
         if (_stateManager.CurrentOperationPhase != OperationPhase.Result) return;
 
+        if(_eventBattleWave != null)
+        {
+            StartEventBattle();
+            return;
+        }
         AdvanceAfterResult();
+    }
+
+    private void StartEventBattle()
+    {
+        var wave = _eventBattleWave;
+        _eventBattleWave = null;
+        _eventLog.Clear();
+        _fuelAtSectionStart = _fuelManager.CurrentFuel;
+        _sectionHadBattle = true;
+
+        _unitManager?.BeginBattleStats();
+        _waveManager?.StartBattlePhase(wave);
+        _stateManager?.TransitionOperationPhase(OperationPhase.Battle);
     }
 
     #endregion
