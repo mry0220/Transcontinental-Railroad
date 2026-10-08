@@ -1050,7 +1050,6 @@ public class UIManager : MonoBehaviour
     }
 
     #endregion
-
     #region EventPopup
     private VisualElement eventOverlay;
     private VisualElement eventImage;
@@ -1061,7 +1060,7 @@ public class UIManager : MonoBehaviour
     private void SetupEventPopup()
     {
         eventOverlay = new VisualElement();
-        eventOverlay.AddToClassList("ev_overlay");
+        eventOverlay.AddToClassList("ev-overlay");
 
         var panel = new VisualElement();
         panel.AddToClassList("ev-panel");

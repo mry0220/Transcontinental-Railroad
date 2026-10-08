@@ -316,7 +316,11 @@ public class OperationPhaseManager : ITickable
                 _modifiers?.ApplyMultiplier(effect.target, effect.multiplier);
                 break;
             case EventEffectType.ChangeBattle:
-                if (effect.extraWave != null) _pendingBattleWaves.Add(effect.extraWave);
+                if (effect.extraWave != null)
+                {
+                    Debug.Log("[OperationPhase] ChangeBattleSection");
+                    _pendingBattleWaves.Add(effect.extraWave); 
+                }
                 break;
 
         }

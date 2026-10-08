@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
   m_Name: item_unit_0001
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
+  _formationSprite: {fileID: 5784186892286947790, guid: 3ad630482eb0f59418d24a608e22bdb2, type: 3}
   _affiliation: 0
   _maxHP: 5
   _attackPower: 3

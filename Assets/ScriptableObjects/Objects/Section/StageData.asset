@@ -17,6 +17,9 @@ MonoBehaviour:
   - _section: {fileID: 11400000, guid: a3dd725b64c4fbd4a93ed7d8e562a0fd, type: 2}
     _distanceMin: 0
     _distanceMax: 30
+  - _section: {fileID: 11400000, guid: 8e8fa878df88280499e1be71b6b783bb, type: 2}
+    _distanceMin: 600
+    _distanceMax: 800
   - _section: {fileID: 11400000, guid: 1ed4c66d982f9214bbba36d1bcec6082, type: 2}
     _distanceMin: 1200
     _distanceMax: 1600

@@ -592,22 +592,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxBackground
   targetCamera: {fileID: 519420031}
   layers:
-  - sprite: {fileID: 7520494279255852340, guid: b59747b4cd8938f4d8cf9b8a21be5f27, type: 3}
+  - sprite: {fileID: 3836954968553550457, guid: 76c10930d505649469a1bebe61810f17, type: 3}
+    speedFactor: 0
+    y: 0
+    gapX: 0
+    startShiftX: 0
+    sortingOrder: -10
+  - sprite: {fileID: -5157253929585866776, guid: cb4b9eccbf221104da76e944c1bbd4b8, type: 3}
     speedFactor: 0.3
     y: -2
-    sortingOrder: -1
-  - sprite: {fileID: 5147264757854351283, guid: 2d9fe25e783475d4393da6cfd839b9dc, type: 3}
+    gapX: 0
+    startShiftX: 0
+    sortingOrder: -9
+  - sprite: {fileID: 4284628995527548546, guid: 40d71bdff4585c14a83fff007e15e018, type: 3}
     speedFactor: 1
-    y: -2
-    sortingOrder: -1
-  - sprite: {fileID: -353522424053517125, guid: 984138b5701f407488fcea5da8274f55, type: 3}
-    speedFactor: -1
-    y: -1
-    sortingOrder: -1
-  - sprite: {fileID: -4237443128374831612, guid: 1ab1703eac8c0604a988edbf92c3a41f, type: 3}
-    speedFactor: 10
-    y: -2
-    sortingOrder: -1
+    y: 0
+    gapX: 5
+    startShiftX: 0
+    sortingOrder: -3
 --- !u!4 &1890116381
 Transform:
   m_ObjectHideFlags: 0
@@ -713,7 +715,7 @@ MonoBehaviour:
     popupFontSize: 48
     damageToEnemyColor: {r: 1, g: 1, b: 1, a: 1}
     damageToAllyColor: {r: 1, g: 0.4, b: 0.4, a: 1}
-    showIndicators: 0
+    showIndicators: 1
     indicatorOffsetY: 0.9
     indicatorIconSize: 0.35
     indicatorSlotGap: 0.08
