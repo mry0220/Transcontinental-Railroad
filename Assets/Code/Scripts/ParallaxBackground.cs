@@ -16,8 +16,11 @@ public class ParallaxBackground : MonoBehaviour
         public float speedFactor = 1f;
         [Tooltip("ワールド座標のY")]
         public float y = 0f;
+        [Tooltip("タイル同士の間隔")]
+        public float gapX = 0f;
         [Tooltip("初期のXずらし量。正の値で左へずれる。層ごとに変え継ぎ目をそろえない")]
-        public float offsetX = 0f;
+        public float startShiftX = 0f;
+        
 
         [Tooltip("負の値ほど後ろ。列車や敵のSpriteより小さくすること")]
         public int sortingOrder = -10;
@@ -28,6 +31,7 @@ public class ParallaxBackground : MonoBehaviour
         public Layer layer;
         public readonly List<Transform> tiles = new();
         public float tileWidth;
+        public float stride;
         public float offset;
     }
 
@@ -63,9 +67,10 @@ public class ParallaxBackground : MonoBehaviour
                 layer = layer,
                 tileWidth = layer.sprite.bounds.size.x,
             };
-            runtime.offset = Mathf.Repeat(layer.offsetX, runtime.tileWidth);
+            runtime.stride = Mathf.Max(0.01f, runtime.tileWidth + layer.gapX);
+            runtime.offset = Mathf.Repeat(layer.startShiftX, runtime.stride);
 
-            int count = Mathf.CeilToInt(cameraWidth / runtime.tileWidth) + 3;
+            int count = Mathf.CeilToInt(cameraWidth / runtime.stride) + 3;
             for(int i = 0; i<count;i++)
             {
                 var tileObject = new GameObject($"{layer.sprite.name}_{i}");
@@ -86,11 +91,11 @@ public class ParallaxBackground : MonoBehaviour
     private void Layout(LayerRuntime runtime)
     {
         float cameraWidth = targetCamera.orthographicSize * 2f * targetCamera.aspect;
-        float startX = targetCamera.transform.position.x - cameraWidth / 2f - runtime.tileWidth;
+        float startX = targetCamera.transform.position.x - cameraWidth / 2f - runtime.stride;
 
         for(int i =0;i<runtime.tiles.Count;i++)
         {
-            float x = startX + i * runtime.tileWidth - runtime.offset;
+            float x = startX + i * runtime.stride - runtime.offset;
             runtime.tiles[i].position = new Vector3(x, runtime.layer.y, transform.position.z);
         }
     }
@@ -103,7 +108,7 @@ public class ParallaxBackground : MonoBehaviour
         {
             runtime.offset = Mathf.Repeat(
                 runtime.offset + worldDistance * runtime.layer.speedFactor,
-                runtime.tileWidth);
+                runtime.stride);
             Layout(runtime);
         }
     }
@@ -112,7 +117,7 @@ public class ParallaxBackground : MonoBehaviour
     {
         foreach(var runtime in _runtimes)
         {
-            runtime.offset = Mathf.Repeat(runtime.layer.offsetX,runtime.tileWidth);
+            runtime.offset = Mathf.Repeat(runtime.layer.startShiftX,runtime.stride);
             Layout(runtime);
         }
     }
