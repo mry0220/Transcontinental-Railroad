@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem.Interactions;
 using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
@@ -248,7 +249,7 @@ public class UIManager : MonoBehaviour
         fuelSetScreen.style.display =
             phase == PrepPhase.FuelSet ? DisplayStyle.Flex : DisplayStyle.None;
 
-        SetFuelSetReady(false);
+        SetFuelSetStatus(FuelSetStatus.None);
     }
     public void HidePrepScreens()
     {
@@ -256,7 +257,7 @@ public class UIManager : MonoBehaviour
         stageSelectScreen.style.display = DisplayStyle.None;
         unitSelectScreen.style.display = DisplayStyle.None;
         fuelSetScreen.style.display = DisplayStyle.None;
-        SetFuelSetReady(false);
+        SetFuelSetStatus(FuelSetStatus.None);
     }
 
     #region StageSelect
@@ -335,6 +336,11 @@ public class UIManager : MonoBehaviour
     private Loadout _unitSelectLoadout;
     private bool _suppressNextClick;
     private const long LongPressMs = 500;
+    private Label unitCostLabel;
+    private VisualElement slotMask;
+    private VisualElement unitListMask;
+
+
     private void SetupUnitSelectScreen()
     {
         unitSelectScreen = new VisualElement();
@@ -360,13 +366,17 @@ public class UIManager : MonoBehaviour
             var slot = new Button(() =>
             {
                 if (ConsumeSuppressedClick()) return;
-               // OnUnitSlotChosen? Invoke(slotIndex);
+                OnUnitSlotChosen?.Invoke(slotIndex);
                 });
             slot.AddToClassList("us-unit-slot");
             unitSlotButtons[i] = slot;
             RegisterStatusPopup(slot, () => _unitSelectLoadout != null ? _unitSelectLoadout.Slots[slotIndex] : null);
             slotRow.Add(slot);
         }
+
+        slotMask = new VisualElement();
+        slotMask.AddToClassList("us-mask");
+        slotRow.Add(slotMask);
 
         top.Add(slotRow);
         unitSelectScreen.Add(top);
@@ -381,12 +391,20 @@ public class UIManager : MonoBehaviour
 
         unitList = new ScrollView(ScrollViewMode.Horizontal);
         unitList.AddToClassList("us-unit-list");
+        unitListMask = new VisualElement();
+        unitListMask.AddToClassList("us-mask");
+        unitList.hierarchy.Add(unitListMask);
         bottom.Add(unitList);
         unitSelectScreen.Add(bottom);
 
         var backButton = new Button(() => OnUnitSelectBack?.Invoke()) { text = "BACK" };
         backButton.AddToClassList("us-back-button");
         unitSelectScreen.Add(backButton);
+
+        unitCostLabel = new Label("- / -");
+        unitCostLabel.AddToClassList("us-cost-label");
+        unitCostLabel.pickingMode = PickingMode.Ignore;
+        unitSelectScreen.Add(unitCostLabel);
 
         unitSelectConfirmButton = new Button(() => OnUnitSelectConfirmed?.Invoke()) { text = "START" };
         unitSelectConfirmButton.AddToClassList("us-confirm-button");
@@ -446,15 +464,15 @@ public class UIManager : MonoBehaviour
 
         }
     }
-    public void RefreshUnitSelect(Loadout loadout)
+    public void RefreshUnitSelect(Loadout loadout,int budget)
     {
         _unitSelectLoadout = loadout;
-        SetIcon(trainImage, loadout.Train != null ? loadout.Train.icon : null);
+
+        SetIcon(trainImage,GetFormationSprite(loadout.Train));
 
         for (int i = 0; i < unitSlotButtons.Length; i++)
         {
-            var unit = loadout.Slots[i];
-            SetIcon(unitSlotButtons[i], unit != null ? unit.icon : null);
+            SetIcon(unitSlotButtons[i],GetFormationSprite(loadout.Slots[i]));
         }
 
         foreach (var pair in trainCandidateButtons)
@@ -465,7 +483,29 @@ public class UIManager : MonoBehaviour
         {
             pair.Value.EnableInClassList("us-candidate-selected", loadout.Contains(pair.Key));
         }
-        unitSelectConfirmButton.SetEnabled(loadout.IsValid);
+        bool hasTrain = loadout.Train != null;
+        bool overBudget = hasTrain && loadout.TotalFuelCost > budget;
+
+        unitCostLabel.text = hasTrain ? $"{loadout.TotalFuelCost} / {budget}" : "- / -";
+        unitCostLabel.EnableInClassList("us-cost-label-over", overBudget);
+
+        var maskDisplay = hasTrain ? DisplayStyle.None : DisplayStyle.Flex;
+        slotMask.style.display = maskDisplay;
+        unitListMask.style.display = maskDisplay;
+
+        unitSelectConfirmButton.SetEnabled(loadout.IsValid && overBudget);
+    }
+
+    private static Sprite GetFormationSprite(Base_Item item)
+    {
+        if (item == null) return null;
+        if (item.formationSprite != null) return item.formationSprite;
+        return item switch
+        {
+            Item_Unit u => u.icon,
+            Item_Train t => t.icon,
+            _ => null
+        };
     }
 
     private bool ConsumeSuppressedClick()
@@ -520,23 +560,24 @@ public class UIManager : MonoBehaviour
         {
             AddPopupRow("燃料", item.maxHP.ToString());
             AddPopupRow("燃費", item.attackPower.ToString());
+            AddPopupRow("速度", item.moveSpeed.ToString("F1"));
         }
         else
         {
             AddPopupRow("最大HP", item.maxHP.ToString());
             AddPopupRow("攻撃力", item.attackPower.ToString());
-        }
-        AddPopupRow("攻撃間隔", item.attackInterval.ToString("F1") + "s");
-        AddPopupRow("速度", item.moveSpeed.ToString("F1"));
-        AddPopupRow("射程", item.attackRange.ToString("F1"));
-        AddPopupRow("マッチ受容数", item.matchCapacity.ToString());
-        AddPopupRow("ターゲット", item.targetingStrategy switch
+            AddPopupRow("攻撃間隔", item.attackInterval.ToString("F1") + "s");
+            AddPopupRow("速度", item.moveSpeed.ToString("F1"));
+            AddPopupRow("射程", item.attackRange.ToString("F1"));
+            AddPopupRow("マッチ受容数", item.matchCapacity.ToString());
+            AddPopupRow("ターゲット", item.targetingStrategy switch
         {
             Base_Item.TargetingStrategy.Nearest => "最も近い",
             Base_Item.TargetingStrategy.Farthest => "最も遠い",
             Base_Item.TargetingStrategy.LowestHp => "最も体力が低い",
             _ => "-"
         });
+        }
         if(item is Item_Unit unit)
         {
             AddPopupRow("出撃コスト", unit.fuelCost.ToString());
@@ -649,12 +690,20 @@ public class UIManager : MonoBehaviour
     {
         SetIcon(fuelSetTrainImage, train != null ? train.icon : null);
     }
-    public void SetFuelSetReady(bool ready)
+    public void SetFuelSetStatus(FuelSetStatus status)
     {
         if (fuelSetTapLabel == null) return;
 
-        fuelSetTapLabel.style.display = ready ? DisplayStyle.Flex : DisplayStyle.None;
-        if (ready) fuelSetBlink?.Resume();
+        bool visible = status != FuelSetStatus.None;
+        fuelSetTapLabel.text = status switch
+        {
+            FuelSetStatus.Charging => "燃料充填中...",
+            FuelSetStatus.Paying => "乗務員構築中...",
+            FuelSetStatus.Ready => "運行開始",
+            _ => ""
+        };
+        fuelSetTapLabel.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        if (visible) fuelSetBlink?.Resume();
         else fuelSetBlink?.Pause();
     }
 
@@ -1098,7 +1147,7 @@ public class UIManager : MonoBehaviour
         screen.Add(frame);
 
         right = new VisualElement();
-        right.AddToClassList("rs-rigth");
+        right.AddToClassList("rs-right");
         screen.Add(right);
 
         screen.style.display = DisplayStyle.None;

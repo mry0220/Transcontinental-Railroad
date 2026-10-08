@@ -190,7 +190,7 @@ public class GameLoopManager : MonoBehaviour
             operationPhaseManager.OnServantResultShown += uIManager.ShowServantResult;
             operationPhaseManager.OnServantResultHidden += uIManager.HideServantResult;
             prepPhaseManager.OnLoadoutChanged += uIManager.RefreshUnitSelect;
-            prepPhaseManager.OnFuelSetReadyChanged += uIManager.SetFuelSetReady;
+            prepPhaseManager.OnFuelSetReadyChanged += uIManager.SetFuelSetStatus;
             uIManager.OnReviveConfirmed += operationPhaseManager.ConfirmRevive;
             uIManager.OnReviveCancelled += operationPhaseManager.CancelRevive;
         }

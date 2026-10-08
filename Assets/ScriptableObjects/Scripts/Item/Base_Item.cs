@@ -24,6 +24,10 @@ public class Base_Item : ScriptableObject
     //====Common Status====
     [Header("共通ステータス")]
 
+    [Tooltip("編成・Resultに出すSprite"), SerializeField]
+    private Sprite _formationSprite;
+    public Sprite formationSprite => _formationSprite;
+
     [SerializeField] private Affiliation _affiliation;
     public Affiliation affiliation => _affiliation;
 

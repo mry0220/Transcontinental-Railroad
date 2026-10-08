@@ -1,5 +1,7 @@
 using UnityEngine;
 
+public enum FuelSetStatus { None,Charging,Paying,Ready}
+
 /// <summary>
 /// Prep(MasterState)配下のServantState(StageSelect/UnitSelect/FuelSet)を進行させる。
 /// </summary>
@@ -39,8 +41,9 @@ public class PrepPhaseManager : ITickable
 
     #region Event
     public event System.Action<Loadout> OnLoadoutConfirmed;
-    public event System.Action<Loadout> OnLoadoutChanged;
-    public event System.Action<bool> OnFuelSetReadyChanged;
+    public event System.Action<Loadout,int> OnLoadoutChanged;
+    public event System.Action<FuelSetStatus> OnFuelSetReadyChanged;
+    
     #endregion
 
     #region Setup
@@ -84,6 +87,7 @@ public class PrepPhaseManager : ITickable
                 {
                     _payRemaining = _loadout.TotalFuelCost;
                     _fuelStage = FuelStage.Pay;
+                    OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Paying);
                 }
                 break;
             case FuelStage.Pay:
@@ -92,7 +96,7 @@ public class PrepPhaseManager : ITickable
                 {
                     _fuelStage = FuelStage.Ready;
                     _fuelReady = true;
-                    OnFuelSetReadyChanged?.Invoke(true);
+                    OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Ready);
                 }
                 break;
         }
@@ -109,7 +113,7 @@ public class PrepPhaseManager : ITickable
 
         _selectedStage = stage;
         _stateManager.TransitionPrepPhase(PrepPhase.UnitSelect);
-        OnLoadoutChanged?.Invoke(_loadout);
+        NotifyLoadoutChanged();
     }
 
     #endregion
@@ -119,22 +123,23 @@ public class PrepPhaseManager : ITickable
     {
         if (!InUnitSelect) return;
         _loadout.SetTrain(train);
-        OnLoadoutChanged?.Invoke(_loadout);
+        NotifyLoadoutChanged();
     }
     public void ToggleUnit(Item_Unit unit)
     {
         if (!InUnitSelect) return;
+        if (_loadout.Train == null) return;
 
         if (_loadout.Contains(unit)) _loadout.RemoveUnit(unit);
         else if (CanAfford(unit)) _loadout.TryAddUnit(unit);
 
-        OnLoadoutChanged?.Invoke(_loadout);
+        NotifyLoadoutChanged();
     }
     public void ClearUnitSlot(int slotIndex)
     {
         if (!InUnitSelect) return;
         _loadout.RemoveAt(slotIndex);
-        OnLoadoutChanged?.Invoke(_loadout);
+        NotifyLoadoutChanged();
     }
     public void BackToStageSelect()
     {
@@ -150,6 +155,7 @@ public class PrepPhaseManager : ITickable
         _sectionManager.Build(_selectedStage);
         OnLoadoutConfirmed?.Invoke(_loadout);
         _stateManager.TransitionPrepPhase(PrepPhase.FuelSet);
+        OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Charging);
     }
 
     #endregion
@@ -166,6 +172,11 @@ public class PrepPhaseManager : ITickable
         if (!_fuelReady) return;
 
         _stateManager.transitionTo(GameState.Operation);
+    }
+
+    private void NotifyLoadoutChanged()
+    {
+        OnLoadoutChanged?.Invoke(_loadout, FuelBudget);
     }
 
     #endregion
