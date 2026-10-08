@@ -1,5 +1,5 @@
 using System.Linq;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -7,60 +7,78 @@ using UnityEngine;
 /// この段階では骨格のみ。既存のCombatant.Tick/MatchManager.ProcessRequests等の
 /// 実際の戦闘ロジックの移植は④で行う。
 /// </summary>
-public class OperationPhaseManager
+public class OperationPhaseManager : ITickable
 {
+    #region References
+
     private readonly StateManager _stateManager;
     private readonly UnitManager _unitManager;
     private readonly WaveManager _waveManager;
     private readonly MatchManager _matchManager;
     private readonly FuelManager _fuelManager;
-    private readonly UIManager _uIManager;
     private readonly SectionManager _sectionManager;
     private readonly System.Func<GameObject> _getTrainInstance;
     private readonly RNG _rng;
 
-    private ParallaxBackground _background;
+
+    private RamSettings _ramSettings = new();
+
+    private TickScheduler _scheduler;
+    private TickScheduler.PauseHandle _popupPause;
+    private RunStats _runStats;
+    public void SetRunStats(RunStats runStats) => _runStats = runStats;
+
+    #endregion
+
+    #region MoveState
 
     private float _moveElapsed;
     private float _moveDuration;
-
-    private bool _isRevivePopupOpen;
-    private string _pendingReviveItemId;
-
     private float _moveDistance;
     private float _moveSpeed;
-
     public float MoveDistance => _moveDistance;
     public float MoveSpeed => _moveSpeed;
     public float MoveElapsed => _moveElapsed;
     public float MoveDuration => _moveDuration;
     public float MoveProgress => _moveDuration > 0f ? Mathf.Clamp01(_moveElapsed / _moveDuration) : 1f;
 
-    private enum RamStage { Alert,Charge}
+    #endregion
 
-    private RamSettings _ramSettings = new();
+    #region Event
+    public event System.Action<bool> OnAlertChanged;
+    public event System.Action<Sprite, int> OnRevivePopupRequested;
+    public event System.Action OnRevivePopupClosed;
+    public event System.Action<int, List<UnitManager.BattleDamageEntry>> OnServantResultShown;
+    public event System.Action OnServantResultHidden;
+    #endregion
+
+    #region RevivePopupState
+
+    private bool _isRevivePopupOpen;
+    private string _pendingReviveItemId;
+    private enum RamStage { Alert,Charge}
     private RamStage _ramStage;
     private float _ramTimer;
     private float _ramSpeed;
     private Vector3 _trainHome;
     private bool _trainNeedsReset;
 
-    
+    private int _fuelAtSectionStart;
+    #endregion
 
+    #region Setup
     public OperationPhaseManager(
         StateManager stateManager,
         UnitManager unitManager,
         WaveManager waveManager,
         MatchManager matchManager,
         FuelManager fuelManager,
-        UIManager uIManager,
         SectionManager sectionManager,
         System.Func<GameObject> getTrainInstance,
         RNG rng)
     {
         _stateManager = stateManager;
         _unitManager = unitManager;
-        _uIManager = uIManager;
         _waveManager = waveManager;
         _matchManager = matchManager;
         _fuelManager = fuelManager;
@@ -69,34 +87,58 @@ public class OperationPhaseManager
         _rng = rng;
 
         _unitManager.OnDeadUnitTapped += HandleDeadUnitTapped;
-        _uIManager.OnReviveConfirmed += ConfirmRevive;
-        _uIManager.OnReviveCancelled += CancelRevive;
-    }
 
+        _stateManager.OnOperationPhaseChanged += HandleOperationPhaseChanged;
+    }
     public void SetRamSettings(RamSettings settings)
     {
         _ramSettings = settings ?? new RamSettings();
     }
 
+    public void SetScheduler(TickScheduler scheduler)
+    {
+        _scheduler = scheduler;
+    }
+
+    private void HandleOperationPhaseChanged(OperationPhase prev,OperationPhase next)
+    {
+        if (next == OperationPhase.Result)
+        {
+            bool hadBattle = _sectionManager.CurrentSection?.section?.type == SectionType.Battle;
+            var ranking = hadBattle && _unitManager != null
+                ? _unitManager.GetBattleDamageRanking()
+                : new List<UnitManager.BattleDamageEntry>();
+
+            OnServantResultShown?.Invoke(_fuelManager.CurrentFuel - _fuelAtSectionStart, ranking);
+        }
+        else if(prev == OperationPhase.Result)
+        {
+            OnServantResultHidden?.Invoke();
+        }
+    }
+
+    /// <summary>運行の中断(titleへ戻るなど)で呼ばれる。ポップアップのPauseを確実に解除する</summary>
+    public void ResetForNewRun()
+    {
+        ClosePopup();
+        _trainNeedsReset = false;
+    }
+
+    #endregion
+
+    #region EntryAndTick
+
     /// <summary> GameState.Operation突入時にGameLoopManagerから呼ばれる </summary>
     public void Enter()
     {
         Debug.Log("[OperationPhaseManager] Enter: Moveから開始");
-        _background?.ResetScroll();
         ClosePopup();
         EnterMove();
-    }
-
-    private void UpdateRouteBar()
-    {
-        float leg = _stateManager.CurrentOperationPhase == OperationPhase.Move ? MoveProgress : 1f;
-        _uIManager.UpdateRouteProgress(_sectionManager.CurrentIndex, _sectionManager.SectionCount, leg);
     }
 
     /// <summary> GameLoopManagerのFixedStepから、GameState.Operation中のみ呼ばれる </summary>
     public void Tick(float fixedDt)
     {
-        if (_isRevivePopupOpen) return;
 
         TickAllRevivals(fixedDt);
 
@@ -112,28 +154,22 @@ public class OperationPhaseManager
                 TickRam(fixedDt);
                 break;
             case OperationPhase.Result:
-               // TickResult(fixedDt);
                 break;
         }
-        UpdateRouteBar();
-        _uIManager.UpdateFuelUI(_fuelManager.CurrentFuel, _fuelManager.MaxFuel); ;
     }
-
+    /// <summary>Presentation用。見た目の更新だけを行い、ゲームの結果には影響させない</summary>
     private void TickAllRevivals(float fixedDt)
     {
         _unitManager?.TickRevivals(fixedDt, _stateManager.CurrentOperationPhase == OperationPhase.Move);
     }
 
+    #endregion
+
+    #region Input
     /// <summary> GameLoopManagerのConsumeInputから、GameState.Operation中のみ呼ばれる </summary>
     public void HandleInput(InputBuffer.InputEvent evt)
     {
-        if(_stateManager.CurrentOperationPhase == OperationPhase.Result)
-        {
-            if(evt.type == InputBuffer.InputType.PointerDown)
-            {
-                AdvanceAfterResult();
-            }
-        }
+        
 
         if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
         
@@ -148,20 +184,13 @@ public class OperationPhaseManager
 
     }
 
-    private void AdvanceAfterResult()
-    {
-        if(!_sectionManager.AdvanceToNextSection())
-        {
-            Debug.LogWarning("[OperationPhaseManager]次のSectionがない状態でResultからの進行が呼ばれた");
-            return;
-        }
-        Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
-        _stateManager.TransitionOperationPhase(OperationPhase.Move);
-        EnterMove();
-    }
+    #endregion
 
+    #region Move
     private void EnterMove()
     {
+        _fuelAtSectionStart = _fuelManager.CurrentFuel;
+
         var entry = _sectionManager.CurrentSection;
         if(entry == null || entry.section == null)
         {
@@ -178,26 +207,27 @@ public class OperationPhaseManager
 
         
     }
-
     private float GetTrainMoveSpeed()
     {
         var trainInstance = _getTrainInstance();
         var trainCombatant = trainInstance != null ? trainInstance.GetComponent<Combatant>() : null;
         return trainCombatant != null ? trainCombatant.MoveSpeed : 1f;
     }
-
     private void TickMove(float fixedDt) 
     {
         if (!TickFuel(true, fixedDt)) return;
 
-        _background?.Scroll(_moveSpeed * fixedDt);
-
+        float step = Mathf.Min(fixedDt, Mathf.Max(0f, _moveDuration - _moveElapsed));
+        _runStats?.AddDistance(MoveSpeed * step);
         _moveElapsed += fixedDt;
         if (_moveElapsed < _moveDuration) return;
 
         ProcessCurrentSection();
     }
 
+    #endregion
+
+    #region SectionProcessing
     private void ProcessCurrentSection()
     {
         ClosePopup();
@@ -206,8 +236,9 @@ public class OperationPhaseManager
         switch (entry.section.type)
         {
             case SectionType.Battle:
+                _unitManager?.BeginBattleStats();
                 _waveManager?.StartBattlePhase(entry.section.wave);
-                _stateManager.TransitionOperationPhase(OperationPhase.Battle); ;
+                _stateManager.TransitionOperationPhase(OperationPhase.Battle);
                 break;
             case SectionType.Event:
                 ApplyEventEffect(entry.section);
@@ -218,6 +249,14 @@ public class OperationPhaseManager
                 break;
         }
     }
+    private void ApplyEventEffect(SectionData section)
+    {
+        _fuelManager.ConsumeAmount(-section.fuelRestoreAmount);
+    }
+
+    #endregion
+
+    #region Battle
     private void TickBattle(float fixedDt) 
     {
 
@@ -231,7 +270,6 @@ public class OperationPhaseManager
 
         TickFuel(false,fixedDt);
     }
-
     private bool CheckBattleClear()
     {
         bool anyEnemyAlive = Combatant.All.Any(c => c.Affiliation == Base_Item.Affiliation.Enemy && !c.IsDead);
@@ -245,66 +283,20 @@ public class OperationPhaseManager
         return false;
     }
 
-    private bool TickFuel(bool isMoving,float fixedDt)
+    /// <summary>
+    /// RETURNボタンから呼ばれる。Battle中のみ有効
+    /// </summary>
+    public void RequestReturnAll()
     {
-        var trainCombatant = GetTrainCombatant();
-        float attackPower = trainCombatant != null ? trainCombatant.AttackPower : 0f;
-        float speed = GetTrainMoveSpeed();
+        if (_stateManager.Current != GameState.Operation) return;
+        if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
 
-        if (_fuelManager.ConsumeOperationFuel(attackPower, speed, isMoving, fixedDt)) return true;
-
-        trainCombatant?.ApplyDamage(int.MaxValue);
-        _stateManager.TransitionToResult(RunOutcome.Failed);
-        return false;
+        _unitManager?.ReturnAllAliveUnits();
     }
 
-    private Combatant GetTrainCombatant()
-    {
-        var trainInstance = _getTrainInstance();
-        return trainInstance != null ? trainInstance.GetComponent<Combatant>() : null;
-    }
+    #endregion
 
-    private void TickResult(float fixedDt) { /* ④で実装 */ }
-
-    private void ApplyEventEffect(SectionData section)
-    {
-        _fuelManager.ConsumeAmount(-section.fuelRestoreAmount);
-    }
-
-    private void HandleDeadUnitTapped(string itemId)
-    {
-        if (_stateManager.CurrentOperationPhase != OperationPhase.Move) return;
-        if (_isRevivePopupOpen) return;
-
-        _pendingReviveItemId = itemId;
-        _isRevivePopupOpen = true;
-
-        _uIManager.ShowRevivePopup(_unitManager.GetUnitIcon(itemId),_unitManager.GetReviveFuelCost(itemId));
-    }
-
-    private void ConfirmRevive()
-    {
-        if (!_isRevivePopupOpen) return;
-        _unitManager.TryConfirmRevive(_pendingReviveItemId);
-        ClosePopup();
-    }
-
-    private void CancelRevive()
-    {
-        ClosePopup();
-    }
-
-    private void ClosePopup()
-    {
-        _isRevivePopupOpen = false;
-        _pendingReviveItemId = null;
-        _uIManager.HideRevivePopup();
-    }
-
-    public void SetBackground(ParallaxBackground background)
-    {
-        _background = background;
-    }
+    #region Ram
 
     /// <summary>
     /// RAMボタンから呼ばれるBattle中のみ有効
@@ -323,24 +315,13 @@ public class OperationPhaseManager
         _ramSpeed = 0f;
 
         _stateManager.TransitionOperationPhase(OperationPhase.Ram);
-        _uIManager.SetAlert(true);
+        OnAlertChanged?.Invoke(true);
+        
     }
-
-    /// <summary>
-    /// RETURNボタンから呼ばれる。Battle中のみ有効
-    /// </summary>
-    public void RequestReturnAll()
-    {
-        if (_stateManager.Current != GameState.Operation) return;
-        if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
-
-        _unitManager?.ReturnAllAliveUnits();
-    }
-
     private void TickRam(float fixedDt)
     {
         var train = _getTrainInstance();
-        if(train = null)
+        if(train == null)
         {
             FinishRam(null);
             return;
@@ -351,13 +332,13 @@ public class OperationPhaseManager
             _ramTimer += fixedDt;
             if(_ramTimer >= _ramSettings.alertDuration)
             {
-                _uIManager.SetAlert(false);
+                OnAlertChanged?.Invoke(false);
                 _ramStage = RamStage.Charge;
             }
             return;
         }
 
-        _ramSpeed = Mathf.Min(_ramSpeed + _ramSettings.alertDuration * fixedDt, _ramSettings.maxSpeed);
+        _ramSpeed = Mathf.Min(_ramSpeed + _ramSettings.acceleration * fixedDt, _ramSettings.maxSpeed);
         train.transform.position += Vector3.right * (_ramSpeed * fixedDt);
         CrushEntitiesUpTo(train.transform.position.x + _ramSettings.frontOffset, train);
 
@@ -367,10 +348,9 @@ public class OperationPhaseManager
             FinishRam(train);
         }
     }
-
     private void CrushEntitiesUpTo(float frontX,GameObject train)
     {
-        foreach (var combatant in Combatant.All)
+        foreach (var combatant in Combatant.All.ToList())
         {
             if (train != null && combatant.gameObject == train) continue;
             if (combatant.IsDead) continue;
@@ -379,16 +359,23 @@ public class OperationPhaseManager
             bool isAlly = combatant.Affiliation == Base_Item.Affiliation.Ally;
             combatant.ApplyDamage(int.MaxValue);
 
-            if (isAlly && _unitManager != null && _unitManager.CrushUnit(combatant))
+            if(isAlly)
             {
-                _fuelManager.ConsumeAmount(-_ramSettings.allyCrushFuelRefund);
+                if(_unitManager != null && _unitManager.CrushUnit(combatant))
+                {
+                    _fuelManager.ConsumeAmount(-_ramSettings.allyCrushFuelRefund);
+                    _runStats?.AddCrushedUnit();
+                }
+            }
+            else
+            {
+                _runStats?.AddCrushedEnemy();
             }
         }
     }
-
     private void FinishRam(GameObject train)
     {
-        _uIManager.SetAlert(false);
+        OnAlertChanged?.Invoke(false);
 
         CrushEntitiesUpTo(float.PositiveInfinity,train);
 
@@ -399,14 +386,12 @@ public class OperationPhaseManager
         _trainNeedsReset = true;
         _stateManager.TransitionOperationPhase(OperationPhase.Result);
     }
-
     private static float GetScreenRightEdge()
     {
         var cam = Camera.main;
         if (cam == null) return 20f;
         return cam.transform.position.x + cam.orthographicSize * cam.aspect;
     }
-
     private void ResetTrainPosition()
     {
         if (!_trainNeedsReset) return;
@@ -415,5 +400,91 @@ public class OperationPhaseManager
         var train = _getTrainInstance();
         if (train != null) train.transform.position = _trainHome;
     }
+
+    #endregion
+
+    #region Result
+    private void AdvanceAfterResult()
+    {
+        if(!_sectionManager.AdvanceToNextSection())
+        {
+            Debug.LogWarning("[OperationPhaseManager]次のSectionがない状態でResultからの進行が呼ばれた");
+            return;
+        }
+        Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
+        _stateManager.TransitionOperationPhase(OperationPhase.Move);
+        ResetTrainPosition();
+        EnterMove();
+    }
+
+    /// <summary>
+    /// servant Resultの画面タップから呼ばれる
+    /// </summary>
+    public void ConfirmServantResult()
+    {
+        if (_stateManager.Current != GameState.Operation) return;
+        if (_stateManager.CurrentOperationPhase != OperationPhase.Result) return;
+
+        AdvanceAfterResult();
+    }
+
+    #endregion
+
+    #region Fuel
+    private bool TickFuel(bool isMoving,float fixedDt)
+    {
+        var trainCombatant = GetTrainCombatant();
+        float attackPower = trainCombatant != null ? trainCombatant.AttackPower : 0f;
+        float speed = GetTrainMoveSpeed();
+
+        if (_fuelManager.ConsumeOperationFuel(attackPower, speed, isMoving, fixedDt)) return true;
+
+        trainCombatant?.ApplyDamage(int.MaxValue);
+        _stateManager.TransitionToResult(RunOutcome.Failed);
+        return false;
+    }
+    private Combatant GetTrainCombatant()
+    {
+        var trainInstance = _getTrainInstance();
+        return trainInstance != null ? trainInstance.GetComponent<Combatant>() : null;
+    }
+
+    #endregion
+
+    #region RevivePopup
+    private void HandleDeadUnitTapped(string itemId)
+    {
+        if (_stateManager.CurrentOperationPhase != OperationPhase.Move) return;
+        if (_isRevivePopupOpen) return;
+
+        _pendingReviveItemId = itemId;
+        _isRevivePopupOpen = true;
+        _popupPause = _scheduler?.Pause(TickPhase.Simulation,"RevivePopup");
+
+        OnRevivePopupRequested?.Invoke(
+            _unitManager.GetUnitIcon(itemId),
+            _unitManager.GetReviveFuelCost(itemId));
+    }
+    public void ConfirmRevive()
+    {
+        if (!_isRevivePopupOpen) return;
+        _unitManager.TryConfirmRevive(_pendingReviveItemId);
+        ClosePopup();
+    }
+    public void CancelRevive()
+    {
+        ClosePopup();
+    }
+    private void ClosePopup()
+    {
+        _popupPause?.Release();
+        _popupPause = null;
+        _isRevivePopupOpen = false;
+        _pendingReviveItemId = null;
+        OnRevivePopupClosed?.Invoke();
+    }
+
+    #endregion
+
 }
 

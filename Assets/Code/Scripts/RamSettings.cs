@@ -8,7 +8,7 @@ public class RamSettings
 
     public float acceleration = 20f;
     public float maxSpeed = 30;
-    [Tooltip("列車の中心から戦闘までの距離（ワールド）")]
+    [Tooltip("列車の中心から先頭までの距離（ワールド）")]
     public float frontOffset = 1f;
 
     [Tooltip("画面の右端から、さらに進む距離(ワールド)")]

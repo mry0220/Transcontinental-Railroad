@@ -4,20 +4,15 @@ using UnityEngine;
 
 public class UnitManager : MonoBehaviour
 {
-    //====Inspector Config====
-    [SerializeField] private DataBase_Unit unitDB;
-    [SerializeField] private Camera mainCamera;
+    #region Type
 
-    //====Events====
-    /// <summary> unitが出撃時に発火 </summary>
-    public event Action<string, GameObject> OnUnitDeployed;
+    public struct BattleDamageEntry
+    {
+        public string itemId;
+        public Sprite icon;
+        public int damage;
+    }
 
-    /// <summary> unitが帰還時に発火 </summary>
-    public event Action<string, GameObject> OnUnitReturned;
-
-    public event Action<string> OnReviveStarted;
-    public event Action<string, float, float> OnReviveProgress; //ItemId,残り秒,進行度
-    
     public enum UnitBattleStatus
     {
         Standby,
@@ -25,7 +20,6 @@ public class UnitManager : MonoBehaviour
         Returned,
         Dead,
     }
-
     private class DeadRecoad
     {
         public bool isReviving;
@@ -33,25 +27,49 @@ public class UnitManager : MonoBehaviour
         public bool crushed;
     }
 
+    #endregion
+
+    #region InspectorConfig
+    [SerializeField] private DataBase_Unit unitDB;
+    [SerializeField] private Camera mainCamera;
+    [Header("最大出撃数")]
+    [SerializeField] private int maxDeployCount = 6;
+
+    #endregion
+
+    #region References
+    private MatchManager _matchManager;
+    private FuelManager _fuelManager;
+    #endregion
+
+    #region RuntimeState
     private readonly Dictionary<string, UnitBattleStatus> unitStatus = new();
     private readonly Dictionary<string, GameObject> deployedUnits = new();
     private readonly Dictionary<string, DeadRecoad> deadRecords = new();
+    private readonly Dictionary<string, int> _battleDamage = new();
     private readonly List<string> _reviveCompleted = new();
-
-    public event Action<string> OnUnitDied;
-    public event Action<string> OnUnitRevived;
-
-    [Header("最大出撃数")]
-    [SerializeField] private int maxDeployCount = 6;
     private GameObject currentPreview;
     private string currentPreviewItemId;
-
-    private MatchManager _matchManager;
-    private FuelManager _fuelManager;
-
     private bool _isDragging;
-
     private float _crushedReviveCostMultiplier = 1f;
+    private RunStats _runStats;
+
+    #endregion
+
+    #region Events
+    /// <summary> unitが出撃時に発火 </summary>
+    public event Action<string, GameObject> OnUnitDeployed;
+    /// <summary> unitが帰還時に発火 </summary>
+    public event Action<string, GameObject> OnUnitReturned;
+    public event Action<string> OnReviveStarted;
+    public event Action<string, float, float> OnReviveProgress; //ItemId,残り秒,進行度
+    public event Action<string> OnUnitDied;
+    public event Action<string> OnUnitRevived;
+    public event System.Action<string> OnDeadUnitTapped;
+
+    #endregion
+
+    #region UnityLifecycle
     private void Awake()
     {
         if (unitDB == null)
@@ -61,11 +79,13 @@ public class UnitManager : MonoBehaviour
             mainCamera = Camera.main;
     }
 
+    #endregion
+
+    #region Setup
     public void SetFuelManager(FuelManager fuelManager)
     {
         _fuelManager = fuelManager;
     }
-
     public void SetMatchManager(MatchManager matchManager)
     {
         _matchManager = matchManager;
@@ -75,16 +95,68 @@ public class UnitManager : MonoBehaviour
     {
         _crushedReviveCostMultiplier = Mathf.Max(0f, multiplier);
     }
+    public void ResetForNewRun()
+    {
+        HideUnitPlacementPreview();
+        unitStatus.Clear();
+        deployedUnits.Clear();
+        deadRecords.Clear();
+        _battleDamage.Clear();
+    }
 
-    public event System.Action<string> OnDeadUnitTapped;
+    public void BeginBattleStats()
+    {
+        _battleDamage.Clear();
+    }
 
+    public void SetRunStats(RunStats runStats)
+    {
+        _runStats = runStats;
+    }
+
+    #endregion
+
+    #region Queries
+    public UnitBattleStatus GetUnitStatus(string itemId)
+    {
+        return unitStatus.TryGetValue(itemId, out var status) ? status : UnitBattleStatus.Standby;
+
+    }
+    public bool CanDeploy(string itemId)
+    {
+        return GetUnitStatus(itemId) == UnitBattleStatus.Standby && deployedUnits.Count < maxDeployCount;
+    }
     public Combatant GetDeployedCombatant(string itemId)
     {
         if (string.IsNullOrEmpty(itemId)) return null;
         if (!deployedUnits.TryGetValue(itemId, out var unit) || unit == null) return null;
             return unit.GetComponent<Combatant>();
     }
+    public Sprite GetUnitIcon(string itemId)
+    {
+        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
+        return data != null ? data.icon : null;
+    }
+    public int GetReviveFuelCost(string itemId)
+    {
+        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
+        if (data == null) return 0;
 
+        int cost = data.reviveFuelCost;
+        if(deadRecords.TryGetValue(itemId,out var recoad) && recoad.crushed)
+        {
+            cost = Mathf.RoundToInt(cost * _crushedReviveCostMultiplier);
+        }
+        return cost;
+    }
+    private bool IsReviving(string itemId)
+    {
+        return deadRecords.TryGetValue(itemId, out var recoad) && recoad.isReviving;
+    }
+
+    #endregion
+
+    #region DeployAndReturn
     /// <summary>
     /// 出撃済みアイコンのタップ受け口。生存中なら従来通り帰還、死亡中なら復活タップとして通知
     /// </summary>
@@ -105,25 +177,143 @@ public class UnitManager : MonoBehaviour
                 break;
         }
     }
-
-    private bool IsReviving(string itemId)
+    public void UpdateUnitPlacementPreview(InputBuffer.InputEvent evt)
     {
-        return deadRecords.TryGetValue(itemId, out var recoad) && recoad.isReviving;
-    }
+        if (string.IsNullOrEmpty(evt.draggedItemId)) return;
 
-    public int GetReviveFuelCost(string itemId)
-    {
-        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
-        if (data == null) return 0;
-
-        int cost = data.reviveFuelCost;
-        if(deadRecords.TryGetValue(itemId,out var recoad) && recoad.crushed)
+        if(!_isDragging)
         {
-            cost = Mathf.RoundToInt(cost * _crushedReviveCostMultiplier);
+            _isDragging = true;
+            SetAllEnemyVisuals(true);
         }
-        return cost;
+
+        if(currentPreview != null && currentPreviewItemId != evt.draggedItemId)
+        {
+            HideUnitPlacementPreview();
+        }
+
+        if(currentPreview == null)
+        {
+            var unitData = unitDB != null ? unitDB.GetUnit(evt.draggedItemId) : null;
+            if (unitData == null || unitData.prefab == null) return;
+             
+            currentPreview = Instantiate(unitData.prefab);
+            currentPreviewItemId = evt.draggedItemId;
+
+            var previewCombatant = currentPreview.GetComponent<Combatant>();
+            previewCombatant?.InitializeAsPreview(unitData);
+            
+        }
+
+        currentPreview.transform.position = ScreenToWorldPosition(evt.position);
+    }
+    public void HideUnitPlacementPreview()
+    {
+        if (currentPreview != null)
+        {
+            
+                Destroy(currentPreview);
+                currentPreview = null;
+        }
+        if(_isDragging)
+        {
+            _isDragging = false;
+            SetAllEnemyVisuals(false);
+        }
+    }
+    private void SetAllEnemyVisuals(bool visible)
+    {
+        foreach(var combatant in Combatant.All)
+        {
+            if(combatant.Affiliation == Base_Item.Affiliation.Enemy)
+            {
+                combatant.SetPreviewVisualsViisivle(visible);
+            }
+        }
+    }
+    private Vector3 ScreenToWorldPosition(Vector2 uiPosition)
+    {
+
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return Vector3.zero;
+
+        Vector2 screenPos = new Vector2(uiPosition.x, Screen.height - uiPosition.y);
+
+        float zDistance = -mainCamera.transform.position.z;
+        Vector3 worldPos = mainCamera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, zDistance));
+        worldPos.z = 0f;
+
+        
+        return worldPos;
+    }
+    public void DeployUnit(string itemId)
+    {
+
+
+        if (string.IsNullOrEmpty(itemId)) return;
+
+        if(!CanDeploy(itemId) || currentPreview == null || currentPreviewItemId != itemId)
+        {
+            HideUnitPlacementPreview();
+            return;
+        }
+
+        var deployedUnit = currentPreview;
+        currentPreview = null;
+        currentPreviewItemId = null;
+
+        if(_isDragging)
+        {
+            _isDragging = false;
+            SetAllEnemyVisuals(false);
+        }
+
+        var combatant = deployedUnit.GetComponent<Combatant>();
+        combatant?.Activate(_matchManager);
+
+        if (!_battleDamage.ContainsKey(itemId)) _battleDamage[itemId] = 0;
+        if(combatant != null)
+        {
+            combatant.OnDealtDamage += dmg => AddBattleDamage(itemId, dmg);
+            combatant.OnActualDamageTaken += dmg => _runStats?.AddToken(itemId, dmg);
+        }
+
+        unitStatus[itemId] = UnitBattleStatus.Deployed;
+        deployedUnits[itemId] = deployedUnit;
+
+        OnUnitDeployed?.Invoke(itemId, deployedUnit);
+    }
+    public void ReturnUnit(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId)) return;
+        if (GetUnitStatus(itemId) != UnitBattleStatus.Deployed) return;
+        if (!deployedUnits.TryGetValue(itemId, out var unit)) return;
+
+        var combatant = unit != null ? unit.GetComponent<Combatant>() : null;
+        if (combatant != null && combatant.IsDead) return;
+
+        deployedUnits.Remove(itemId);
+        unitStatus[itemId] = UnitBattleStatus.Returned;
+
+        if(unit != null)
+        {
+            Destroy(unit);
+        }
+
+        OnUnitReturned?.Invoke(itemId, unit);
+    }
+    ///<summary>出撃中の生存Unitをすべて帰還させる</summary>
+    public void ReturnAllAliveUnits()
+    {
+        foreach(var itemId in new List<string>(deployedUnits.Keys))
+        {
+            ReturnUnit(itemId);
+        }
     }
 
+    #endregion
+
+    #region BattleSettlement
     public void SettleBattle()
     {
         foreach(var pair in new List<KeyValuePair<string,GameObject>>(deployedUnits))
@@ -157,11 +347,62 @@ public class UnitManager : MonoBehaviour
             }
         }
     }
+    /// <summary>
+    /// 轢かれた味方を、死亡状態にして破棄する
+    /// </summary>
+    public bool CrushUnit(Combatant combatant)
+    {
+        string foundId = null;
+        foreach(var pair in deployedUnits)
+        {
+            if(pair.Value != null && pair.Value.GetComponent<Combatant>() == combatant)
+            {
+                foundId = pair.Key;
+                break;
+            }
+        }
+        if (foundId == null) return false;
 
+        var unit = deployedUnits[foundId];
+        deployedUnits.Remove(foundId);
+        unitStatus[foundId] = UnitBattleStatus.Dead;
+        deadRecords[foundId] = new DeadRecoad { crushed = true };
+
+        if (unit != null) Destroy(unit);
+        OnUnitDied?.Invoke(foundId);
+        return true;
+    }
+
+    private void AddBattleDamage(string itemId,int amount)
+    {
+        _battleDamage.TryGetValue(itemId, out var current);
+        _battleDamage[itemId] = current + amount;
+        _runStats?.AddDealt(itemId, amount);
+    }
+
+    ///<summary>今回のBattleで出撃したUnitを、読ダメージの多い順に返す</summary>
+    public List<BattleDamageEntry> GetBattleDamageRanking()
+    {
+        var list = new List<BattleDamageEntry>();
+        foreach(var pair in _battleDamage)
+        {
+            list.Add(new BattleDamageEntry
+            {
+                itemId = pair.Key,
+                icon = GetUnitIcon(pair.Key),
+                damage = pair.Value,
+            });
+        }
+        list.Sort((a, b) => b.damage.CompareTo(a.damage));
+        return list;
+    }
+
+    #endregion
+
+    #region Revive
     /// <summary>
     ///ポップアップの決定タップで呼ばれる。Fuelが足りなければ何もせずFalseを返す 
     /// </summary>
-    
     public bool TryConfirmRevive(string itemId)
     {
         if (_fuelManager == null) return false;
@@ -178,7 +419,6 @@ public class UnitManager : MonoBehaviour
         return true;
 
     }
-
     /// <summary>
     /// Operation中は毎tick呼ぶ。タイマーは常にすすみ、完了はMoveの間だけ
     /// </summary>
@@ -215,191 +455,5 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    public void UpdateUnitPlacementPreview(InputBuffer.InputEvent evt)
-    {
-        if (string.IsNullOrEmpty(evt.draggedItemId)) return;
-
-        if(!_isDragging)
-        {
-            _isDragging = true;
-            SetAllEnemyVisuals(true);
-        }
-
-        if(currentPreview != null && currentPreviewItemId != evt.draggedItemId)
-        {
-            HideUnitPlacementPreview();
-        }
-
-        if(currentPreview == null)
-        {
-            var unitData = unitDB != null ? unitDB.GetUnit(evt.draggedItemId) : null;
-            if (unitData == null || unitData.prefab == null) return;
-             
-            currentPreview = Instantiate(unitData.prefab);
-            currentPreviewItemId = evt.draggedItemId;
-
-            var previewCombatant = currentPreview.GetComponent<Combatant>();
-            previewCombatant?.InitializeAsPreview(unitData);
-            
-        }
-
-        currentPreview.transform.position = ScreenToWorldPosition(evt.position);
-    }
-
-    private void SetAllEnemyVisuals(bool visible)
-    {
-        foreach(var combatant in Combatant.All)
-        {
-            if(combatant.Affiliation == Base_Item.Affiliation.Enemy)
-            {
-                combatant.SetPreviewVisualsViisivle(visible);
-            }
-        }
-    }
-
-    private Vector3 ScreenToWorldPosition(Vector2 uiPosition)
-    {
-
-        if (mainCamera == null) mainCamera = Camera.main;
-        if (mainCamera == null) return Vector3.zero;
-
-        Vector2 screenPos = new Vector2(uiPosition.x, Screen.height - uiPosition.y);
-
-        float zDistance = -mainCamera.transform.position.z;
-        Vector3 worldPos = mainCamera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, zDistance));
-        worldPos.z = 0f;
-
-        
-        return worldPos;
-    }
-
-    public void HideUnitPlacementPreview()
-    {
-        if (currentPreview != null)
-        {
-            
-                Destroy(currentPreview);
-                currentPreview = null;
-        }
-        if(_isDragging)
-        {
-            _isDragging = false;
-            SetAllEnemyVisuals(false);
-        }
-    }
-
-    public UnitBattleStatus GetUnitStatus(string itemId)
-    {
-        return unitStatus.TryGetValue(itemId, out var status) ? status : UnitBattleStatus.Standby;
-
-    }
-
-    public bool CanDeploy(string itemId)
-    {
-        return GetUnitStatus(itemId) == UnitBattleStatus.Standby && deployedUnits.Count < maxDeployCount;
-    }
-
-
-
-
-
-    public void ReturnUnit(string itemId)
-    {
-        if (string.IsNullOrEmpty(itemId)) return;
-        if (GetUnitStatus(itemId) != UnitBattleStatus.Deployed) return;
-        if (!deployedUnits.TryGetValue(itemId, out var unit)) return;
-
-        var combatant = unit != null ? unit.GetComponent<Combatant>() : null;
-        if (combatant != null && combatant.IsDead) return;
-
-        deployedUnits.Remove(itemId);
-        unitStatus[itemId] = UnitBattleStatus.Returned;
-
-        if(unit != null)
-        {
-            Destroy(unit);
-        }
-
-        OnUnitReturned?.Invoke(itemId, unit);
-    }
-
-    public void DeployUnit(string itemId)
-    {
-
-
-        if (string.IsNullOrEmpty(itemId)) return;
-
-        if(!CanDeploy(itemId) || currentPreview == null || currentPreviewItemId != itemId)
-        {
-            HideUnitPlacementPreview();
-            return;
-        }
-
-        var deployedUnit = currentPreview;
-        currentPreview = null;
-        currentPreviewItemId = null;
-
-        if(_isDragging)
-        {
-            _isDragging = false;
-            SetAllEnemyVisuals(false);
-        }
-
-        var combatant = deployedUnit.GetComponent<Combatant>();
-        combatant?.Activate(_matchManager);
-
-        unitStatus[itemId] = UnitBattleStatus.Deployed;
-        deployedUnits[itemId] = deployedUnit;
-
-        OnUnitDeployed?.Invoke(itemId, deployedUnit);
-    }
-
-    public void ResetForNewRun()
-    {
-        HideUnitPlacementPreview();
-        unitStatus.Clear();
-        deployedUnits.Clear();
-        deadRecords.Clear();
-    }
-
-    public Sprite GetUnitIcon(string itemId)
-    {
-        var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
-        return data != null ? data.icon : null;
-    }
-
-    /// <summary>
-    /// 轢かれた味方を、死亡状態にして破棄する
-    /// </summary>
-    public bool CrushUnit(Combatant combatant)
-    {
-        string foundId = null;
-        foreach(var pair in deployedUnits)
-        {
-            if(pair.Value != null && pair.Value.GetComponent<Combatant>() == combatant)
-            {
-                foundId = pair.Key;
-                break;
-            }
-        }
-        if (foundId == null) return false;
-
-        var unit = deployedUnits[foundId];
-        deployedUnits.Remove(foundId);
-        unitStatus[foundId] = UnitBattleStatus.Dead;
-        deadRecords[foundId] = new DeadRecoad { crushed = true };
-
-        if (unit != null) Destroy(unit);
-        OnUnitDied?.Invoke(foundId);
-        return true;
-    }
-
-    ///<summary>出撃中の生存Unitをすべて帰還させる</summary>
-    public void ReturnAllAliveUnits()
-    {
-        foreach(var itemId in new List<string>(deployedUnits.Keys))
-        {
-            ReturnUnit(itemId);
-        }
-    }
+    #endregion
 }

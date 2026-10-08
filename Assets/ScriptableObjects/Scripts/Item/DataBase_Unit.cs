@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "DataBase_Unit", menuName = "Scriptable Objects/Item/DataBase_Unit")]

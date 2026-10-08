@@ -10,7 +10,7 @@ public class Loadout
     private readonly Item_Unit[] _slots = new Item_Unit[SlotCount];
 
     public Item_Train Train { get; private set; }
-    public IReadOnlyList<Item_Unit> slots => _slots;
+    public IReadOnlyList<Item_Unit> Slots => _slots;
 
     public int UnitCount
     {
@@ -78,5 +78,18 @@ public class Loadout
     {
         Train = null;
         System.Array.Clear(_slots, 0, SlotCount);   
+    }
+
+    public int TotalFuelCost
+    {
+        get
+        {
+            int sum = 0;
+            foreach(var unit in _slots)
+            {
+                if (unit != null) sum += unit.fuelCost;
+            }
+            return sum;
+        }
     }
 }

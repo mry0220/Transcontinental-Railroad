@@ -27,3 +27,4 @@ MonoBehaviour:
   _prefab: {fileID: 2625811382565831980, guid: b90b8a5b7c4d6f348be14e39738ae514, type: 3}
   _reviveDuration: 5
   _reviveFuelCost: 100
+  _fuelCost: 2000

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class FuelManager : MonoBehaviour
@@ -6,6 +7,10 @@ public class FuelManager : MonoBehaviour
    // [SerializeField] private int initialFuel = 60;
     [SerializeField] private int fillingAmount = 1;
     [SerializeField] private float moveFuelCoefficient = 1f;
+    [SerializeField] private int minStartFuel = 1;
+    [SerializeField] private int payingAmount = 1;
+   
+    public int MinStartFuel => minStartFuel;
 
     private float _consumeRemainder;
 
@@ -63,6 +68,14 @@ public class FuelManager : MonoBehaviour
     {
         CurrentFuel = 0;
         _consumeRemainder = 0f;
+    }
+
+    ///<summary>支払いを１ステップ進める。残りの支払額を返す</summary>
+    public int PayingFuel(int remaining)
+    {
+        int pay = Mathf.Min(payingAmount, remaining);
+        CurrentFuel = Mathf.Max(0, CurrentFuel - pay);
+        return remaining - pay;
     }
 
    

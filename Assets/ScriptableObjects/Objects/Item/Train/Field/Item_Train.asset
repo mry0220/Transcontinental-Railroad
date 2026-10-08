@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Item_Train
   m_EditorClassIdentifier: Assembly-CSharp::Item_Train
   _affiliation: 0
-  _maxHP: 10000
-  _attackPower: 100
+  _maxHP: 1000000
+  _attackPower: 10
   _attackInterval: 0
   _attackPattern: 0
   _matchCapacity: 0
-  _moveSpeed: 10
+  _moveSpeed: 100
   _targetingStrategy: 0
   _attackRange: 0
   _id: 

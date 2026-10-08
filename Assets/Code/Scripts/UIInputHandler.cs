@@ -95,7 +95,7 @@ public class UIInputHandler : MonoBehaviour
 
         if(!string.IsNullOrEmpty(tappedItemId))
         {
-            _unitManager?.HandleUnitTap(tappedItemId,_stateManager.CurrentOperationPhase == OperationPhase.Move);
+            _unitManager?.HandleUnitTap(tappedItemId,_stateManager?.CurrentOperationPhase == OperationPhase.Move);
             tappedItemId = null;
         }
 

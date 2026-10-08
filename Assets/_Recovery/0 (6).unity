@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a75ef5b700d9b43a6617989a275877, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelManager
-  fillingAmount: 1000
+  fillingAmount: 20
   moveFuelCoefficient: 1
   minStartFuel: 1
   payingAmount: 100
@@ -713,7 +713,7 @@ MonoBehaviour:
     popupFontSize: 48
     damageToEnemyColor: {r: 1, g: 1, b: 1, a: 1}
     damageToAllyColor: {r: 1, g: 0.4, b: 0.4, a: 1}
-    showIndicators: 0
+    showIndicators: 1
     indicatorOffsetY: 0.9
     indicatorIconSize: 0.35
     indicatorSlotGap: 0.08

@@ -8,21 +8,18 @@ public enum GameState
     Operation,
     Result,
 }
-
 public enum RunOutcome
 {
     None,
     Cleared,
     Failed,
 }
-
 public enum PrepPhase
 {
     StageSelect,
     UnitSelect,
     FuelSet,
 }
-
 public enum OperationPhase
 {
     Move,
@@ -31,35 +28,53 @@ public enum OperationPhase
     Result,
 }
 
+public enum ResultPhase
+{
+    UnitResult,
+    TrainResult,
+}
 public class StateManager : MonoBehaviour
 {
+
+    #region InspectorConfig
 #if UNITY_EDITOR
     [SerializeField] private GameState InitialState = GameState.Title;
 #else
     private GameState InitialState = GameState.Title;
 #endif
 
+    #endregion
+
+    #region State
     private GameState currentState;
     public GameState Current => currentState;
-
     private PrepPhase currentPrepPhase;
     public PrepPhase CurrentPrepPhase => currentPrepPhase;
-
     private OperationPhase currentOperationPhase;
     public OperationPhase CurrentOperationPhase => currentOperationPhase;
-
     private RunOutcome currentOutcome = RunOutcome.None;
     public RunOutcome CurrentOutcome => currentOutcome;
 
+    private ResultPhase currentResultPhase;
+    public ResultPhase CurrentResultPhase => currentResultPhase;
+    #endregion
+
+    #region Events
     public event Action<GameState, GameState> OnStateChanged;
     public event Action<PrepPhase, PrepPhase> OnPrepPhaseChanged;
     public event Action<OperationPhase, OperationPhase> OnOperationPhaseChanged;
+    public event Action<ResultPhase, ResultPhase> OnResultPhaseChanged;
 
+    #endregion
+
+    #region UnityLifecycle
     private void Awake()
     {
         currentState = InitialState;
     }
+    #endregion
 
+    #region Transitions
     public void transitionTo(GameState next)
     {
         if (!isValidTransition(currentState, next))
@@ -85,10 +100,27 @@ public class StateManager : MonoBehaviour
         {
             currentOperationPhase = OperationPhase.Move;
         }
+        else if(next == GameState.Result)
+        {
+            currentResultPhase = ResultPhase.UnitResult;
+        }
 
         OnStateChanged?.Invoke(prev, next);
     }
+    public void TransitionToResult(RunOutcome outcome)
+    {
+        if(currentState != GameState.Operation)
+        {
+            throw new InvalidOperationException($"TransitionToResultはGameState.Operation中のみ有効:現在{currentState}");
+        }
+        if(outcome == RunOutcome.None)
+        {
+            throw new InvalidOperationException("outcomeにNoneは指定できません");
+        }
 
+        currentOutcome = outcome;
+        transitionTo(GameState.Result);
+    }
     public void TransitionPrepPhase(PrepPhase next)
     {
         if (currentState != GameState.Prep)
@@ -104,7 +136,6 @@ public class StateManager : MonoBehaviour
         currentPrepPhase = next;
         OnPrepPhaseChanged?.Invoke(prev, next);
     }
-
     public void TransitionOperationPhase(OperationPhase next)
     {
         if (currentState != GameState.Operation)
@@ -121,6 +152,24 @@ public class StateManager : MonoBehaviour
         OnOperationPhaseChanged?.Invoke(prev, next);
     }
 
+    public void TransitionResultPhase(ResultPhase next)
+    {
+        if (currentState != GameState.Result)
+        {
+            throw new InvalidOperationException($"ResultPhase遷移はGameState.Result中のみ有効（現在；{currentState}）");
+        }
+        if(currentResultPhase != ResultPhase.UnitResult || next != ResultPhase.TrainResult)
+        {
+            throw new InvalidOperationException($"ResultPhase遷移禁止:{currentResultPhase} -> {next}");
+        }
+
+        var prev = currentResultPhase;
+        currentResultPhase = next;
+        OnResultPhaseChanged?.Invoke(prev, next);
+    }
+    #endregion
+
+    #region Validation
     private bool isValidTransition(GameState from, GameState to)
     {
         if (from == to) return false;
@@ -130,9 +179,9 @@ public class StateManager : MonoBehaviour
             case GameState.Title:
                 return to == GameState.Prep;
             case GameState.Prep:
-                return to == GameState.Operation;
+                return to == GameState.Operation || to == GameState.Title;
             case GameState.Operation:
-                return to == GameState.Result;
+                return to == GameState.Result || to == GameState.Prep;
             case GameState.Result:
                 return to == GameState.Prep;
             
@@ -140,7 +189,6 @@ public class StateManager : MonoBehaviour
                 return false;
         }
     }
-
     private bool isValidPrepPhaseTransition(PrepPhase from, PrepPhase to)
     {
         if (from == to) return false;
@@ -177,18 +225,5 @@ public class StateManager : MonoBehaviour
         }
     }
 
-    public void TransitionToResult(RunOutcome outcome)
-    {
-        if(currentState != GameState.Operation)
-        {
-            throw new InvalidOperationException($"TransitionToResultはGameState.Operation中のみ有効:現在{currentState}");
-        }
-        if(outcome == RunOutcome.None)
-        {
-            throw new InvalidOperationException("outcomeにNoneは指定できません");
-        }
-
-        currentOutcome = outcome;
-        transitionTo(GameState.Result);
-    }
+    #endregion 
 }

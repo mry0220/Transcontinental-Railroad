@@ -10,4 +10,5 @@ public class Item_Unit : Base_Item
     [SerializeField] private GameObject _prefab; public GameObject prefab => _prefab;
     [SerializeField] private float _reviveDuration = 5f; public float reviveDuration => _reviveDuration;
     [SerializeField] private int _reviveFuelCost = 100;public int reviveFuelCost => _reviveFuelCost;
+    [SerializeField] private int _fuelCost = 100; public int fuelCost => _fuelCost;
 }

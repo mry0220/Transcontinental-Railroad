@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using UnityEditor.Search;
 using UnityEngine;
 
 public class GameLoopManager : MonoBehaviour
 {
+    #region Types
     private enum FPS
     {
         _30FPS = 30,
@@ -21,10 +23,11 @@ public class GameLoopManager : MonoBehaviour
     }
 #endif
 
+    #endregion
+
+    #region InspectorConfig
     // 本番: 60Hz固定, Inspector非表示
     //====References====
-    private StateManager stateManager;
-    private InputBuffer inputBuffer;
     [SerializeField] private FuelManager fuelManager;
     [SerializeField] private UIManager uIManager;
     [SerializeField] private UnitManager unitManager;
@@ -32,9 +35,8 @@ public class GameLoopManager : MonoBehaviour
     [SerializeField] private UIInputHandler uIInputHandler;
     [SerializeField] private ParallaxBackground background;
     [SerializeField] private RamSettings ramSettings = new();
-    private MatchManager matchManager;
-    private SectionManager sectionManager;
-
+    [SerializeField] private BattleVisualSettings battleVisual = new();
+     
     //====Inspector Config
     [SerializeField] private List<StageData> stages;
     [SerializeField] private FPS fps = FPS._60FPS;
@@ -55,30 +57,41 @@ public class GameLoopManager : MonoBehaviour
 
     [SerializeField] private DataBase_Train trainDB;
     [SerializeField] private Vector3 trainSpawnPosition = Vector3.zero;
-    private GameObject _trainInstance;
 
-    [SerializeField] private StageData testStageData; 
+    #endregion
 
+    #region Runtime
+
+    private StateManager stateManager;
+    private InputBuffer inputBuffer;
+    private MatchManager matchManager;
+    private SectionManager sectionManager;
+    private PrepPhaseManager prepPhaseManager;
+    private OperationPhaseManager operationPhaseManager;
+    private BattleEffects _effects;
+    private TickScheduler.PauseHandle _menuPause;
+    private BattleIndicators _indicators;
+    private RunStats _runStats;
+    private Item_Train _runTrain;
     //====Runtime State====
     private RNG rng;
     private double clock;
     private double accumulator;
+    private double dt;
     private int stateFrameCount = 0; //statemanagerテスト用
 
-    private PrepPhaseManager prepPhaseManager;
-    private OperationPhaseManager operationPhaseManager;
+    private GameObject _trainInstance;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    private double dt;
-#else
-    private double dt = 1.0 / 60.0; // 16.6667ms
-    //Unit Placement
+    public TickScheduler Scheduler { get; } = new TickScheduler();
 
-#endif
-    private GameObject currentPreview;
+    private readonly List<TickScheduler.TickInfo> _tickInfo = new();
+    #endregion
+
+    #region UnityLifecycle
 
     private void Awake()
     {
+        Combatant.VisualSettings = battleVisual;
         stateManager = GetComponent<StateManager>();
         inputBuffer = GetComponent<InputBuffer>();
 
@@ -93,25 +106,43 @@ public class GameLoopManager : MonoBehaviour
         uIInputHandler?.SetStateManager(stateManager);
         sectionManager = new();
 
-        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,uIManager,sectionManager);
+        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,sectionManager);
         operationPhaseManager = new OperationPhaseManager(
             stateManager,unitManager,waveManager,matchManager,
-            fuelManager,uIManager, sectionManager, () => _trainInstance,rng);
-        operationPhaseManager.SetBackground(background);
+            fuelManager, sectionManager, () => _trainInstance,rng);
         operationPhaseManager.SetRamSettings(ramSettings);
+        operationPhaseManager.SetScheduler(Scheduler);
+        _runStats = new RunStats();
+        unitManager?.SetRunStats(_runStats);
+        operationPhaseManager.SetRunStats(_runStats);
 
-        clock  = 0.0;
+        Scheduler.Register(prepPhaseManager, TickPhase.Simulation, 0,
+            () => stateManager != null && stateManager.Current == GameState.Prep);
+        Scheduler.Register(operationPhaseManager, TickPhase.Simulation, 10,
+            () => stateManager != null && stateManager.Current == GameState.Operation);
+        Scheduler.Register(new ActionTickable(TickScreenView), TickPhase.Presentation, 10,null,"ScreenView");
+        _effects = new BattleEffects(battleVisual);
+        Scheduler.Register(_effects, TickPhase.Presentation, 0);
+        System.Func<bool> isBattle = () => stateManager != null
+        && stateManager.Current == GameState.Operation
+        && stateManager.CurrentOperationPhase == OperationPhase.Battle;
+        _indicators = new BattleIndicators(battleVisual, isBattle);
+        Scheduler.Register(_indicators, TickPhase.Presentation, 5,isBattle,"BattleIndicators");
+        
+        clock = 0.0;
         accumulator = 0.0;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         dt = (double)timestep /1000.0; // 16.6667ms
+#else
+        dt = 1.0 / 60.0;
 #endif
 
         Application.targetFrameRate = (int)fps;
-        QualitySettings.vSyncCount = vSync ? 1 : 0;    
+        QualitySettings.vSyncCount = vSync ? 1 : 0;
+
 
     }
-
     private void Start()
     {
         if (stateManager != null)
@@ -119,7 +150,12 @@ public class GameLoopManager : MonoBehaviour
             stateManager.OnStateChanged += OnGameStateChanged;
             stateManager.OnPrepPhaseChanged += OnPrepPhaseChanged;
             stateManager.OnOperationPhaseChanged += (prev, next) =>
+            {
                 uIManager?.SetBattleButtonsVisible(next == OperationPhase.Battle);
+                if (next != OperationPhase.Battle) _indicators?.Hide();
+            };
+            stateManager.OnResultPhaseChanged += (prev, next) => ShowResultPhase(next);
+                
         }
 
         if(uIManager != null)
@@ -142,6 +178,21 @@ public class GameLoopManager : MonoBehaviour
             uIManager.OnReturnAllRequested += operationPhaseManager.RequestReturnAll;
 
             uIManager.ShowTitleScreen(stateManager != null && stateManager.Current == GameState.Title);
+
+            uIManager.OnServantResultTapped += operationPhaseManager.ConfirmServantResult;
+
+            uIManager.OnMenuRequested += HandleMenuRequested;
+            uIManager.OnMenuResumeResuested += CloseMenu;
+            uIManager.OnMenuReturnRequested += HandleMenuReturn;
+            operationPhaseManager.OnAlertChanged += uIManager.SetAlert;
+            operationPhaseManager.OnRevivePopupRequested += uIManager.ShowRevivePopup;
+            operationPhaseManager.OnRevivePopupClosed += uIManager.HideRevivePopup;
+            operationPhaseManager.OnServantResultShown += uIManager.ShowServantResult;
+            operationPhaseManager.OnServantResultHidden += uIManager.HideServantResult;
+            prepPhaseManager.OnLoadoutChanged += uIManager.RefreshUnitSelect;
+            prepPhaseManager.OnFuelSetReadyChanged += uIManager.SetFuelSetReady;
+            uIManager.OnReviveConfirmed += operationPhaseManager.ConfirmRevive;
+            uIManager.OnReviveCancelled += operationPhaseManager.CancelRevive;
         }
         unitManager?.SetCrushedReviveCostMultiplier(ramSettings.crushedReviveCostMultiplier);
 
@@ -156,121 +207,19 @@ public class GameLoopManager : MonoBehaviour
             unitManager.OnReviveStarted += uIManager.HandleReviveStarted;
             unitManager.OnReviveProgress += uIManager.HandleReviveProgress;
         }
+        if(unitManager != null)
+        {
+            unitManager.OnUnitDied += id => _runStats.AddDeath(id);
+            unitManager.OnUnitRevived += id => _runStats.AddRevive(id);
+        }
 
         if(stateManager == null)
         Debug.LogError("StateManager not found!");
         if (inputBuffer == null)
         Debug.LogError("InputBuffer not found!");
+
+        Combatant.OnAnyDamaged += HandleAnyDamaged;
     }
-
-    private void HandleLoadoutConfirmed(Loadout loadout)
-    {
-        SpawnTrain(loadout.Train);
-        uIManager?.BuildUnitIcons(loadout.GetSelectedUnits());
-        uIManager?.SetFuelSetTrain(loadout.Train);
-    }
-
-    private void SpawnTrain(Item_Train train)
-    {
-        if (_trainInstance != null) Destroy(_trainInstance);
-        if (train == null || train.prefab == null) return;
-
-        _trainInstance = Instantiate(train.prefab, trainSpawnPosition, Quaternion.identity);
-        var trainConbatant = _trainInstance.GetComponent < Combatant>();
-        trainConbatant?.Initialize(train, matchManager);
-        if(trainConbatant != null)
-        {
-            trainConbatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
-        }
-        fuelManager.SetMaxFuel(train.maxHP);
-    }
-
-    private void OnGameStateChanged(GameState prev, GameState next)
-    {
-        Debug.Log($"[Gameloop]State transition: {prev} -> {next}");
-        uIManager?.ShowTitleScreen(next == GameState.Title);
-        if (next != GameState.Prep) uIManager?.HidePrepScreens();
-        uIManager?.SetRouteBarVisible(next == GameState.Operation);
-        uIManager?.SetBattleButtonsVisible(false);
-        uIManager?.SetAlert(false);
-
-        stateFrameCount = 0;
-
-        switch(next)
-        {
-            case GameState.Title:
-                if(inputBuffer != null)
-                {
-                    inputBuffer.Clear();
-                    
-                    inputBuffer.RecordMode = false;
-                    inputBuffer.PlaybackMode = false;
-                }
-                unitManager?.HideUnitPlacementPreview();
-            break;
-
-            case GameState.Prep:
-                if(prev == GameState.Result)
-                {
-                    ResetForNewRun();
-                }
-
-                prepPhaseManager.Enter();
-                uIManager?.ShowPrepScreen(stateManager.CurrentPrepPhase);
-                // 既存の列車生成処理は④でPrepPhaseManager.TickFuelSetへ移植予定、現時点ではここに残す
-                //if (_trainInstance == null && trainDB != null && trainDB.train.prefab)
-                //{
-                //    _trainInstance = Instantiate(trainDB.trains., trainSpawnPosition, Quaternion.identity);
-                //    var trainCombatant = _trainInstance.GetComponent<Combatant>();
-                //    trainCombatant?.Initialize(trainDB.train, matchManager);
-                //    if (trainCombatant != null)
-                //    {
-                //        trainCombatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
-                //    }
-                //    fuelManager.SetMaxFuel(trainDB.train.maxHP);
-                //}
-                break;
-
-            case GameState.Operation:
-                uIManager?.BuildRouteBar(sectionManager.GetSectionTypes());
-                operationPhaseManager.Enter();
-                break;
-
-            case GameState.Result:
-                if(inputBuffer != null)
-                {
-                    inputBuffer.RecordMode = false;
-                    inputBuffer.PlaybackMode = false;
-                }
-                Combatant.DestroyDead();
-                uIManager?.ShowResult(stateManager.CurrentOutcome);
-            break;
-        }
-    }
-
-    private void ResetForNewRun()
-    {
-        inputBuffer?.Clear();
-
-        unitManager?.ResetForNewRun();
-        waveManager?.ResetForNewRun();
-        matchManager.Clear();
-
-        Combatant.DestroyAll();
-        _trainInstance = null;
-
-        fuelManager.ResetFuel();
-        uIManager?.HideResult();
-        uIManager?.ResetUnitIcons();
-        uIManager?.UpdateFuelUI(0,fuelManager.MaxFuel);
-    }
-
-    private void HandleTitleTapped()
-    {
-        if (stateManager == null || stateManager.Current != GameState.Title) return;
-        stateManager.transitionTo(GameState.Prep);
-    }
-
     private void Update()
     {
         double frameDt = Time.deltaTime;
@@ -292,6 +241,7 @@ public class GameLoopManager : MonoBehaviour
             clock += dt;
             steps++;
         }
+        Scheduler.Run(TickPhase.Presentation, (float)frameDt);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if(logCatchUpWarnings && steps >= maxSteps && accumulator >= dt)
@@ -302,7 +252,15 @@ public class GameLoopManager : MonoBehaviour
 
 #endif
     }
-    //FixedStep event 
+
+    private void OnDestroy()
+    {
+        Combatant.OnAnyDamaged -= HandleAnyDamaged;
+    }
+
+    #endregion
+
+    #region FixedStepLoop
     private void FixedStep(float fixedDt)
     {
         stateFrameCount++;
@@ -315,55 +273,11 @@ public class GameLoopManager : MonoBehaviour
 
         UpdateFixed(fixedDt);
     }
-
     private void UpdateFixed(float fixedDt)
     {
         if (stateManager == null) return;
-
-        switch(stateManager.Current)
-        {
-            case GameState.Title:
-                UpdateTitle(fixedDt);
-                break;
-            case GameState.Prep:
-                prepPhaseManager.Tick(fixedDt);
-                break;
-            case GameState.Operation:
-                operationPhaseManager.Tick(fixedDt);
-                break;
-            case GameState.Result:
-                UpdateResult(fixedDt);
-                break;
-            
-        }
+        Scheduler.Run(TickPhase.Simulation, fixedDt);
     }
-
-    private void UpdateTitle(float fixedDt)
-    {
-    }
-
-    private void OnPrepPhaseChanged(PrepPhase prev,PrepPhase next)
-    {
-        uIManager?.ShowPrepScreen(next);
-    }
-
-    private void HandleStageChosen(int index)
-    {
-        if (stages == null || index < 0 || index >= stages.Count) return;
-        prepPhaseManager.SelectStage(stages[index]);
-    }
-
-    
-
-   
-
-    private void UpdateResult(float fixedDt)
-    {
-    }
-
-   
-
-
     private void ConsumeInput(List<InputBuffer.InputEvent> eventsList)
     {
         if (stateManager == null) return;
@@ -372,12 +286,8 @@ public class GameLoopManager : MonoBehaviour
         {
             switch(stateManager.Current)
             {
-                case GameState.Title:
-                    HandleInputTitle(evt);
-                    break;
-                case GameState.Prep:
-                    prepPhaseManager.HandleInput(evt);
-                    break;
+                
+              
                 case GameState.Operation:
                     operationPhaseManager.HandleInput(evt);
                     break;
@@ -388,30 +298,298 @@ public class GameLoopManager : MonoBehaviour
             }
         }
     }
-   
-    private void HandleInputTitle(InputBuffer.InputEvent evt)
-    {
-        if(evt.type == InputBuffer.InputType.PointerDown)
-        {
-            stateManager?.transitionTo(GameState.Prep);
-        }
-    }
-
-   
-
-   
-
     private void HandleInputResult(InputBuffer.InputEvent evt)
     {
-        if (evt.type == InputBuffer.InputType.PointerDown)
+        if (evt.type != InputBuffer.InputType.PointerDown) return;
+
+        if (stateManager.CurrentResultPhase == ResultPhase.UnitResult)
+            stateManager.TransitionResultPhase(ResultPhase.TrainResult);
+        else
+            stateManager.transitionTo(GameState.Prep);
+    }
+
+    #endregion
+
+    #region stateTransitions
+    private void OnGameStateChanged(GameState prev, GameState next)
+    {
+        Debug.Log($"[Gameloop]State transition: {prev} -> {next}");
+        CloseMenu();
+        _indicators?.Clear();
+        uIManager?.ShowTitleScreen(next == GameState.Title);
+        if (next != GameState.Prep) uIManager?.HidePrepScreens();
+        uIManager?.SetRouteBarVisible(next == GameState.Operation);
+        uIManager?.SetBattleButtonsVisible(false);
+        uIManager?.SetAlert(false);
+        if (next != GameState.Operation) uIManager?.HideServantResult();
+
+        stateFrameCount = 0;
+
+        switch(next)
         {
-            stateManager?.transitionTo(GameState.Prep);
+            case GameState.Title:
+                if (prev == GameState.Prep)
+                    ResetForNewRun();
+                if(inputBuffer != null)
+                {
+                    inputBuffer.Clear();
+                    
+                    inputBuffer.RecordMode = false;
+                    inputBuffer.PlaybackMode = false;
+                }
+                unitManager?.HideUnitPlacementPreview();
+            break;
+
+            case GameState.Prep:
+                if(prev == GameState.Result || prev == GameState.Operation)
+                {
+                    ResetForNewRun();
+                }
+
+                prepPhaseManager.Enter();
+                uIManager?.ShowPrepScreen(stateManager.CurrentPrepPhase);
+                
+                break;
+
+            case GameState.Operation:
+                background?.ResetScroll();
+                uIManager?.BuildRouteBar(sectionManager.GetSectionTypes());
+                operationPhaseManager.Enter();
+                break;
+
+            case GameState.Result:
+                if(inputBuffer != null)
+                {
+                    inputBuffer.RecordMode = false;
+                    inputBuffer.PlaybackMode = false;
+                }
+                Combatant.DestroyDead();
+                ShowResultPhase(stateManager.CurrentResultPhase);
+            break;
         }
     }
+    private void OnPrepPhaseChanged(PrepPhase prev,PrepPhase next)
+    {
+        uIManager?.ShowPrepScreen(next);
+    }
+    private void ResetForNewRun()
+    {
+        _effects.Clear();
+        inputBuffer?.Clear();
+
+        unitManager?.ResetForNewRun();
+        waveManager?.ResetForNewRun();
+        matchManager.Clear();
+
+        Combatant.DestroyAll();
+        _trainInstance = null;
+
+        fuelManager.ResetFuel();
+        uIManager?.HideResult();
+        uIManager?.ResetUnitIcons();
+        uIManager?.UpdateFuelUI(0,fuelManager.MaxFuel);
+    }
+
+    #endregion
+
+    #region UIEventHandlers
+    private void HandleTitleTapped()
+    {
+        if (stateManager == null || stateManager.Current != GameState.Title) return;
+        stateManager.transitionTo(GameState.Prep);
+    }
+    private void HandleStageChosen(int index)
+    {
+        if (stages == null || index < 0 || index >= stages.Count) return;
+        prepPhaseManager.SelectStage(stages[index]);
+    }
+    private void HandleLoadoutConfirmed(Loadout loadout)
+    {
+        _runTrain = loadout.Train;
+        _runStats.Reset();
+        foreach(var unit in loadout.GetSelectedUnits())
+        {
+            _runStats.RegisterUnit(unit.id);
+        }
+
+        SpawnTrain(loadout.Train);
+        uIManager?.BuildUnitIcons(loadout.GetSelectedUnits());
+        uIManager?.SetFuelSetTrain(loadout.Train);
+    }
+
+    private void HandleAnyDamaged(Combatant combatant,int amount)
+    {
+        var color = combatant.Affiliation == Base_Item.Affiliation.Enemy
+            ? battleVisual.damageToEnemyColor
+            : battleVisual.damageToAllyColor;
+        _effects.SpawnDamage(combatant.transform.position, amount, color);
+    }
+
+    private void HandleMenuRequested()
+    {
+        if (uIManager == null || stateManager == null) return;
+        if (uIManager.IsMenuVisible) CloseMenu();
+        else OpenMenu();
+    }
+
+    private void OpenMenu()
+    {
+        var state = stateManager.Current;
+        string returnLabel = state switch
+        {
+            GameState.Prep => "タイトルへ戻る",
+            GameState.Operation => "準備画面へ戻る",
+            _ => null
+        };
+
+        if(state == GameState.Operation && _menuPause == null)
+        {
+            _menuPause = Scheduler.Pause(TickPhase.Simulation, "Menu");
+        }
+        uIManager.ShowMenu(true, returnLabel);
+    }
+
+    private void CloseMenu()
+    {
+        _menuPause?.Release();
+        _menuPause = null;
+        uIManager?.ShowMenu(false, null);
+    }
+
+    private void HandleMenuReturn()
+    {
+        CloseMenu();
+        switch (stateManager.Current)
+        {
+            case GameState.Prep:
+                stateManager.transitionTo(GameState.Title);
+                break;
+            case GameState.Operation:
+                stateManager.transitionTo(GameState.Prep);
+                break;
+        }
+
+    }
+    /// <summary>Presentation用。画面に出す値を、Logicから読み取って反映</summary>
+    private void TickScreenView(float dt)
+    {
+        if (uIManager == null || stateManager == null) return;
+
+        switch(stateManager.Current)
+        {
+            case GameState.Prep:
+                if(stateManager.CurrentPrepPhase == PrepPhase.FuelSet)
+                {
+                    uIManager.UpdateFuelUI(fuelManager.CurrentFuel, fuelManager.MaxFuel);
+                }
+                break;
+            case GameState.Operation:
+                TickOperationView(dt);
+                break;
+        }
+    }
+
+    private void TickOperationView(float dt)
+    {
+        bool isMove = stateManager.CurrentOperationPhase == OperationPhase.Move;
+
+        if (isMove && !Scheduler.IsPaused(TickPhase.Simulation))
+        {
+            background?.Scroll(operationPhaseManager.MoveSpeed * dt);
+        }
+        uIManager.UpdateFuelUI(fuelManager.CurrentFuel, fuelManager.MaxFuel);
+        float leg = isMove ? operationPhaseManager.MoveProgress : 1f;
+        uIManager.UpdateRouteProgress(sectionManager.CurrentIndex, sectionManager.SectionCount, leg);
+        
+    }
+
+    private void ShowResultPhase(ResultPhase phase)
+    {
+        if (uIManager == null) return;
+        var outcome = stateManager.CurrentOutcome;
+
+        switch(phase)
+        {
+            case ResultPhase.UnitResult:
+                var rows = new List<UIManager.UnitResultRow>();
+                foreach(var record in _runStats.Units)
+                {
+                    rows.Add(new UIManager.UnitResultRow
+                    {
+                        icon = unitManager != null ? unitManager.GetUnitIcon(record.itemId) : null,
+                        dealt = record.dealt,
+                        taken = record.taken,
+                        revives = record.revives,
+                        deaths = record.deaths
+                    });
+                }
+                uIManager.ShowUnitResult(outcome, rows);
+                break;
+
+            case ResultPhase.TrainResult:
+                bool cleared = outcome == RunOutcome.Cleared;
+                uIManager.ShowTrainResult(outcome, new UIManager.TrainResultData
+                {
+                    trainIcon = _runTrain != null ? _runTrain.icon : null,
+                    totalDistance = _runStats.TotalDistance,
+                    sectionsPassed = cleared ? sectionManager.SectionCount : sectionManager.CurrentIndex,
+                    sectionCount = sectionManager.SectionCount,
+                    fuel = fuelManager.CurrentFuel,
+                    maxFuel = fuelManager.MaxFuel,
+                    crushedUnits = _runStats.CrushedUnits,
+                    crushedEnemies = _runStats.CrushedEnemies
+                });
+                break;
+        }
+    }
+
+    #endregion
+
+    #region Train
+    private void SpawnTrain(Item_Train train)
+    {
+        if (_trainInstance != null) Destroy(_trainInstance);
+        if (train == null || train.prefab == null) return;
+
+        _trainInstance = Instantiate(train.prefab, trainSpawnPosition, Quaternion.identity);
+        var trainConbatant = _trainInstance.GetComponent < Combatant>();
+        trainConbatant?.Initialize(train, matchManager);
+        if(trainConbatant != null)
+        {
+            trainConbatant.OnDamageTaken += dmg => fuelManager.ConsumeAmount(dmg);
+        }
+        fuelManager.SetMaxFuel(train.maxHP);
+    }
+
+    #endregion
+
+    #region Debug
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void OnGUI()
     {
+        GUILayout.BeginArea(new Rect(10, 10, 350, 100));
+        var pauses = Scheduler.ActiveRauses;
+        GUILayout.Label($"Pause:{pauses.Count}");
+        for(int i = 0;i<pauses.Count;i++)
+            GUILayout.Label($"{pauses[i].Phase} : {pauses[i].Reason}");
+        GUILayout.EndArea();
+        GUILayout.BeginArea(new Rect(370, 10, 420, 320));
+        Scheduler.CollectInfo(_tickInfo);
+        for(int p = 0;p < 2;p++)
+        {
+            var phase = (TickPhase)p;
+            GUILayout.Label($"=={phase}{(Scheduler.IsPaused(phase) ? "(PAUSED)" : "")}==");
+            for (int i = 0; i < _tickInfo.Count; i++)
+            {
+                var t = _tickInfo[i];
+                if (t.Phase != phase) continue;
+                string err = t.ErrorCount > 0 ? $" ERR x{t.ErrorCount}" : "";
+                GUILayout.Label($"[{t.Order}]{(t.Active ? "ON " : "off")}{t.Name}{err}");
+            }
+        }
+        GUILayout.EndArea();
+
         if (stateManager == null || stateManager.Current != GameState.Operation) return;
 
         var entry = sectionManager.CurrentSection;
@@ -431,8 +609,5 @@ public class GameLoopManager : MonoBehaviour
     }
 #endif
 
-
-
-
-
+    #endregion
 }
