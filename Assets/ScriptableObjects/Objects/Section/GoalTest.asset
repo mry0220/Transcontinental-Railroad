@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d17f0672279874347844941ffc768f0a, type: 3}
-  m_Name: SectionData
+  m_Name: GoalTest
   m_EditorClassIdentifier: Assembly-CSharp::SectionData
-  _type: 0
-  _wave: {fileID: 11400000, guid: 34b0048832b02814a9888738a2bacbab, type: 2}
+  _type: 2
+  _wave: {fileID: 0}
   _fuelRestoreAmount: 0
   _enemyStatModifier: 1

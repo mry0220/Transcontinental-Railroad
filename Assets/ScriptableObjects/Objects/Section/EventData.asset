@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bff0d92db0d4fa43a0b6f2add3cf18e, type: 3}
+  m_Name: EventData
+  m_EditorClassIdentifier: Assembly-CSharp::EventData
+  _title: "\u4E45\u4FDD\u541B\u306E\u540D\u524D"
+  _body: "\u4E45\u4FDD\u541B\u306E\u672C\u540D\u306F\u3069\u3063\u3061\uFF1F"
+  _image: {fileID: 7520494279255852340, guid: b59747b4cd8938f4d8cf9b8a21be5f27, type: 3}
+  _choices:
+  - label: "\u4E45\u4FDD\u6953\u592A"
+    description: "\u6953\u306B\u592A\u3044"
+    effects:
+    - type: 0
+      fuelAmount: 1000
+      count: 0
+      target: 0
+      multiplier: 0
+      extraWave: {fileID: 0}
+  - label: "\u4E45\u4FDD\u98AF\u592A"
+    description: "\u98AF\u306B\u592A\u3044"
+    effects:
+    - type: 1
+      fuelAmount: 1000
+      count: 2
+      target: 0
+      multiplier: 0
+      extraWave: {fileID: 0}
+    - type: 3
+      fuelAmount: 1000
+      count: 2
+      target: 1
+      multiplier: 5
+      extraWave: {fileID: 0}
+    - type: 4
+      fuelAmount: 1000
+      count: 2
+      target: 1
+      multiplier: 5
+      extraWave: {fileID: 11400000, guid: 34b0048832b02814a9888738a2bacbab, type: 2}

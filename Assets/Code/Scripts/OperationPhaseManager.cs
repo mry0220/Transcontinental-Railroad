@@ -352,6 +352,7 @@ public class OperationPhaseManager : ITickable
                     break;
                 }
             case EventEffectType.ChangeBattle:
+<<<<<<< HEAD
                 {
                     if(effect.extraWave != null)
                     {
@@ -360,6 +361,14 @@ public class OperationPhaseManager : ITickable
                     }
                     break;
                 }
+=======
+                if (effect.extraWave != null)
+                {
+                    Debug.Log("[OperationPhase] ChangeBattleSection");
+                    _pendingBattleWaves.Add(effect.extraWave); 
+                }
+                break;
+>>>>>>> d88cbaea30b3fcb76a1ee687f4585972720157ff
 
         }
     }

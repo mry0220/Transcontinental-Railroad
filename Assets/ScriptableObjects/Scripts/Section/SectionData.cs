@@ -23,8 +23,6 @@ public class SectionData : ScriptableObject
     [SerializeField] private EventData _eventData;
     public EventData eventData => _eventData;
 
-    [SerializeField] private float _enemyStatModifier = 1f;
-    public float enemyStatModifier => _enemyStatModifier;
 
     
 }
