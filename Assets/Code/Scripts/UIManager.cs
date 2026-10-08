@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem.Interactions;
 using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
@@ -493,7 +492,7 @@ public class UIManager : MonoBehaviour
         slotMask.style.display = maskDisplay;
         unitListMask.style.display = maskDisplay;
 
-        unitSelectConfirmButton.SetEnabled(loadout.IsValid && overBudget);
+        unitSelectConfirmButton.SetEnabled(loadout.IsValid && !overBudget);
     }
 
     private static Sprite GetFormationSprite(Base_Item item)
