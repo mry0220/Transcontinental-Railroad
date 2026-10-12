@@ -13,6 +13,9 @@ public class UIInputHandler : MonoBehaviour
     private VisualElement root;
     private string currentDraggedItemId;
     private string tappedItemId;
+    private string tappedSkillKey;
+
+    public event System.Action<string> OnSkillCardTapped;
 
     
     public void SetInputBuffer(InputBuffer inputBuffer)
@@ -53,6 +56,16 @@ public class UIInputHandler : MonoBehaviour
         root.CapturePointer(evt.pointerId);
 
         currentDraggedItemId = GetDraggedItemId(evt.target as VisualElement);
+        //Skillカード
+        if(SkillKey.IsSkillKey(currentDraggedItemId))
+        {
+            tappedSkillKey = currentDraggedItemId;
+            tappedItemId = null;
+            currentDraggedItemId = null;
+            Enqueue(evt, InputBuffer.InputType.PointerDown, Vector2.zero, null, false);
+            return;
+        }
+        tappedSkillKey = null;
 
         bool isUIItem = !string.IsNullOrEmpty(currentDraggedItemId);
 
@@ -97,6 +110,12 @@ public class UIInputHandler : MonoBehaviour
         {
             _unitManager?.HandleUnitTap(tappedItemId,_stateManager?.CurrentOperationPhase == OperationPhase.Move);
             tappedItemId = null;
+        }
+
+        if(!string.IsNullOrEmpty(tappedSkillKey))
+        {
+            OnSkillCardTapped?.Invoke(tappedSkillKey);
+            tappedSkillKey = null;
         }
 
         currentDraggedItemId = null;

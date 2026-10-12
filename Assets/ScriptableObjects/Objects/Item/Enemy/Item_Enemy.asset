@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33c987d059c43684eb35f063de5f1d3a, type: 3}
   m_Name: Item_Enemy
   m_EditorClassIdentifier: Assembly-CSharp::Item_Enemy
+  _formationSprite: {fileID: 0}
   _affiliation: 1
   _maxHP: 60
-  _attackPower: 10
+  _attackPower: 1000
   _attackInterval: 3
   _attackPattern: 0
   _matchCapacity: 1

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 
 public class Combatant : MonoBehaviour,ICombatant
@@ -21,6 +20,13 @@ public class Combatant : MonoBehaviour,ICombatant
         Idle,
         Moving,
         InRange,
+    }
+
+    private struct TimedBuff
+    {
+        public float attackMultiplier;
+        public float speedMultiplier;
+        public float remaining;
     }
 
     public readonly struct TargetView
@@ -58,6 +64,8 @@ public class Combatant : MonoBehaviour,ICombatant
     private MovementState _movementState = MovementState.Idle;
     private TextMesh _statusText;
     private LineRenderer _rangeIndicator;
+    private readonly List<Combatant> _slotOrder = new();
+    private readonly List<TimedBuff> _buffs = new();
 
     #endregion
 
@@ -66,8 +74,8 @@ public class Combatant : MonoBehaviour,ICombatant
     public int CurrentHP { get; private set; }
     public bool IsDead => CurrentHP <= 0;
     public int MatchCapacity => _data.matchCapacity;
-    public float MoveSpeed => _data.moveSpeed;
-    public int AttackPower => Mathf.RoundToInt(_data.attackPower * _statMultiplier);
+    public float MoveSpeed => _data.moveSpeed * BuffSpeedMultiplier;
+    public int AttackPower => Mathf.RoundToInt(_data.attackPower * _statMultiplier * BuffAttackMultiplier);
     public int CurrentMatchCount => _matches.Count;
     public int MaxHp => Mathf.RoundToInt(_data.maxHP * _statMultiplier);
     public bool IsActive => _isActive && _data != null;
@@ -82,12 +90,33 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private float _statMultiplier = 1f;
 
+    private float BuffAttackMultiplier
+    {
+        get
+        {
+            float m = 1f;
+            foreach (var b in _buffs) m *= b.attackMultiplier;
+            return m;
+        }
+    }
+
+    private float BuffSpeedMultiplier
+    {
+        get
+        {
+            float m = 1f;
+            foreach (var b in _buffs) m *= b.speedMultiplier;
+            return m;
+        }
+    }
+
     #endregion
 
     #region Events
     public event System.Action<int> OnDamageTaken;
     public event System.Action<int> OnDealtDamage;
     public event System.Action<int> OnActualDamageTaken;
+    public event System.Action<Combatant> OnDied;
     #endregion
 
     #region UnityLifecycle
@@ -103,6 +132,7 @@ public class Combatant : MonoBehaviour,ICombatant
 
         _waitingOnMe.Clear();
         _provisionalTargets.Clear();
+        _slotOrder.Clear();
     }
     
 
@@ -167,6 +197,10 @@ public class Combatant : MonoBehaviour,ICombatant
 
         if (!_isActive || _data == null || IsDead) return;
 
+        TickBuffs(fixedDt);
+
+        SyncSlots();
+
         bool hasAnyTarget = CurrentMatchCount > 0 || _provisionalTargets.Count > 0;
         _idleTimer = hasAnyTarget ? 0f : _idleTimer + fixedDt;
 
@@ -201,10 +235,28 @@ public class Combatant : MonoBehaviour,ICombatant
         Vector3 dir = (primary.transform.position - transform.position).normalized;
         transform.position += dir * MoveSpeed * fixedDt;
     }
+
+    private bool IsInRange(Combatant target)
+    {
+        return target != null && !target.IsDead
+            && Vector3.Distance(transform.position, target.transform.position) <= _data.attackRange;
+    }
+    /// <summary>今この瞬間に攻撃できる相手がいるか。Matchの相手は相手ごとに射程を見る。待機はMainの時だけ</summary>
+    private bool HasAttackableTarget()
+    {
+        foreach(var match in _matches)
+        {
+            if (match.IsFinished) continue;
+            if (IsInRange(match.GetOpponent(this) as Combatant)) return true;
+        }
+
+        var main = GetPrimaryTarget();
+        return main != null && _provisionalTargets.Contains(main) && IsInRange(main);
+    }
+
     private void TickAttack(float deltaTime)
     {
-        bool hasTarget = _matches.Count > 0 || _provisionalTargets.Count > 0;
-        if (!hasTarget || _movementState != MovementState.InRange) return;
+        if (_movementState != MovementState.InRange) return;
 
         _attackTimer += deltaTime;
         if (_attackTimer < _data.attackInterval) return;
@@ -212,20 +264,20 @@ public class Combatant : MonoBehaviour,ICombatant
 
         foreach(var match in _matches.ToList())
         {
-            var opponent = match.GetOpponent(this);
-            if (opponent == null || match.IsFinished) continue;
+            var opponent = match.GetOpponent(this) as Combatant;
+            if (!IsInRange(opponent)) continue;
 
             int dealt = Mathf.Min(AttackPower, opponent.CurrentHP);
             match.ApplyDamage(this, opponent, AttackPower);
             ReportDealtDamage(dealt);
         }
 
-        foreach(var target in _provisionalTargets.ToList())
-        {
-            if (target.IsDead) continue;
+        var main = GetPrimaryTarget();
 
-            int dealt = Mathf.Min(AttackPower, target.CurrentHP);
-            target.ApplyDamage(AttackPower);
+        if(main != null && _provisionalTargets.Contains(main) && IsInRange(main))
+        {
+            int dealt = Mathf.Min(AttackPower, main.CurrentHP);
+            main.ApplyDamage(AttackPower);
             ReportDealtDamage(dealt);
         }
     }
@@ -254,13 +306,45 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private Combatant GetPrimaryTarget()
     {
-        foreach ( var match in _matches)
+        return _slotOrder.Count > 0 ? _slotOrder[0] : null;
+    }
+
+    private void SyncSlots()
+    {
+        foreach(var match in _matches.ToList())
         {
-            if (match.GetOpponent(this) is Combatant opponent) return opponent;
+            if (match.IsFinished) continue;
+
+            var opponent = match.GetOpponent(this) as Combatant;
+            if (opponent == null || opponent.IsDead) match.Withdraw();
         }
 
-        return _provisionalTargets.Count > 0 ? _provisionalTargets[0] : null;
+        _slotOrder.RemoveAll(o => o == null || o.IsDead || !IsEngagedWith(o));
+
+        foreach(var match in _matches)
+        {
+            var opponent = match.GetOpponent(this) as Combatant;
+            if (opponent != null && !opponent.IsDead && !_slotOrder.Contains(opponent))
+                _slotOrder.Add(opponent);
+        }
+        foreach(var target in _provisionalTargets)
+        {
+            if (target != null && !target.IsDead && !_slotOrder.Contains(target))
+                _slotOrder.Add(target);
+        }
     }
+
+    private bool IsEngagedWith(Combatant opponent)
+    {
+        if (_provisionalTargets.Contains(opponent)) return true;
+
+        foreach(var match in _matches)
+        {
+            if (!match.IsFinished && ReferenceEquals(match.GetOpponent(this), opponent)) return true;
+        }
+        return false;
+    }
+
     private void TryRequestMatch()
     {
        for(int i = _provisionalTargets.Count -1;i >=0;i--)
@@ -311,26 +395,48 @@ public class Combatant : MonoBehaviour,ICombatant
     {
         _provisionalTargets.Add(target);
         target._waitingOnMe.Add(this);
+        if (!_slotOrder.Contains(target)) _slotOrder.Add(target);
     }
     private void ClearProvisionalTarget(Combatant target)
     {
         if (!_provisionalTargets.Remove(target)) return;
         target._waitingOnMe.Remove(this);
     }
+
+    private void TrimProvisionalOverCapacity()
+    {
+        while (_matches.Count + _provisionalTargets.Count > MatchCapacity && _provisionalTargets.Count > 0)
+        {
+            var drop = _provisionalTargets.FindLast(t => t.IsTrain)
+                       ?? _provisionalTargets[_provisionalTargets.Count - 1];
+            ClearProvisionalTarget(drop);
+            _slotOrder.Remove(drop);
+        }
+    }
+
     public void NotifyMatchStarted(Match match)
     {
         _matches.Add(match);
 
         var opponent = match.GetOpponent(this);
+        var opponentCombatant = opponent as Combatant;
+        if (opponentCombatant != null && !_slotOrder.Contains(opponentCombatant))
+            _slotOrder.Add(opponentCombatant);
         var provisional = _provisionalTargets.FirstOrDefault(t => ReferenceEquals(t, opponent));
         if(provisional != null)
         {
             ClearProvisionalTarget(provisional);
         }
+        TrimProvisionalOverCapacity();
     }
     public void NotifyMatchEnded(Match match)
     {
         _matches.Remove(match);
+
+        var opponent = match.GetOpponent(this) as Combatant;
+        if (opponent != null && !_provisionalTargets.Contains(opponent))
+            _slotOrder.Remove(opponent);
+
         TryPullWaiter();
     }
     private void TryPullWaiter()
@@ -367,11 +473,62 @@ public class Combatant : MonoBehaviour,ICombatant
             OnActualDamageTaken?.Invoke(actual);
         }
         OnDamageTaken?.Invoke(amount);
+        if (before > 0 && CurrentHP <= 0) OnDied?.Invoke(this);
     }
 
     private void ReportDealtDamage(int amount)
     {
         if (amount > 0) OnDealtDamage?.Invoke(amount);
+    }
+
+    public void Heal(int amount)
+    {
+        if (IsDead || amount <= 0) return;
+
+        CurrentHP = Mathf.Min(MaxHp, CurrentHP + amount);
+        if (_hpBar != null) _hpBar.Refrash(CurrentHP, MaxHp);
+    }
+    /// <summary>Skillによるダメージ。</summary>
+    public void DealSkillDamage(Combatant target, int amount)
+    {
+        if (target == null || target.IsDead || amount <= 0) return;
+
+        int dealt = Mathf.Min(amount, target.CurrentHP);
+        target.ApplyDamage(amount);
+        ReportDealtDamage(dealt);
+    }
+    /// <summary>
+    /// Skillの攻撃対象
+    /// </summary>
+    public Combatant GetSkillTarget()
+    {
+        var primary = GetPrimaryTarget();
+        if (primary != null && !primary.IsDead && primary.IsActive) return primary;
+
+        var candidates = _all.Where(c => c != this & c.IsActive && !c.IsDead && c.Affiliation != Affiliation);
+        return SelectFromCandidates(candidates);
+    }
+
+    public void AddTimedBuff(float attakMultiplier,float speedMultiplier,float duration)
+    {
+        if (duration <= 0f) return;
+        _buffs.Add(new TimedBuff
+        {
+            attackMultiplier = attakMultiplier,
+            speedMultiplier = speedMultiplier,
+            remaining = duration,
+        });
+    }
+
+    private void TickBuffs(float dt)
+    {
+        for(int i = _buffs.Count -1;i >= 0;i--)
+        {
+            var b = _buffs[i];
+            b.remaining -= dt;
+            if (b.remaining <= 0f) _buffs.RemoveAt(i);
+            else _buffs[i] = b;
+        }
     }
 
     #endregion

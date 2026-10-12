@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c677d1a2f896ce647823645e96db81ec, type: 3}
+  m_Name: TestSkill02_Natsuko
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  _id: skill_2
+  _displayName: "\u7D46\u5275\u818F"
+  _icon: {fileID: -4308326556302189965, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
+  _cooldown: 10
+  _effectType: 1
+  _attackMultiplier: 1.5
+  _speedMultiplier: 1
+  _duration: 5
+  _healTarget: 0
+  _healRatio: 0.3
+  _fuelAmount: 50
+  _attackRate: 2

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitManager : MonoBehaviour
@@ -69,6 +68,8 @@ public class UnitManager : MonoBehaviour
     public event Action<string> OnUnitDied;
     public event Action<string> OnUnitRevived;
     public event System.Action<string> OnDeadUnitTapped;
+    public event Action OnBattleSettled;
+    public event Action<string> OnDeployedUnitDied;
 
     #endregion
 
@@ -150,6 +151,11 @@ public class UnitManager : MonoBehaviour
     {
         var data = unitDB != null ? unitDB.GetUnit(itemId) : null;
         return data != null ? data.icon : null;
+    }
+
+    public Item_Unit GetUnitData(string itemId)
+    {
+        return unitDB != null ? unitDB.GetUnit(itemId) : null;
     }
     public int GetReviveFuelCost(string itemId)
     {
@@ -292,6 +298,7 @@ public class UnitManager : MonoBehaviour
         {
             combatant.OnDealtDamage += dmg => AddBattleDamage(itemId, dmg);
             combatant.OnActualDamageTaken += dmg => _runStats?.AddTaken(itemId, dmg);
+            combatant.OnDied += _ => OnDeployedUnitDied?.Invoke(itemId);
         }
 
         unitStatus[itemId] = UnitBattleStatus.Deployed;
@@ -419,6 +426,8 @@ public class UnitManager : MonoBehaviour
                 unitStatus.Remove(itemId);
             }
         }
+
+        OnBattleSettled?.Invoke();
     }
     /// <summary>
     /// 轢かれた味方を、死亡状態にして破棄する

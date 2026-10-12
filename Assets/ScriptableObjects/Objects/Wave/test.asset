@@ -16,3 +16,15 @@ MonoBehaviour:
   - enemyData: {fileID: 11400000, guid: 6cd3833be96b76244af4a98b0dbb8013, type: 2}
     spawnPosition: {x: 8, y: 0}
     spawnDelay: 1
+  - enemyData: {fileID: 11400000, guid: 6cd3833be96b76244af4a98b0dbb8013, type: 2}
+    spawnPosition: {x: 4, y: 0}
+    spawnDelay: 1
+  - enemyData: {fileID: 11400000, guid: 6cd3833be96b76244af4a98b0dbb8013, type: 2}
+    spawnPosition: {x: 6, y: 0}
+    spawnDelay: 1
+  - enemyData: {fileID: 11400000, guid: 6cd3833be96b76244af4a98b0dbb8013, type: 2}
+    spawnPosition: {x: 7, y: 0}
+    spawnDelay: 1
+  - enemyData: {fileID: 11400000, guid: 6cd3833be96b76244af4a98b0dbb8013, type: 2}
+    spawnPosition: {x: 3, y: 0}
+    spawnDelay: 1

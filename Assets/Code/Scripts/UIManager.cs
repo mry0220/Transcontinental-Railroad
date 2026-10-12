@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using UnityEditor.Experimental.GraphView;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.iOS;
 using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
@@ -841,9 +838,15 @@ public class UIManager : MonoBehaviour
 
     #region UnitIcons
 
+    private const float HandOverlapAtMax = 1f / 3f;
+    private const float HandCardWidthPercent =
+        100f / (1f + (Hand.MaxSize - 1) * (1f - HandOverlapAtMax));
+
     private Dictionary<string, VisualElement> unitIcons = new();
     private Dictionary<string, VisualElement> reviveFills = new();
     private Dictionary<string, Label> reviveLabels = new();
+    private Dictionary<string, VisualElement> skillIcons = new();
+    private Dictionary<string, Label> unitBadges = new();
     private VisualElement unitContainer;
     public void BuildUnitIcons(List<Item_Unit> units)
     {
@@ -851,6 +854,8 @@ public class UIManager : MonoBehaviour
         unitIcons.Clear();
         reviveFills.Clear();
         reviveLabels.Clear();
+        unitBadges.Clear();
+        skillIcons.Clear();
 
         foreach (var unitData in units)
         {
@@ -871,11 +876,85 @@ public class UIManager : MonoBehaviour
             timeLabel.style.display = DisplayStyle.None;
             icon.Add(timeLabel);
 
-            unitContainer.Add(icon);
+            var badge = new Label();
+            badge.AddToClassList("card-badge");
+            badge.pickingMode = PickingMode.Ignore;
+            icon.Add(badge);
+            unitBadges[unitData.id] = badge;
+
 
             reviveFills[unitData.id] = fill;
             reviveLabels[unitData.id] = timeLabel;
             unitIcons[unitData.id] = icon;
+
+            var skills = unitData.skills;
+            for(int s = 0;skills != null && s < skills.Count && s < SkillManager.MaxSkillsPreUnit;s++)
+            {
+                if (skills[s] == null) continue;
+
+                string key = SkillKey.Make(unitData.id, s);
+                var skillIcon = new VisualElement();
+                skillIcon.AddToClassList("unit-icon");
+                skillIcon.AddToClassList("card-skill");
+                SetIcon(skillIcon, skills[s].icon != null ? skills[s].icon : unitData.icon);
+                skillIcon.userData = key;
+
+                var skillBadge = new Label("技");
+                skillBadge.AddToClassList("card-badge");
+                skillBadge.pickingMode = PickingMode.Ignore;
+                skillIcon.Add(skillBadge);
+
+                var skillName = new Label(skills[s].displayName);
+                skillName.AddToClassList("card-skill-name");
+                skillName.pickingMode = PickingMode.Ignore;
+                skillIcon.Add(skillName);
+
+                skillIcons[key] = skillIcon;
+            }
+        }
+    }
+
+    public void RefreshHand(IReadOnlyList<Card>cards)
+    {
+        if (unitContainer == null) return;
+
+        unitContainer.Clear();
+
+        int n = cards.Count;
+        float w = HandCardWidthPercent;
+        //枚数が少ないうちは重ねない
+        float step = n > 1 ? Mathf.Min(w, (100f - w) / (n - 1)) : w;
+        //全体幅を出して、コンテナの中央に寄せる
+        float total = n > 0 ? w + step * (n - 1) : 0f;
+        float offset = (100f - total) / 2f; 
+
+        for(int i = 0;i<n;i++)
+        {
+            var card = cards[i];
+
+            VisualElement icon;
+            if (card.kind == CardKind.Skill)
+            {
+                if (!skillIcons.TryGetValue(SkillKey.Make(card.unitId, card.skillIndex), out icon)) continue;
+            }
+            else if (!unitIcons.TryGetValue(card.unitId, out icon)) continue;
+
+            icon.EnableInClassList("card-deploy", card.kind == CardKind.Deploy);
+            icon.EnableInClassList("card-return", card.kind == CardKind.Return);
+            icon.EnableInClassList("card-rebuild", card.kind == CardKind.Rebuild);
+            if(card.kind != CardKind.Skill &&  unitBadges.TryGetValue(card.unitId,out var badge))
+            {
+                badge.text = card.kind switch
+                {
+                    CardKind.Deploy => "出",
+                    CardKind.Return => "帰",
+                    CardKind.Rebuild => "再",
+                    _ => ""
+                };
+            }
+            icon.style.width = new Length(w, LengthUnit.Percent);
+            icon.style.left = new Length(offset + step * i, LengthUnit.Percent);
+            unitContainer.Add(icon);
         }
     }
     public void HandleUnitDeployed(string itemId, GameObject unit)
@@ -957,6 +1036,18 @@ public class UIManager : MonoBehaviour
     private VisualElement alertOverlay;
     private IVisualElementScheduledItem alertBlink;
     private VisualElement battleButtons;
+    private enum BattleActionMode { ReturnAll,Ram}
+    private const long BattleActionHoldMs = 600;
+    private const float BattleActionFlickDistance = 48f;
+    private VisualElement battleActionButton;
+    private VisualElement battleActionFill;
+    private Label battleActionLabel;
+    private BattleActionMode battleActionMode = BattleActionMode.ReturnAll;
+    private IVisualElementScheduledItem battleActionHold;
+    private double battleActionPressStart;
+    private Vector2 battleActionDownPos;
+    private bool battleActionPressed;
+    private bool battleActionFlicked;
     private void SetupBattleControls()
     {
         alertOverlay = new VisualElement();
@@ -974,14 +1065,23 @@ public class UIManager : MonoBehaviour
         battleButtons.AddToClassList("battle-buttons");
         battleButtons.pickingMode = PickingMode.Ignore;
 
-        var returnAll = new Button(() => OnReturnAllRequested?.Invoke()) { text = "RETURN" };
-        returnAll.AddToClassList("battle-return-button");
+        battleActionButton = new VisualElement();
+        battleActionButton.AddToClassList("battle-action-button");
 
-        var ram = new Button(() => OnRamRequested?.Invoke()) { text = "RAM" };
-        ram.AddToClassList("battle-ram-button");
+        battleActionFill = new VisualElement();
+        battleActionFill.AddToClassList("battle-action-fill");
+        battleActionFill.pickingMode = PickingMode.Ignore;
 
-        battleButtons.Add(returnAll);
-        battleButtons.Add(ram);
+        battleActionLabel = new Label();
+        battleActionLabel.AddToClassList("battle-action-label");
+        battleActionLabel.pickingMode = PickingMode.Ignore;
+
+        battleActionButton.Add(battleActionFill);
+        battleActionButton.Add(battleActionLabel);
+        RegisterBattleActionInput(battleActionButton);
+        SetBattleActionMode(BattleActionMode.ReturnAll);
+
+        battleButtons.Add(battleActionButton);
         battleButtons.style.display = DisplayStyle.None;
         root.Add(battleButtons);
     }
@@ -997,6 +1097,81 @@ public class UIManager : MonoBehaviour
     {
         if (battleButtons == null) return;
         battleButtons.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+
+        CancelBattleActionPress();
+        if (visible) SetBattleActionMode(BattleActionMode.ReturnAll);
+    }
+
+    private void RegisterBattleActionInput(VisualElement button)
+    {
+        battleActionHold = button.schedule.Execute(UpdateBattleActionHold).Every(16);
+        battleActionHold.Pause();
+
+        button.RegisterCallback<PointerDownEvent>(e =>
+        {
+            battleActionPressed = true;
+            battleActionFlicked = false;
+            battleActionDownPos = e.position;
+            battleActionPressStart = Time.realtimeSinceStartupAsDouble;
+            button.CapturePointer(e.pointerId);
+            battleActionHold.Resume();
+        });
+
+        button.RegisterCallback<PointerMoveEvent>(e =>
+        {
+            if (!battleActionPressed || battleActionFlicked) return;
+            if (((Vector2)e.position - battleActionDownPos).sqrMagnitude
+            < BattleActionFlickDistance * BattleActionFlickDistance) return;
+
+            battleActionFlicked = true;
+            SetBattleActionMode(battleActionMode == BattleActionMode.ReturnAll
+                ? BattleActionMode.Ram : BattleActionMode.ReturnAll);
+            ResetBattleActionFill();
+        });
+
+        button.RegisterCallback<PointerUpEvent>(e =>
+        {
+            button.ReleasePointer(e.pointerId);
+            CancelBattleActionPress();
+        });
+        button.RegisterCallback<PointerCancelEvent>(_ => CancelBattleActionPress());
+    }
+
+    private void UpdateBattleActionHold()
+    {
+        if (!battleActionPressed || battleActionFlicked) return;
+
+        double elapsedMs = (Time.realtimeSinceStartupAsDouble - battleActionPressStart) * 1000.0;
+        float t = Mathf.Clamp01((float)(elapsedMs / BattleActionHoldMs));
+        battleActionFill.style.height = new Length(t * 100f, LengthUnit.Percent);
+        if (t < 1f) return;
+
+        var mode = battleActionMode;
+        CancelBattleActionPress();
+        if (mode == BattleActionMode.ReturnAll) OnReturnAllRequested?.Invoke();
+        else OnRamRequested?.Invoke();
+    }
+
+    private void CancelBattleActionPress()
+    {
+        battleActionPressed = false;
+        battleActionFlicked = false;
+        battleActionHold?.Pause();
+        ResetBattleActionFill();
+    }
+
+    private void ResetBattleActionFill()
+    {
+        if (battleActionFill != null)
+            battleActionFill.style.height = new Length(0f, LengthUnit.Percent);
+    }
+
+    private void SetBattleActionMode(BattleActionMode mode)
+    {
+        battleActionMode = mode;
+        battleActionLabel.text = mode == BattleActionMode.ReturnAll ? "RETURN" : "RAM";
+        battleActionButton.EnableInClassList("battle-action-return", mode == BattleActionMode.ReturnAll);
+        battleActionButton.EnableInClassList("battle-action-ram", mode == BattleActionMode.Ram);
     }
 
     #endregion

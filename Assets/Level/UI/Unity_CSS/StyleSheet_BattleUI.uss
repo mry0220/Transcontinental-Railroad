@@ -1,10 +1,14 @@
 
 
 .unit-icon {
-    top: 5%;
-    bottom: 5%;
-    height: 90%;
-    width: 15.5%;
+    position : absolute;
+    top : 0;
+    bottom : 0;
+    height : auto;
+    border-width:2px;
+    border-color:rgb(200,200,200);
+    border-radius:8px;
+    background-color:rgb(30,30,36);
 }
 
 .route-bar{
@@ -104,9 +108,6 @@
     background-color: rgb(255, 100, 0);
 }
 
-.unit-icon-deployed {
-    opacity: 0.4;
-}
 
 .revive-overlay {
     position: absolute;
@@ -223,10 +224,7 @@
     color: rgb(200, 200, 200);
 }
 
-.unit-icon-dead {
-    opacity: 0.6;
-    -unity-background-image-tint-color: rgb(90, 90, 90);
-}
+
 
 .stage-select-screen {
     position: absolute;
@@ -544,33 +542,7 @@
     margin:0;
 }
 
-.battle-return-button{
-    position:absolute;
-    left:2%;
-    bottom:5%;
-    width:72px;
-    height:72px;
-    margin:0;
-    padding:0;
-    border-radius:36px;
-    font-size:13px;
-}
 
-.battle-ram-button{
-    position:absolute;
-    right:3%;
-    bottom:5%;
-    width:96px;
-    height:96px;
-    margin:0;
-    padding:0;
-    border-radius:48px;
-    border-width:3px;
-    border-color:rgb(255,255,255);
-    background-color:rgba(200,40,40,0.8);
-    font-size:22px;
-    -unity-font-style:bold;
-}
 
 .sr-screen{
     position:absolute;
@@ -994,4 +966,105 @@
     margin: 0 0 4px 0;
     font-size: 20px;
     color: rgb(255, 230, 160);
+}
+
+.card-badge {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border-radius: 12px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(30, 30, 36);
+}
+
+.card-deploy {
+    border-color: rgb(255, 200, 70);
+}
+
+.card-deploy .card-badge {
+    background-color: rgb(255, 200, 70);
+}
+
+.card-return {
+    border-color: rgb(90, 170, 255);
+}
+
+.card-return .card-badge {
+    background-color: rgb(90, 170, 255);
+}
+
+.card-rebuild {
+    border-color: rgb(120, 220, 140);
+    -unity-background-image-tint-color: rgb(120, 120, 120);
+}
+
+.card-rebuild .card-badge {
+    background-color: rgb(120, 220, 140);
+}
+
+    .battle-action-button {
+    position: absolute;
+    right: 3%;
+    bottom: 5%;
+    width: 104px;
+    height: 104px;
+    margin: 0;
+    padding: 0;
+    border-radius: 52px;
+    border-width: 3px;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(30, 30, 36, 0.9);
+}
+
+.battle-action-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 0%;
+    margin: 0;
+    background-color: rgba(255, 255, 255, 0.35);
+}
+
+.battle-action-label {
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 255, 255);
+}
+
+.battle-action-return {
+    border-color: rgb(90, 170, 255);
+}
+
+.battle-action-ram {
+    border-color: rgb(230, 90, 90);
+    background-color: rgba(120, 30, 30, 0.9);
+}
+
+.card-skill {
+    border-color: rgb(190, 120, 255);
+}
+
+.card-skill .card-badge {
+    background-color: rgb(190, 120, 255);
+}
+
+.card-skill-name {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 2px;
+    margin: 0;
+    font-size: 11px;
+    -unity-text-align: lower-center;
+    color: rgb(255, 255, 255);
 }

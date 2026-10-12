@@ -73,6 +73,9 @@ public class GameLoopManager : MonoBehaviour
     private RunStats _runStats;
     private Item_Train _runTrain;
     private OperationModifiers _modifiers;
+    private Hand _hand;
+    private HandUnitBinder _handBinder;
+    private SkillManager _skillManager;
     //====Runtime State====
     private RNG rng;
     private double clock;
@@ -132,7 +135,6 @@ public class GameLoopManager : MonoBehaviour
         && stateManager.CurrentOperationPhase == OperationPhase.Battle;
         _indicators = new BattleIndicators(battleVisual, isBattle);
         Scheduler.Register(_indicators, TickPhase.Presentation, 5,isBattle,"BattleIndicators");
-        
         clock = 0.0;
         accumulator = 0.0;
 
@@ -155,6 +157,7 @@ public class GameLoopManager : MonoBehaviour
             stateManager.OnPrepPhaseChanged += OnPrepPhaseChanged;
             stateManager.OnOperationPhaseChanged += (prev, next) =>
             {
+                _handBinder?.SetMode(next == OperationPhase.Move ? HandMode.Rebuild : HandMode.Battle);
                 uIManager?.SetBattleButtonsVisible(next == OperationPhase.Battle);
                 if (next != OperationPhase.Battle) _indicators?.Hide();
             };
@@ -219,6 +222,20 @@ public class GameLoopManager : MonoBehaviour
             unitManager.OnUnitDied += id => _runStats.AddDeath(id);
             unitManager.OnUnitRevived += id => _runStats.AddRevive(id);
         }
+        if (unitManager != null)
+        {
+            _hand = new Hand();
+            _handBinder = new HandUnitBinder(_hand, unitManager);
+            _hand.OnChanged += () => uIManager?.RefreshHand(_hand.Cards);
+            _skillManager = new SkillManager(_hand, unitManager, fuelManager);
+            Scheduler.Register(new ActionTickable(_skillManager.Tick), TickPhase.Simulation, 12,
+                () => stateManager != null
+                && stateManager.Current == GameState.Operation
+                && stateManager.CurrentOperationPhase == OperationPhase.Battle,
+                "SkillManager");
+            if (uIInputHandler != null) uIInputHandler.OnSkillCardTapped += _skillManager.RequestUse;
+        }
+
 
         if(stateManager == null)
         Debug.LogError("StateManager not found!");
@@ -363,6 +380,7 @@ public class GameLoopManager : MonoBehaviour
                 break;
 
             case GameState.Operation:
+                _handBinder?.SetMode(HandMode.Rebuild);
                 background?.ResetScroll();
                 uIManager?.BuildRouteBar(sectionManager.GetSectionTypes());
                 operationPhaseManager.Enter();
@@ -392,6 +410,7 @@ public class GameLoopManager : MonoBehaviour
         inputBuffer?.Clear();
 
         unitManager?.ResetForNewRun();
+        _skillManager?.Clear();
         waveManager?.ResetForNewRun();
         matchManager.Clear();
 
@@ -431,6 +450,8 @@ public class GameLoopManager : MonoBehaviour
 
         SpawnTrain(loadout.Train);
         uIManager?.BuildUnitIcons(loadout.GetSelectedUnits());
+        _handBinder?.SetRoster(ids);
+        _skillManager?.SetRoster(ids);
         uIManager?.SetFuelSetTrain(loadout.Train);
     }
 
