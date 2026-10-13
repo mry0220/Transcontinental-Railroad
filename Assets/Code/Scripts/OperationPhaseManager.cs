@@ -356,7 +356,7 @@ public class OperationPhaseManager : ITickable
                     if(effect.extraWave != null)
                     {
                         _eventBattleWave = effect.extraWave;
-                        _eventLog.Add("久保が怒って殴ってきた");
+                        _eventLog.Add($"{effect.BattleFlavorText}");
                     }
                     break;
                 }
@@ -428,7 +428,7 @@ public class OperationPhaseManager : ITickable
         _unitManager?.HideUnitPlacementPreview();
 
         var train = _getTrainInstance();
-        _trainHome = train != null ? train.transform.position : Vector3.zero;
+        _trainHome = train != null ? train.transform.position : new Vector3(-13,-2,0);
         _ramStage = RamStage.Alert;
         _ramTimer = 0f;
         _ramSpeed = 0f;

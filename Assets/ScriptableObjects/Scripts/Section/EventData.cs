@@ -27,6 +27,7 @@ public class EventEffect
 
     [Header("ChangeBattle")]
     public Data_Wave extraWave;
+    [TextArea] public string BattleFlavorText;
 }
 
 [System.Serializable]
@@ -43,10 +44,13 @@ public class EventData : ScriptableObject
     [SerializeField] private string _title;
     [SerializeField, TextArea] private string _body;
     [SerializeField] private Sprite _image;
+    [SerializeField,TextArea] private string _flavorText;
     [SerializeField] private List<EventChoice> _choices = new();
 
     public string title => _title;
     public string body => _body;
     public Sprite image => _image;
+
+    public string flavorText => _flavorText;
     public IReadOnlyList<EventChoice> choices => _choices;
 }

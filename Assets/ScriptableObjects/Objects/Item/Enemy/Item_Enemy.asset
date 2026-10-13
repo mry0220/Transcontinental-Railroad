@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33c987d059c43684eb35f063de5f1d3a, type: 3}
   m_Name: Item_Enemy
   m_EditorClassIdentifier: Assembly-CSharp::Item_Enemy
-  _formationSprite: {fileID: 0}
+  _formationSprite: {fileID: 815424164945274260, guid: d3b9f9cc3d7c6814498e7b3173b436de, type: 3}
   _affiliation: 1
   _maxHP: 60
-  _attackPower: 1000
+  _attackPower: 100
   _attackInterval: 3
   _attackPattern: 0
   _matchCapacity: 1
@@ -24,5 +24,5 @@ MonoBehaviour:
   _attackRange: 1
   _id: Enemy_Test
   _displayname: "\u30C6\u30B9\u30C8"
-  _icon: {fileID: 5147264757854351283, guid: 2d9fe25e783475d4393da6cfd839b9dc, type: 3}
+  _icon: {fileID: 815424164945274260, guid: d3b9f9cc3d7c6814498e7b3173b436de, type: 3}
   _prefab: {fileID: 278440121867527400, guid: cff4d68f4b4763346817635632af20ed, type: 3}

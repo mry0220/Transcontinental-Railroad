@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bce6b4d60a82c9a4cb794456077f5d58, type: 3}
   m_Name: Item_Train 3
   m_EditorClassIdentifier: Assembly-CSharp::Item_Train
+  _formationSprite: {fileID: 0}
   _affiliation: 0
   _maxHP: 10000
   _attackPower: 100
@@ -23,5 +24,5 @@ MonoBehaviour:
   _attackRange: 0
   _id: 
   _displayname: 
-  _icon: {fileID: -8293812731248686629, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _prefab: {fileID: 278440121867527400, guid: cff4d68f4b4763346817635632af20ed, type: 3}
+  _icon: {fileID: 1777182293076053196, guid: d3b9f9cc3d7c6814498e7b3173b436de, type: 3}
+  _prefab: {fileID: 2248990151873834915, guid: c652c7ff499991e48b7e90b0759e53cc, type: 3}

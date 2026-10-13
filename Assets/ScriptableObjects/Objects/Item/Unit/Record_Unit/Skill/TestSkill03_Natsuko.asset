@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
   _id: skill_3
   _displayName: "\u30D3\u30F3\u30BF"
-  _icon: {fileID: -4308326556302189965, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _cooldown: 12
+  _icon: {fileID: -8610811457131614292, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
+  _cooldown: 10
   _effectType: 2
   _attackMultiplier: 1.5
   _speedMultiplier: 1
