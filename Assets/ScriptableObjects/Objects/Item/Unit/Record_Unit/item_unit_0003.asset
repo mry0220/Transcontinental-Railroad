@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
   _formationSprite: {fileID: -353522424053517125, guid: 984138b5701f407488fcea5da8274f55, type: 3}
   _affiliation: 0
-  _maxHP: 5
+  _maxHP: 10000
   _attackPower: 3
   _attackInterval: 1
   _attackPattern: 0
@@ -29,3 +29,5 @@ MonoBehaviour:
   _reviveDuration: 5
   _reviveFuelCost: 100
   _fuelCost: 3000
+  _skills:
+  - {fileID: 11400000, guid: a2facfe06e4e2a542a8d4a59f953927f, type: 2}

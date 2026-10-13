@@ -1,75 +1,73 @@
-
-
 .unit-icon {
-    position : absolute;
-    top : 0;
-    bottom : 0;
-    height : auto;
-    border-width:2px;
-    border-color:rgb(200,200,200);
-    border-radius:8px;
-    background-color:rgb(30,30,36);
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    border-width: 2px;
+    border-color: rgb(200, 200, 200);
+    border-radius: 8px;
+    background-color: rgb(30, 30, 36);
 }
 
-.route-bar{
-    position : absolute;
-    top : 18px;
-    right : 11%;
-    width : 34%;
-    height : 28px;
-    margin : 0;
+.route-bar {
+    position: absolute;
+    top: 18px;
+    right: 11%;
+    width: 36%;
+    height: 8%;
+    margin: 0;
 }
 
-.route-line{
-    position : absolute;
-    left:0;
-    right:0;
-    top:12px;
-    width:auto;
-    height:4px;
-    margin:0;
-    background-color:rgb(200,200,200);
+.route-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 25%;
+    width: auto;
+    height: 20%;
+    margin: 0;
+    background-color: rgb(200, 200, 200);
 }
 
-.route-marker{
-    position:absolute;
-    top:14px;
-    width:18px;
-    height:18px;
+.route-marker {
+    position: absolute;
+    top: 35%;
+    width: 20px;
+    height: 20px;
     margin: -9px 0 0 -9px;
-    border-radius : 9px;
-    border-width:2px;
-    border-color:rgb(255,255,255);
+    border-radius: 9px;
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
 }
 
-.route-marker-battle{
-   background-color: rgb(220,70,70);
+.route-marker-battle {
+    background-color: rgb(220, 70, 70);
 }
 
-.route-marker-event{
-    background-color : rgb(240,200,60);
+.route-marker-event {
+    background-color: rgb(240, 200, 60);
 }
 
-.route-marker-goal{
-    width:26px;
-    height:26px;
-    margin:-13px 0 0 -13px;
-    border-radius : 13px;
-    background-color :rgb(110,210,130);
+.route-marker-goal {
+    width: 30px;
+    height: 30px;
+    margin: -13px 0 0 -13px;
+    border-radius: 13px;
+    background-color: rgb(110, 210, 130);
 }
 
-.route-marker-passed{
-    opacity : 0.35;
+.route-marker-passed {
+    opacity: 0.35;
 }
 
-.route-train{
-    position:absolute;
-    top:14px;
-    width:14px;
-    height:14px;
-    margin:-7px 0 0 -7px;
+.route-train {
+    position: absolute;
+    top: 14px;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
     border-radius: 7px;
-    background-color:rgb(255,255,255);
+    background-color: rgb(255, 255, 255);
 }
 
 .fuel-Wrapper {
@@ -108,60 +106,59 @@
     background-color: rgb(255, 100, 0);
 }
 
-
 .revive-overlay {
     position: absolute;
-    left:0;
-    top:0;
+    left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
     margin: 0;
-    align-items:center;
-    justify-content:center;
-    background-color:rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
-.revive-panel{
-    width:auto;
-    height:auto;
-    margin:0;
-    padding:24px 40px;
-    align-items:center;
-    background-color:rgb(20,20,24);
-    border-width:3px;
-    border-color:rgb(255,255,255);
-    border-radius:12px;
+.revive-panel {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 24px 40px;
+    align-items: center;
+    background-color: rgb(20, 20, 24);
+    border-width: 3px;
+    border-color: rgb(255, 255, 255);
+    border-radius: 12px;
 }
 
-.revive-icon{
-    width : 96px;
-    height : 96px;
-    margin : 0 0 12px 0;
+.revive-icon {
+    width: 96px;
+    height: 96px;
+    margin: 0 0 12px 0;
     border-width: 2px;
-    border-color:rgb(200,200,200);
-    border-radius:24px;
-    -unity-background-scale-mode:scale-to-fit;
+    border-color: rgb(200, 200, 200);
+    border-radius: 24px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
-.revive-cost-label{
-    margin:0 0 16px 0;
-    font-size : 24px;
-    color : rgb(255,255,255);
+.revive-cost-label {
+    margin: 0 0 16px 0;
+    font-size: 24px;
+    color: rgb(255, 255, 255);
 }
 
-.revive-button-row{
-    flex-direction : row;
-    width : auto;
-    height : auto;
-    margin : 0;
+.revive-button-row {
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    margin: 0;
 }
 
 .revive-confirm-button,
-.revive-cancel-button{
-    width : 120px;
-    height : 48px;
-    margin : 0 8px;
-    font-size:22px;
+.revive-cancel-button {
+    width: 120px;
+    height: 48px;
+    margin: 0 8px;
+    font-size: 22px;
 }
 
 .unit-icon-revive-fill {
@@ -224,8 +221,6 @@
     color: rgb(200, 200, 200);
 }
 
-
-
 .stage-select-screen {
     position: absolute;
     left: 0;
@@ -249,43 +244,44 @@
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.stage-select-list-panel{
-    width : 45%;
-    height : 80%;
-    margin : 0;
-    padding : 16px;
-    flex-direction : column;
-    align-items:stretch;
-    justify-content:flex-start;
-    border-width : 2px;
-    border-color:rgb(200,200,200);
+.stage-select-list-panel {
+    width: 45%;
+    height: 80%;
+    margin: 0;
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    border-width: 2px;
+    border-color: rgb(200, 200, 200);
 }
 
-.stage-select-header{
-    margin : 0 0 16px 0;
-    font-size:28px;
-    color : rgb(230,230,230);
-    -unity-text-align : middle-left;
+.stage-select-header {
+    margin: 0 0 5% 0;
+    font-size: 200%;
+    color: rgb(230, 230, 230);
+    -unity-text-align: middle-left;
 }
 
-.stage-select-list{
-    flex-direction:column;
-    align-items:flex-end;
+.stage-select-list {
+    flex-direction: column;
+    align-items: flex-end;
 }
 
-.stage-select-button{
-    width : 70%;
-    height : 72px;
-    margin : 0 0 12px 0;
-    font-size : 20px;
-    -unity-text-align : middle-center;
+.stage-select-button {
+    width: 70%;
+    height: 20%;
+    margin: 0 0 2% 0;
+    font-size: 150%;
+    -unity-text-align: middle-center;
 }
 
-.stage-select-empty{
-    border-width:2px;
-    border-color:rgba(200,200,200,0.35);
-    background-color:rgba(255,255,255,0.03);
+.stage-select-empty {
+    border-width: 30%;
+    border-color: rgba(200, 200, 200, 0.35);
+    background-color: rgba(255, 255, 255, 0.03);
 }
+
 .title-screen {
     position: absolute;
     left: 0;
@@ -324,7 +320,7 @@
     left: 0;
     right: 0;
     -unity-text-align: middle-center;
-    font-size: 36px;
+    font-size: 300%;
     -unity-font-style: bold;
     color: rgb(255, 255, 255);
     opacity: 1;
@@ -340,11 +336,11 @@
     position: absolute;
     right: 2%;
     top: 3%;
-    width: 56px;
-    height: 56px;
+    width: 3%;
+    height: 6%;
     margin: 0;
     padding: 0;
-    border-radius: 28px;
+    border-radius: 20%;
     border-width: 3px;
     border-color: rgb(255, 255, 255);
     background-color: rgba(0, 0, 0, 0.4);
@@ -435,14 +431,18 @@
 }
 
 .us-candidate {
-    width: 96px;
-    height: 96px;
+    width: 30%;
+    height: 50%;
     margin: 0 8px 0 0;
     padding: 0;
     border-width: 2px;
     border-color: rgb(120, 120, 120);
     background-color: rgba(255, 255, 255, 0.05);
     -unity-background-scale-mode: scale-to-fit;
+}
+
+.us-candidate-unit{
+    width: 8%;
 }
 
 .us-candidate-selected {
@@ -470,101 +470,99 @@
     font-size: 20px;
 }
 
-.fuelset-screen{
-    position:absolute;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    margin:0;
-    align-items:center;
-    justify-content:center;
-    background-color:rgb(24,26,34);
+.fuelset-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(24, 26, 34);
 }
 
-.fs-fuel-container{
-    position : absolute;
-    left : 4%;
-    top:12px;
-    width : 40%;
-    height : 40px;
-    margin : 0;
+.fs-fuel-container {
+    position: absolute;
+    left: 4%;
+    top: 12px;
+    width: 40%;
+    height: 40px;
+    margin: 0;
 }
 
-.fs-train-image{
-    width:70%;
-    height:60%;
-    margin:0;
-    -unity-background-scale-mode : scale-to-fit;
+.fs-train-image {
+    width: 70%;
+    height: 60%;
+    margin: 0;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
-.fs-tap{
-    position:absolute;
-    bottom:8%;
-    left:0;
-    right:0;
-    -unity-text-align:middle-center;
-    font-size:36px;
-    -unity-font-style:bold;
-    color:rgb(255,255,255);
-    opacity:1;
-    transition-property:opacity;
-    transition-duration : 0.6s;
+.fs-tap {
+    position: absolute;
+    bottom: 8%;
+    left: 0;
+    right: 0;
+    -unity-text-align: middle-center;
+    font-size: 36px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.6s;
 }
 
-.fs-tap-dim{
-    opacity:0.15;
+.fs-tap-dim {
+    opacity: 0.15;
 }
 
-.alert-overlay{
-    position : absolute;
-    left : 0;
-    top : 0;
-    width : 100%;
-    height : 100%;
-    margin : 0;
-    background-color :rgba(255,0,0,0.35);
-    opacity :1;
-    transition-property:opacity;
-    transition-duration:0.2s;
+.alert-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: rgba(255, 0, 0, 0.35);
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.2s;
 }
 
-.alert-overlay-dim{
-    opacity:0;
+.alert-overlay-dim {
+    opacity: 0;
 }
 
-.battle-buttons{
-    position:absolute;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    margin:0;
+.battle-buttons {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
 }
 
-
-
-.sr-screen{
-    position:absolute;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    margin:0;
-    padding:72px 6% 5% 6%;
-    flex-direction:row;
-    align-items:center;
-    justify-content:space-between;
-    background-color:rgba(10,12,18,0.92);
+.sr-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 72px 6% 5% 6%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(10, 12, 18, 0.92);
 }
 
-.sr-mvp-frame{
-    width:36%;
-    height:80%;
-    margin : 0;
-    border-width:2px;
-    border-color:rgb(200,200,200);
-    background-color:rgba(255,255,255,0.05);
+.sr-mvp-frame {
+    width: 36%;
+    height: 80%;
+    margin: 0;
+    border-width: 2px;
+    border-color: rgb(200, 200, 200);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .sr-mvp-image {
@@ -637,42 +635,42 @@
     -unity-text-align: middle-right;
 }
 
-.menu-overlay{
-    position : absolute;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    margin :0;
-    align-items:center;
-    justify-content : center;
-    background-color:rgba(0,0,0,0.6);
+.menu-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
-.menu-panel{
-    width:auto;
-    height:auto;
-    margin:0;
-    padding:24px 48px;
-    align-items:center;
-    background-color :rgb(20,20,24);
-    border-width : 3px;
-    border-color:rgb(255,255,255);
-    border-radius:12px;
+.menu-panel {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 24px 48px;
+    align-items: center;
+    background-color: rgb(20, 20, 24);
+    border-width: 3px;
+    border-color: rgb(255, 255, 255);
+    border-radius: 12px;
 }
 
-.menu-header{
-    margin:0 0 20px 0;
-    font-size : 32px;
-    -unity-font-style:bold;
-    color:rgb(255,255,255);
+.menu-header {
+    margin: 0 0 20px 0;
+    font-size: 32px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
 }
 
-.menu-item-button{
-    width:280px;
-    height:52px;
-    margin:0 0 12px 0;
-    font-size :22px;
+.menu-item-button {
+    width: 280px;
+    height: 52px;
+    margin: 0 0 12px 0;
+    font-size: 22px;
 }
 
 .rs-screen {
@@ -830,17 +828,17 @@
     -unity-text-align: middle-left;
 }
 
-.us-popup{
-    position:absolute;
-    min-width:220px;
-    padding:10px 14px;
-    background-color:rgba(10,10,14,0.95);
-    border-width:2px;
-    border-color:rgb(255,255,255);
-    border-radius:8px;
+.us-popup {
+    position: absolute;
+    min-width: 220px;
+    padding: 10px 14px;
+    background-color: rgba(10, 10, 14, 0.95);
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+    border-radius: 8px;
 }
 
-    .us-popup-title {
+.us-popup-title {
     margin: 0 0 6px 0;
     font-size: 22px;
     -unity-font-style: bold;
@@ -863,7 +861,7 @@
     color: rgb(255, 255, 255);
 }
 
-    .us-cost-label {
+.us-cost-label {
     position: absolute;
     left: 4%;
     margin-left: 136px;
@@ -896,7 +894,7 @@
     margin: 0;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
 .ev-panel {
@@ -905,9 +903,9 @@
     margin: 0;
     padding: 24px 32px;
     align-items: center;
-    background-color: rgb(20,20,24);
+    background-color: rgb(20, 20, 24);
     border-width: 3px;
-    border-color: rgb(255,255,255);
+    border-color: rgb(255, 255, 255);
     border-radius: 12px;
 }
 
@@ -920,14 +918,14 @@
 
 .ev-title {
     font-size: 30px;
-    color: rgb(255,255,255);
+    color: rgb(255, 255, 255);
     -unity-font-style: bold;
     margin: 0 0 8px 0;
 }
 
 .ev-body {
     font-size: 20px;
-    color: rgb(220,220,220);
+    color: rgb(220, 220, 220);
     white-space: normal;
     -unity-text-align: upper-center;
     margin: 0 0 16px 0;
@@ -948,12 +946,12 @@
 
 .ev-choice-label {
     font-size: 22px;
-    color: rgb(255,255,255);
+    color: rgb(255, 255, 255);
 }
 
 .ev-choice-desc {
     font-size: 16px;
-    color: rgb(190,190,190);
+    color: rgb(190, 190, 190);
     white-space: normal;
 }
 
@@ -1008,7 +1006,7 @@
     background-color: rgb(120, 220, 140);
 }
 
-    .battle-action-button {
+.battle-action-button {
     position: absolute;
     right: 3%;
     bottom: 5%;
@@ -1067,4 +1065,13 @@
     font-size: 11px;
     -unity-text-align: lower-center;
     color: rgb(255, 255, 255);
+}
+
+.card-dragging {
+    opacity: 0.6;
+}
+
+.unit-icon.card-drop-cancel {
+    border-color: rgb(230, 60, 60);
+    opacity: 0.35;
 }

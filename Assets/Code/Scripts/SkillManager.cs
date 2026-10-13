@@ -52,7 +52,7 @@ public class SkillManager
     private readonly FuelManager _fuel;
     private readonly List<string> _roster = new();
     private readonly List<Entry> _entries = new();
-    private readonly Queue<string> _useRequests = new();
+    private readonly Queue<(string key, string targetId)> _useRequests = new(); 
 
     public SkillManager(Hand hand,UnitManager units,FuelManager fuel)
     {
@@ -80,9 +80,17 @@ public class SkillManager
     }
 
     /// <summary>UIのTapから呼ばれる。実際の発動は次Tickで行う</summary>
-    public void RequestUse(string skillKey)
+    public void RequestUse(string skillKey,string targetUnitId)
     {
-        _useRequests.Enqueue(skillKey);
+        _useRequests.Enqueue((skillKey,targetUnitId));
+    }
+
+    public bool RequiresAllyTarget(string skillKey)
+    {
+        if (!SkillKey.TryParse(skillKey, out var unitId, out var index)) return false;
+
+        var entry = _entries.Find(e => e.unitId == unitId && e.index == index);
+        return entry != null && entry.data.requiresAllyTarget;
     }
 
     #region Tick
@@ -139,7 +147,7 @@ public class SkillManager
     {
         while(_useRequests.Count > 0)
         {
-            var key = _useRequests.Dequeue();
+            var (key,targetId) = _useRequests.Dequeue();
             if (!SkillKey.TryParse(key, out var unitId, out var index)) continue;
 
             var entry = _entries.Find(e => e.unitId == unitId && e.index == index);
@@ -152,7 +160,7 @@ public class SkillManager
                 continue;
             }
 
-            if (!Execute(entry.data, caster)) continue;
+            if (!Execute(entry.data, caster,targetId)) continue;
 
             _hand.RemoveSkill(unitId, index);
             entry.inHand = false;
@@ -160,32 +168,55 @@ public class SkillManager
         }
     }
 
-    private bool Execute(SkillData data,Combatant caster)
+    private bool Execute(SkillData data,Combatant caster,string targetUnitId)
     {
         switch(data.effectType)
         {
-            case SkillEffectType.SelfBuff:
-                caster.AddTimedBuff(data.attackMultiplier, data.speedMultiplier, data.duration);
-                return true;
+            case SkillEffectType.Buff:
+                return ApplyBuff(data,caster,targetUnitId);
+                
             case SkillEffectType.Heal:
-                ApplyHeal(data,caster);
-                return true;
+                return ApplyHeal(data,caster,targetUnitId);
+
             case SkillEffectType.SingleAttack:
                 return ApplySingleAttack(data, caster);
+
             default:
                 return false;
-
-
         }
     }
 
-    private void ApplyHeal(SkillData data,Combatant caster)
+    private Combatant ResolveAllyTarget(string unitId)
+    {
+        var combatant = _units.GetDeployedCombatant(unitId);
+        return combatant != null && !combatant.IsDead ? combatant : null;
+    }
+
+    private bool ApplyBuff(SkillData data,Combatant caster,string targetUnitId)
+    {
+        var target = data.buffTarget == SkillBuffTarget.SelectedAlly
+            ? ResolveAllyTarget(targetUnitId)
+            : caster;
+        if(target == null) return false;
+
+        target.AddTimedBuff(data.attackMultiplier, data.speedMultiplier, data.duration);
+        return true;
+    }
+
+    private bool ApplyHeal(SkillData data,Combatant caster,string targetUnitId)
     {
         switch(data.healTarget)
         {
             case SkillHealTarget.Self:
                 caster.Heal(Mathf.RoundToInt(caster.MaxHp * data.healRatio));
-                break;
+                return true;
+
+            case SkillHealTarget.SelectedAlly:
+                var target = ResolveAllyTarget(targetUnitId);
+                if (target == null) return false;
+                target.Heal(Mathf.RoundToInt(target.MaxHp * data.healRatio));
+                return true;
+
             case SkillHealTarget.AllAllies:
                 foreach(var c in new List<Combatant>(Combatant.All))
                 {
@@ -193,11 +224,12 @@ public class SkillManager
                     if (c.IsTrain || !c.IsActive || c.IsDead) continue;
                     c.Heal(Mathf.RoundToInt(c.MaxHp * data.healRatio));
                 }
-                break;
+                return true;
             case SkillHealTarget.TrainFuel:
                 _fuel?.ConsumeAmount(-data.fuelAmount);
-                break;
+                return true;
         }
+        return false;
     }
 
     private bool ApplySingleAttack(SkillData data,Combatant caster)

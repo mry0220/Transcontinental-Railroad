@@ -19,7 +19,7 @@ MonoBehaviour:
   _attackInterval: 1
   _attackPattern: 0
   _matchCapacity: 3
-  _moveSpeed: 5
+  _moveSpeed: 6
   _targetingStrategy: 0
   _attackRange: 3
   _id: unit-0001
@@ -30,6 +30,5 @@ MonoBehaviour:
   _reviveFuelCost: 100
   _fuelCost: 9000
   _skills:
-  - {fileID: 11400000, guid: a2facfe06e4e2a542a8d4a59f953927f, type: 2}
   - {fileID: 11400000, guid: b15129c27f9fa704cbd3bfd16e5f8d3f, type: 2}
-  - {fileID: 11400000, guid: 67a83ddde629b0c47afc705aee36d75a, type: 2}
+  - {fileID: 11400000, guid: a0a6ec00e41314345aba21b202b87917, type: 2}

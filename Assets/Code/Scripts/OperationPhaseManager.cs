@@ -72,6 +72,7 @@ public class OperationPhaseManager : ITickable
     private bool _trainNeedsReset;
 
     private int _fuelAtSectionStart;
+    private CardDragController _cardDrag;
     #endregion
 
     #region Setup
@@ -108,8 +109,14 @@ public class OperationPhaseManager : ITickable
         _scheduler = scheduler;
     }
 
+    public void SetCardDragController(CardDragController controller)
+    {
+        _cardDrag = controller;
+    }
+
     private void HandleOperationPhaseChanged(OperationPhase prev,OperationPhase next)
     {
+        _cardDrag?.Cancel();
         if (next == OperationPhase.Result)
         {
             var ranking = _sectionHadBattle && _unitManager != null
@@ -128,6 +135,7 @@ public class OperationPhaseManager : ITickable
     /// <summary>運行の中断(titleへ戻るなど)で呼ばれる。ポップアップのPauseを確実に解除する</summary>
     public void ResetForNewRun()
     {
+        _cardDrag?.Cancel();
         ClosePopup();
         CloseEvent();
         _pendingBattleWaves.Clear();
@@ -184,21 +192,11 @@ public class OperationPhaseManager : ITickable
     /// <summary> GameLoopManagerのConsumeInputから、GameState.Operation中のみ呼ばれる </summary>
     public void HandleInput(InputBuffer.InputEvent evt)
     {
-        
+        var phase = _stateManager.CurrentOperationPhase;
+        if (phase != OperationPhase.Battle && phase != OperationPhase.Move) return;
 
-        if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
-        
-        if(evt.type == InputBuffer.InputType.PointerMove && evt.isDragFromUI)
-        {
-            _unitManager?.UpdateUnitPlacementPreview(evt);
-        }
-        if(evt.type == InputBuffer.InputType.PointerUp && evt.isDragFromUI)
-        {
-            _unitManager?.DeployUnit(evt.draggedItemId);
-        }
-
+        _cardDrag?.HandleInput(evt, phase);
     }
-
     #endregion
 
     #region Move

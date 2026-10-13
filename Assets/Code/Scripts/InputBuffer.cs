@@ -18,7 +18,8 @@ public class InputBuffer : MonoBehaviour
         public double timestamp;
         public string draggedItemId;
         public bool isDragFromUI;
-        public InputEvent(InputType t, Vector2 pos, Vector2 d, double ts,string itemId = null,bool fromUI = false)
+        public bool pointerOverUI;
+        public InputEvent(InputType t, Vector2 pos, Vector2 d, double ts,string itemId = null,bool fromUI = false,bool overUI = false)
         {
             type = t;
             position = pos;
@@ -26,6 +27,7 @@ public class InputBuffer : MonoBehaviour
             timestamp = ts;
             draggedItemId = itemId;
             isDragFromUI = fromUI;
+            pointerOverUI = overUI;
         }
 
     }

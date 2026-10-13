@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -457,6 +456,7 @@ public class UIManager : MonoBehaviour
                     OnUnitCandidateChosen?.Invoke(unit);
                 });
                 button.AddToClassList("us-candidate");
+                button.AddToClassList("us-candidate-unit");
                 RegisterStatusPopup(button, () => unit);
                 SetIcon(button, unit.icon);
                 unitList.Add(button);

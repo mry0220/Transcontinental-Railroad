@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class UnitManager : MonoBehaviour
 {
@@ -153,6 +154,30 @@ public class UnitManager : MonoBehaviour
         return data != null ? data.icon : null;
     }
 
+    public string FindDeployedUnitAt(Vector2 screenUiPosition,float pickRadius)
+    {
+        Vector2 world = ScreenToWorldPosition(screenUiPosition);
+        string best = null;
+        float bestSqr = pickRadius * pickRadius;
+
+        foreach(var pair in deployedUnits)
+        {
+            var unit = pair.Value;
+            if(unit == null) continue;
+
+            var combatant = unit.GetComponent<Combatant>();
+            if(combatant == null || combatant.IsDead) continue;
+
+            Vector2 unitPos = unit.transform.position;
+            float sqr = (unitPos - world).sqrMagnitude;
+            if (sqr > bestSqr) continue;
+
+            bestSqr = sqr;
+            best = pair.Key;
+        }
+        return best;
+    }
+
     public Item_Unit GetUnitData(string itemId)
     {
         return unitDB != null ? unitDB.GetUnit(itemId) : null;
@@ -227,6 +252,15 @@ public class UnitManager : MonoBehaviour
 
         currentPreview.transform.position = ScreenToWorldPosition(evt.position);
     }
+
+    public void SetPlacementPreviewVisible(bool visible)
+    {
+        if(currentPreview != null && currentPreview.activeSelf != visible)
+        {
+            currentPreview.SetActive(visible);
+        }
+    }
+
     public void HideUnitPlacementPreview()
     {
         if (currentPreview != null)
@@ -281,6 +315,7 @@ public class UnitManager : MonoBehaviour
         var deployedUnit = currentPreview;
         currentPreview = null;
         currentPreviewItemId = null;
+        deployedUnit.SetActive(true);
 
         if(_isDragging)
         {

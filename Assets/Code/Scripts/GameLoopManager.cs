@@ -233,7 +233,7 @@ public class GameLoopManager : MonoBehaviour
                 && stateManager.Current == GameState.Operation
                 && stateManager.CurrentOperationPhase == OperationPhase.Battle,
                 "SkillManager");
-            if (uIInputHandler != null) uIInputHandler.OnSkillCardTapped += _skillManager.RequestUse;
+            operationPhaseManager.SetCardDragController(new CardDragController(unitManager, _skillManager));
         }
 
 

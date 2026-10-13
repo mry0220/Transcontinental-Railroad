@@ -2,7 +2,7 @@ using UnityEngine;
 
 public enum SkillEffectType
 {
-    SelfBuff,
+    Buff,
     Heal,
     SingleAttack,
 }
@@ -12,7 +12,15 @@ public enum SkillHealTarget
     Self,
     AllAllies,
     TrainFuel,
+    SelectedAlly,
 }
+
+public enum SkillBuffTarget
+{
+    Self,
+    SelectedAlly,
+}
+
 [CreateAssetMenu(fileName = "SkillData",menuName = "Scriptable Objects/Skill/SkillData")]
 public class SkillData : ScriptableObject
 {
@@ -22,9 +30,10 @@ public class SkillData : ScriptableObject
     [SerializeField] private float _cooldown = 10f; public float cooldown => _cooldown;
     [SerializeField] private SkillEffectType _effectType; public SkillEffectType effectType => _effectType;
 
-    [Header("SelfBuff")]
+    [Header("Buff")]
     [SerializeField] private float _attackMultiplier = 1.5f; public float attackMultiplier => _attackMultiplier;
     [SerializeField] private float _speedMultiplier = 1f; public float speedMultiplier => _speedMultiplier;
+    [SerializeField] private SkillBuffTarget _buffTarget; public SkillBuffTarget buffTarget => _buffTarget;
     [SerializeField] private float _duration = 5f; public float duration => _duration;
 
     [Header("Heal")]
@@ -38,4 +47,8 @@ public class SkillData : ScriptableObject
     [Tooltip("使用したUnitの攻撃力に対する倍率"), SerializeField]
     private float _attackRate = 2f;public float attackRate => _attackRate;
 
+
+    public bool requiresAllyTarget =>
+        (_effectType == SkillEffectType.Buff && _buffTarget == SkillBuffTarget.SelectedAlly) ||
+        (_effectType == SkillEffectType.Heal && _healTarget == SkillHealTarget.SelectedAlly);
 }

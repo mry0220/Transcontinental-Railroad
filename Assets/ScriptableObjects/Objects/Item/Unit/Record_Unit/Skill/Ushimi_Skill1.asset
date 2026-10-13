@@ -10,17 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c677d1a2f896ce647823645e96db81ec, type: 3}
-  m_Name: TestSkill01_Natsuko
+  m_Name: Ushimi_Skill1
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  _id: skill_1
-  _displayName: "\u30CA\u30C4\u30B3\uFF08\u30D5\u30EB\u30D1\u30EF\u30FC\u30E2\u30FC\u30C9\uFF09"
-  _icon: {fileID: -4308326556302189965, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
-  _cooldown: 10
-  _effectType: 0
+  _id: skill_3
+  _displayName: "\u7A81\u9032"
+  _icon: {fileID: -8610811457131614292, guid: 3a76ee0d906898b479b98055d7741368, type: 3}
+  _cooldown: 1
+  _effectType: 2
   _attackMultiplier: 1.5
   _speedMultiplier: 1
+  _buffTarget: 0
   _duration: 5
   _healTarget: 0
   _healRatio: 0.3
   _fuelAmount: 50
-  _attackRate: 2
+  _attackRate: 10000

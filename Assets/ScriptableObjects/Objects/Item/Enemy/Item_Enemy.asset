@@ -15,7 +15,7 @@ MonoBehaviour:
   _formationSprite: {fileID: 815424164945274260, guid: d3b9f9cc3d7c6814498e7b3173b436de, type: 3}
   _affiliation: 1
   _maxHP: 60
-  _attackPower: 100
+  _attackPower: 1000
   _attackInterval: 3
   _attackPattern: 0
   _matchCapacity: 1
