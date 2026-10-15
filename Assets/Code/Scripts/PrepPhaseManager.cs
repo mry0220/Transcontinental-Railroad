@@ -23,8 +23,14 @@ public class PrepPhaseManager : ITickable
     private readonly SectionManager _sectionManager;
     private readonly RNG _rng;
     private readonly LoadPipeline _loader = new LoadPipeline();
+    private readonly LoadPipeline _payloader = new LoadPipeline(0.4f);
+    
 
     public LoadPipeline Loader => _loader;
+    public LoadPipeline PayLoader => _payloader;
+    public StageData SelectedStage => _selectedStage;
+
+    private int _payStartFuel;
 
     #endregion
 
@@ -74,6 +80,7 @@ public class PrepPhaseManager : ITickable
         _loader.Clear();
         _selectedStage = null;
         _loadout.Clear();
+        _payloader.Clear();
         Debug.Log("[PrepPhaseManager] Enter: StageSelectから開始");
     }
     /// <summary> GameLoopManagerのFixedStepから、GameState.Prep中のみ呼ばれる </summary>
@@ -94,14 +101,16 @@ public class PrepPhaseManager : ITickable
                 _fuelManager.SetFuelRatio(_loader.DisplayProgress);
                 if(_loader.IsComplete)
                 {
-                    _payRemaining = _loadout.TotalFuelCost;
+                    _payStartFuel = _fuelManager.MaxFuel;
                     _fuelStage = FuelStage.Pay;
                     OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Paying);
                 }
                 break;
             case FuelStage.Pay:
-                _payRemaining = _fuelManager.PayingFuel(_payRemaining);
-                if(_payRemaining <= 0)
+                _payloader.Tick(fixedDt);
+                int paid = Mathf.RoundToInt(_loadout.TotalFuelCost * _payloader.DisplayProgress);
+                _fuelManager.SetFuel(_payStartFuel - paid);
+                if(_payloader.IsComplete)
                 {
                     _fuelStage = FuelStage.Ready;
                     _fuelReady = true;
@@ -162,8 +171,9 @@ public class PrepPhaseManager : ITickable
         if (!_loadout.IsValid || _selectedStage == null) return;
         if (_loadout.TotalFuelCost > FuelBudget) return;
         _loader.Clear();
+        _payloader.Clear();
         var stage = _selectedStage;
-        _loader.Add(new LoadStep("路線構築", 1f, () => _sectionManager.Build(stage, _rng)));
+        _payloader.Add(new LoadStep("路線構築", 1f, () => _sectionManager.Build(stage, _rng)));
         OnLoadoutConfirmed?.Invoke(_loadout);
         _stateManager.TransitionPrepPhase(PrepPhase.FuelSet);
         OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Charging);

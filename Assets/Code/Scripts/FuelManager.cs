@@ -24,6 +24,11 @@ public class FuelManager : MonoBehaviour
         MaxFuel = maxFuel;
     }
 
+    public void SetFuel(int value)
+    {
+        CurrentFuel = Mathf.Clamp(value, 0, MaxFuel);
+    }
+
     /// <summary>
     /// Operation中の燃料消費。恒久燃費は常時、移動燃費はisMoving時のみ
     /// 消費後に燃費が残っていればtrue,尽きればfalse

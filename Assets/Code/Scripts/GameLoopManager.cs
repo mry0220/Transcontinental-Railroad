@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class GameLoopManager : MonoBehaviour
@@ -76,6 +77,7 @@ public class GameLoopManager : MonoBehaviour
     private Hand _hand;
     private HandUnitBinder _handBinder;
     private SkillManager _skillManager;
+    private PrefabPool _pool;
     //====Runtime State====
     private RNG rng;
     private double clock;
@@ -107,6 +109,15 @@ public class GameLoopManager : MonoBehaviour
         uIInputHandler?.SetInputBuffer(inputBuffer);
         uIInputHandler?.SetUnitManager(unitManager);
         uIInputHandler?.SetStateManager(stateManager);
+
+        var poolRoot = new GameObject("PrefabPool");
+        poolRoot.SetActive(false);
+        poolRoot.transform.SetParent(transform, false);
+        _pool = new PrefabPool(poolRoot.transform);
+        waveManager?.SetPool(_pool);
+        unitManager?.SetPool(_pool);
+        Combatant.Disposer = _pool.Release;
+
         sectionManager = new();
 
         prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,sectionManager,rng);
@@ -280,6 +291,7 @@ public class GameLoopManager : MonoBehaviour
     private void OnDestroy()
     {
         Combatant.OnAnyDamaged -= HandleAnyDamaged;
+        Combatant.Disposer = null;
     }
 
     #endregion
@@ -439,20 +451,26 @@ public class GameLoopManager : MonoBehaviour
     private void HandleLoadoutConfirmed(Loadout loadout)
     {
         var loader = prepPhaseManager.Loader;
+        var payLoader = prepPhaseManager.PayLoader;
         var train = loadout.Train;
+        var stage = prepPhaseManager.SelectedStage;
         var units = new List<Item_Unit>(loadout.GetSelectedUnits());
         var ids = new List<string>();
         foreach (var unit in units) ids.Add(unit.id);
 
         _runTrain = train;
         _runStats.Reset();
+        uIManager?.SetFuelSetTrain(train);
+
+        //Load : èàóùÇ™èdÇ¢
+        loader.Add(new LoadStep("óÒé‘ê∂ê¨", 2f, () => SpawnTrain(train)));
+        AddPrewarmSteps(loader, CollectEnemyPrefabCounts(stage), "ìGÇÃèÄîı");
 
         loader.Add(new LoadStep("UIç\íz", 1f, () =>
         {
             uIManager?.BuildUnitIcons(units);
             uIManager?.SetFuelSetTrain(train);
         }));
-        loader.Add(new LoadStep("óÒé‘ê∂ê¨", 2f, () => SpawnTrain(train)));
         loader.Add(new LoadStep("èÊàıìoò^", 1f, () =>
         {
             foreach (var id in ids) _runStats.RegisterUnit(id);
@@ -461,6 +479,57 @@ public class GameLoopManager : MonoBehaviour
             _skillManager?.SetRoster(ids);
         }));
 
+    }
+
+    private void AddPrewarmSteps(LoadPipeline loader,Dictionary<GameObject,int> needs,string label)
+    {
+        foreach(var pair in needs)
+        {
+            var prefab = pair.Key;
+            int add = Mathf.Max(0, pair.Value - _pool.FreeCount(prefab));
+            for (int i = 0; i < add; i++)
+                loader.Add(new LoadStep(label, 1f, () => _pool.Prewarm(prefab)));
+        }
+    }
+    /// <summary>Stageì‡ÇÃëSWaveÇ©ÇÁÅAPrefabÇ≤Ç∆ÇÃç≈ëÂìØéûêîÇêîÇ¶ÇÈ</summary>
+    private static Dictionary<GameObject,int> CollectEnemyPrefabCounts(StageData stage)
+    {
+        var result = new Dictionary<GameObject, int>();
+        if (stage == null) return result;
+        
+        foreach(var entry in stage.entries)
+        {
+            var section = entry.section;
+            if (section == null) continue;
+
+            AccumulateMax(result, section.wave);
+            if (section.eventData == null) continue;
+
+            foreach (var choice in section.eventData.choices)
+                foreach (var effect in choice.effects)
+                    if (effect.type == EventEffectType.ChangeBattle)
+                        AccumulateMax(result, effect.extraWave);
+        }
+        return result;
+    }
+
+    private static void AccumulateMax(Dictionary<GameObject,int>result,Data_Wave wave)
+    {
+        if (wave == null || wave.spawns == null) return;
+
+        var counts = new Dictionary<GameObject, int>();
+        foreach(var spawn in wave.spawns)
+        {
+            var prefab = spawn.enemyData != null ? spawn.enemyData.prefab : null;
+            if (prefab == null) continue;
+            counts.TryGetValue(prefab, out var c);
+            counts[prefab] = c + 1;
+        }
+        foreach(var pair in counts)
+        {
+            result.TryGetValue(pair.Key, out var current);
+            if (pair.Value > current) result[pair.Key] = pair.Value;
+        }
     }
 
     private void HandleAnyDamaged(Combatant combatant,int amount)

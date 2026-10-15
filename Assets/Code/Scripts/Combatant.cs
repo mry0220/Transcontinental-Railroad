@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Combatant : MonoBehaviour,ICombatant
+public class Combatant : MonoBehaviour,ICombatant,IPoolable
 {
     #region StaticRegistry
     private static readonly List<Combatant> _all = new();
@@ -11,6 +11,13 @@ public class Combatant : MonoBehaviour,ICombatant
     public static BattleVisualSettings VisualSettings { get; set; } = new();
 
     public static event System.Action<Combatant, int> OnAnyDamaged;
+
+    public static System.Action<GameObject> Disposer { get; set; }
+    private static void Dispose(GameObject go)
+    {
+        if (Disposer != null) Disposer(go);
+        else Destroy(go);
+    }
 
     #endregion
 
@@ -150,6 +157,8 @@ public class Combatant : MonoBehaviour,ICombatant
     }
     public void InitializeAsPreview(Base_Item data)
     {
+        if (_hpBar != null) _hpBar.gameObject.SetActive(false);
+
         _data = data;
         CurrentHP = data.maxHP;
         _isActive = false;
@@ -169,7 +178,12 @@ public class Combatant : MonoBehaviour,ICombatant
 
     private void AttachHud()
     {
-        if (_hpBar != null || _data == null) return;
+        if (_data == null) return;
+        if(_hpBar != null)
+        {
+            _hpBar.Refrash(CurrentHP, MaxHp);
+            return;
+        }
         if (_data is Item_Train) return;
         if (!VisualSettings.showHpBars) return;
 
@@ -183,6 +197,25 @@ public class Combatant : MonoBehaviour,ICombatant
         _statMultiplier = Mathf.Max(0.01f, multiplier);
         CurrentHP = MaxHp;
         if (_hpBar != null) _hpBar.Refrash(CurrentHP, MaxHp);
+    }
+
+    public void OnReleasedToPool()
+    {
+        DestroyDeploymentVisuals();
+        _matches.Clear();
+        _buffs.Clear();
+        _attackTimer = 0f;
+        _idleTimer = 0f;
+        _movementState = MovementState.Idle;
+        _statMultiplier = 1f;
+        _isActive = false;
+        //ほかのCombatantが参照を持っていても、死亡扱いになりMatchを破棄する
+        CurrentHP = 0;
+
+        OnDamageTaken = null;
+        OnDealtDamage = null;
+        OnActualDamageTaken = null;
+        OnDied = null;
     }
 
     #endregion

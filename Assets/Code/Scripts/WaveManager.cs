@@ -6,12 +6,13 @@ public class WaveManager : MonoBehaviour
     private MatchManager _matchManager;
     private readonly List<GameObject> _spawnedEnemies = new();
     private OperationModifiers _modifiers;
+    private PrefabPool _pool;
+
     public void SetModifiers(OperationModifiers modifiers) => _modifiers = modifiers;
 
-    public void SetMatchManager(MatchManager matchManger)
-    {
-        _matchManager = matchManger;
-    }
+    public void SetMatchManager(MatchManager matchManger) => _matchManager = matchManger;
+
+    public void SetPool(PrefabPool pool) => _pool = pool;
 
     ///<summary>BattleSection突入時にOperationPhaseManagerから呼ばれる</summary>
     public void StartBattlePhase(Data_Wave wave)
@@ -36,11 +37,9 @@ public class WaveManager : MonoBehaviour
             return;
         }
 
-        GameObject enemyObject = Instantiate(
-            spawnData.enemyData.prefab,
-            spawnData.spawnPosition,
-            Quaternion.identity
-            );
+        GameObject enemyObject = _pool != null
+            ? _pool.Get(spawnData.enemyData.prefab, spawnData.spawnPosition)
+            : Instantiate(spawnData.enemyData.prefab, spawnData.spawnPosition, Quaternion.identity);
         var combatant = enemyObject.GetComponent<Combatant>();
         combatant?.Initialize(spawnData.enemyData, _matchManager);
         combatant?.SetStatMultiplier(

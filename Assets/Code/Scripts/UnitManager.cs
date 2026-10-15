@@ -43,6 +43,8 @@ public class UnitManager : MonoBehaviour
     private FuelManager _fuelManager;
     private OperationModifiers _modifiers;
     private readonly List<string> _roster = new();
+    private PrefabPool _pool;
+    
     #endregion
 
     #region RuntimeState
@@ -128,6 +130,14 @@ public class UnitManager : MonoBehaviour
     {
         _roster.Clear();
         _roster.AddRange(itemIds);
+    }
+
+    public void SetPool(PrefabPool pool) => _pool = pool;
+
+    private void Dispose(GameObject go)
+    {
+        if (_pool != null) _pool.Release(go);
+        else Destroy(go);
     }
 
     #endregion
@@ -241,8 +251,10 @@ public class UnitManager : MonoBehaviour
         {
             var unitData = unitDB != null ? unitDB.GetUnit(evt.draggedItemId) : null;
             if (unitData == null || unitData.prefab == null) return;
-             
-            currentPreview = Instantiate(unitData.prefab);
+
+            currentPreview = _pool != null
+                ? _pool.Get(unitData.prefab, Vector3.zero)
+                : Instantiate(unitData.prefab);
             currentPreviewItemId = evt.draggedItemId;
 
             var previewCombatant = currentPreview.GetComponent<Combatant>();
@@ -266,7 +278,7 @@ public class UnitManager : MonoBehaviour
         if (currentPreview != null)
         {
             
-                Destroy(currentPreview);
+                Dispose(currentPreview);
                 currentPreview = null;
         }
         if(_isDragging)
@@ -355,7 +367,7 @@ public class UnitManager : MonoBehaviour
 
         if(unit != null)
         {
-            Destroy(unit);
+            Dispose(unit);
         }
 
         OnUnitReturned?.Invoke(itemId, unit);
@@ -438,7 +450,7 @@ public class UnitManager : MonoBehaviour
             var combatant = unit != null ? unit.GetComponent<Combatant>() : null;
             bool isDead = combatant != null && combatant.IsDead;
 
-            if (unit != null) Destroy(unit);
+            if (unit != null) Dispose(unit);
             deployedUnits.Remove(itemId);
 
             if(isDead)
@@ -485,7 +497,7 @@ public class UnitManager : MonoBehaviour
         unitStatus[foundId] = UnitBattleStatus.Dead;
         deadRecords[foundId] = new DeadRecoad { crushed = true };
 
-        if (unit != null) Destroy(unit);
+        if (unit != null) Dispose(unit);
         OnUnitDied?.Invoke(foundId);
         return true;
     }
