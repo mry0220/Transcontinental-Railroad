@@ -207,15 +207,15 @@ public class OperationPhaseManager : ITickable
         _sectionHadBattle = false;
         _fuelAtSectionStart = _fuelManager.CurrentFuel;
 
-        var entry = _sectionManager.CurrentSection;
-        if(entry == null || entry.section == null)
+        var plan = _sectionManager.CurrentPlan;
+        if(plan == null)
         {
-            Debug.LogError("[OperationPhaseManager] CurrentSectionがNull SectuionManger.Buildが未実行の可能性 ");
+            Debug.LogError("[OperationPhaseManager] CurrentSectionがNull FuelSetのBuildが未実行の可能性 ");
             return;
         }
 
         
-        _moveDistance = _rng.Range(entry.distanceMin, entry.distanceMax);
+        _moveDistance = plan.distance;
         _moveSpeed = GetTrainMoveSpeed();
 
         _moveElapsed = 0f;
@@ -248,14 +248,14 @@ public class OperationPhaseManager : ITickable
     {
 
         ClosePopup();
-        var entry = _sectionManager.CurrentSection;
+        var plan = _sectionManager.CurrentPlan;
 
-        switch (entry.section.type)
+        switch (plan.type)
         {
             case SectionType.Battle:
                 _sectionHadBattle = true;
                 _unitManager?.BeginBattleStats();
-                _waveManager?.StartBattlePhase(entry.section.wave);
+                _waveManager?.StartBattlePhase(plan.wave);
                 foreach(var extra in _pendingBattleWaves)
                 {
                     _waveManager?.StartBattlePhase(extra);
@@ -264,7 +264,7 @@ public class OperationPhaseManager : ITickable
                 _stateManager.TransitionOperationPhase(OperationPhase.Battle);
                 break;
             case SectionType.Event:
-                EnterEvent(entry.section.eventData);
+                EnterEvent(plan.eventData);
                 break;
             case SectionType.Goal:
                 _stateManager.TransitionToResult(RunOutcome.Cleared);
@@ -575,6 +575,7 @@ public class OperationPhaseManager : ITickable
         if (_fuelManager.ConsumeOperationFuel(attackPower, speed, isMoving, fixedDt)) return true;
 
         trainCombatant?.ApplyDamage(int.MaxValue);
+        if (_stateManager.CurrentOperationPhase == OperationPhase.Battle) _unitManager?.SettleBattle();
         _stateManager.TransitionToResult(RunOutcome.Failed);
         return false;
     }

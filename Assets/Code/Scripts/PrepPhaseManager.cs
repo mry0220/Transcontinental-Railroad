@@ -9,7 +9,7 @@ public class PrepPhaseManager : ITickable
 {
     #region Type
 
-    private enum FuelStage { Charge,Pay,Ready}
+    private enum FuelStage { Load,Pay,Ready}
     private FuelStage _fuelStage;
     private int _payRemaining;
 
@@ -21,6 +21,10 @@ public class PrepPhaseManager : ITickable
     private readonly StateManager _stateManager;
     private readonly FuelManager _fuelManager;
     private readonly SectionManager _sectionManager;
+    private readonly RNG _rng;
+    private readonly LoadPipeline _loader = new LoadPipeline();
+
+    public LoadPipeline Loader => _loader;
 
     #endregion
 
@@ -50,11 +54,13 @@ public class PrepPhaseManager : ITickable
     public PrepPhaseManager(
         StateManager stateManager,
         FuelManager fuelManager,
-        SectionManager sectionManager)
+        SectionManager sectionManager,
+        RNG rng)
     {
         _stateManager = stateManager;
         _fuelManager = fuelManager;
         _sectionManager = sectionManager;
+        _rng = rng;
     }
 
     #endregion
@@ -64,7 +70,8 @@ public class PrepPhaseManager : ITickable
     public void Enter()
     {
         _fuelReady = false;
-        _fuelStage = FuelStage.Charge;
+        _fuelStage = FuelStage.Load;
+        _loader.Clear();
         _selectedStage = null;
         _loadout.Clear();
         Debug.Log("[PrepPhaseManager] Enter: StageSelectから開始");
@@ -82,8 +89,10 @@ public class PrepPhaseManager : ITickable
 
         switch(_fuelStage)
         {
-            case FuelStage.Charge:
-                if(_fuelManager.InitializingFuel())
+            case FuelStage.Load:
+                _loader.Tick(fixedDt);
+                _fuelManager.SetFuelRatio(_loader.DisplayProgress);
+                if(_loader.IsComplete)
                 {
                     _payRemaining = _loadout.TotalFuelCost;
                     _fuelStage = FuelStage.Pay;
@@ -99,6 +108,7 @@ public class PrepPhaseManager : ITickable
                     OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Ready);
                 }
                 break;
+           
         }
     }
 
@@ -151,8 +161,9 @@ public class PrepPhaseManager : ITickable
         if (!InUnitSelect) return;
         if (!_loadout.IsValid || _selectedStage == null) return;
         if (_loadout.TotalFuelCost > FuelBudget) return;
-
-        _sectionManager.Build(_selectedStage);
+        _loader.Clear();
+        var stage = _selectedStage;
+        _loader.Add(new LoadStep("路線構築", 1f, () => _sectionManager.Build(stage, _rng)));
         OnLoadoutConfirmed?.Invoke(_loadout);
         _stateManager.TransitionPrepPhase(PrepPhase.FuelSet);
         OnFuelSetReadyChanged?.Invoke(FuelSetStatus.Charging);

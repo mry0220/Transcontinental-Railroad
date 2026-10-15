@@ -46,7 +46,7 @@ public class RunStats
     }
     public void AddDeath(string itemId)
     {
-        if (_lookup.TryGetValue(itemId, out var r)) r.dealt++;
+        if (_lookup.TryGetValue(itemId, out var r)) r.deaths++;
     }
     public void AddRevive(string itemId)
     {

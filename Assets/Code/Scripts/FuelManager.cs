@@ -4,8 +4,6 @@ using UnityEngine;
 public class FuelManager : MonoBehaviour
 {
     //====Inspector Config====
-   // [SerializeField] private int initialFuel = 60;
-    [SerializeField] private int fillingAmount = 1;
     [SerializeField] private float moveFuelCoefficient = 1f;
     [SerializeField] private int minStartFuel = 1;
     [SerializeField] private int payingAmount = 1;
@@ -19,15 +17,7 @@ public class FuelManager : MonoBehaviour
     public int MaxFuel { get; private set; }
 
 
-    /// <summary>
-    /// 燃料充填中処理
-    /// </summary>fuel filling
-    /// <returns></returns>
-    public bool InitializingFuel()
-    {
-        CurrentFuel = Mathf.Min(CurrentFuel + fillingAmount, MaxFuel);
-        return CurrentFuel >= MaxFuel;
-    }
+    
 
     public void SetMaxFuel(int maxFuel)
     {
@@ -76,6 +66,11 @@ public class FuelManager : MonoBehaviour
         int pay = Mathf.Min(payingAmount, remaining);
         CurrentFuel = Mathf.Max(0, CurrentFuel - pay);
         return remaining - pay;
+    }
+
+    public void SetFuelRatio(float ratio)
+    {
+        CurrentFuel = Mathf.Clamp(Mathf.RoundToInt(MaxFuel * Mathf.Clamp01(ratio)),0,MaxFuel);
     }
 
    

@@ -109,7 +109,7 @@ public class GameLoopManager : MonoBehaviour
         uIInputHandler?.SetStateManager(stateManager);
         sectionManager = new();
 
-        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,sectionManager);
+        prepPhaseManager = new PrepPhaseManager(stateManager,fuelManager,sectionManager,rng);
         operationPhaseManager = new OperationPhaseManager(
             stateManager,unitManager,waveManager,matchManager,
             fuelManager, sectionManager, () => _trainInstance,rng);
@@ -382,7 +382,7 @@ public class GameLoopManager : MonoBehaviour
             case GameState.Operation:
                 _handBinder?.SetMode(HandMode.Rebuild);
                 background?.ResetScroll();
-                uIManager?.BuildRouteBar(sectionManager.GetSectionTypes());
+                uIManager?.BuildRouteBar(sectionManager.GetRouteMarkers());
                 operationPhaseManager.Enter();
                 break;
 
@@ -438,21 +438,29 @@ public class GameLoopManager : MonoBehaviour
     }
     private void HandleLoadoutConfirmed(Loadout loadout)
     {
-        _runTrain = loadout.Train;
-        _runStats.Reset();
+        var loader = prepPhaseManager.Loader;
+        var train = loadout.Train;
+        var units = new List<Item_Unit>(loadout.GetSelectedUnits());
         var ids = new List<string>();
-        foreach(var unit in loadout.GetSelectedUnits())
-        {
-            _runStats.RegisterUnit(unit.id);
-            ids.Add(unit.id);
-        }
-        unitManager?.SetRoster(ids);
+        foreach (var unit in units) ids.Add(unit.id);
 
-        SpawnTrain(loadout.Train);
-        uIManager?.BuildUnitIcons(loadout.GetSelectedUnits());
-        _handBinder?.SetRoster(ids);
-        _skillManager?.SetRoster(ids);
-        uIManager?.SetFuelSetTrain(loadout.Train);
+        _runTrain = train;
+        _runStats.Reset();
+
+        loader.Add(new LoadStep("UI\’z", 1f, () =>
+        {
+            uIManager?.BuildUnitIcons(units);
+            uIManager?.SetFuelSetTrain(train);
+        }));
+        loader.Add(new LoadStep("—ñŽÔ¶¬", 2f, () => SpawnTrain(train)));
+        loader.Add(new LoadStep("æˆõ“o˜^", 1f, () =>
+        {
+            foreach (var id in ids) _runStats.RegisterUnit(id);
+            unitManager?.SetRoster(ids);
+            _handBinder?.SetRoster(ids);
+            _skillManager?.SetRoster(ids);
+        }));
+
     }
 
     private void HandleAnyDamaged(Combatant combatant,int amount)
@@ -537,7 +545,8 @@ public class GameLoopManager : MonoBehaviour
         }
         uIManager.UpdateFuelUI(fuelManager.CurrentFuel, fuelManager.MaxFuel);
         float leg = isMove ? operationPhaseManager.MoveProgress : 1f;
-        uIManager.UpdateRouteProgress(sectionManager.CurrentIndex, sectionManager.SectionCount, leg);
+        int passed = sectionManager.CurrentIndex + (leg >= 1f ? 1 : 0);
+        uIManager.UpdateRouteProgress(passed,sectionManager.GetTrainFraction(leg));
         
     }
 
@@ -630,16 +639,18 @@ public class GameLoopManager : MonoBehaviour
 
         if (stateManager == null || stateManager.Current != GameState.Operation) return;
 
-        var entry = sectionManager.CurrentSection;
-        string typeText = (entry != null && entry.section != null) ? entry.section.type.ToString() : "-";
-        string rangeText = entry != null ? entry.distanceMin.ToString("F1") + " - " + entry.distanceMax.ToString("F1") : "-";
+        var plan = sectionManager.CurrentPlan;
+        string typeText = plan != null ? plan.type.ToString() : "-";
+        string rangeText = plan != null
+            ? plan.startPos.ToString("F1") + " - " + plan.endPos.ToString("F1")
+            : "-";
 
         GUILayout.BeginArea(new Rect(10, 480, 350, 220));
         GUILayout.Label("=== Move ===");
         GUILayout.Label($"Phase: {stateManager.CurrentOperationPhase}");
         GUILayout.Label($"Section: {sectionManager.CurrentIndex + 1} / {sectionManager.SectionCount} ({typeText})");
         GUILayout.Label($"Distance Range: {rangeText}");
-        GUILayout.Label($"Distance (RNG): {operationPhaseManager.MoveDistance:F2}");
+        GUILayout.Label($"Distance (Built): {operationPhaseManager.MoveDistance:F2}");
         GUILayout.Label($"Train Speed: {operationPhaseManager.MoveSpeed:F2}");
         GUILayout.Label($"Elapsed / Duration: {operationPhaseManager.MoveElapsed:F2} / {operationPhaseManager.MoveDuration:F2} s");
         GUILayout.Label($"Progress: {operationPhaseManager.MoveProgress * 100f:F0} %");

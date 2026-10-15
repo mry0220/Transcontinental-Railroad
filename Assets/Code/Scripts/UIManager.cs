@@ -787,40 +787,39 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Operation突入時に、Sectionの種類に合わせ印を作りなおす
     /// </summary>
-    public void BuildRouteBar(List<SectionType> sectionTypes)
+    public void BuildRouteBar(List<(SectionType type,float fraction)>markers)
     {
         foreach (var marker in routeMarkers) marker.RemoveFromHierarchy();
         routeMarkers.Clear();
         routePassedCount = -1;
 
-        int count = sectionTypes != null ? sectionTypes.Count : 0;
+        int count = markers != null ? markers.Count : 0;
         for (int i = 0; i < count; i++)
         {
             var marker = new VisualElement();
             marker.AddToClassList("route-marker");
-            marker.AddToClassList(sectionTypes[i] switch
+            marker.AddToClassList(markers[i].type switch
             {
                 SectionType.Battle => "route-marker-battle",
                 SectionType.Event => "route-marker-event",
                 _ => "route-marker-goal"
             });
             marker.pickingMode = PickingMode.Ignore;
-            marker.style.left = new Length((i + 1) * 100f / count, LengthUnit.Percent);
+            marker.style.left = new Length(markers[i].fraction * 100f, LengthUnit.Percent);
 
             routeBar.Add(marker);
             routeMarkers.Add(marker);
         }
 
         routeTrain.BringToFront();
-        UpdateRouteProgress(0, count, 0f);
+        UpdateRouteProgress(0,0f);
     }
-    public void UpdateRouteProgress(int currentIndex, int sectionCount, float legProgress)
+    public void UpdateRouteProgress(int passed,float trainFraction)
     {
-        if (routeBar == null || sectionCount <= 0) return;
+        if (routeBar == null) return;
 
-        routeTrain.style.left = new Length((currentIndex + legProgress) * 100f / sectionCount, LengthUnit.Percent);
+        routeTrain.style.left = new Length(trainFraction * 100f, LengthUnit.Percent);
 
-        int passed = currentIndex + (legProgress >= 1f ? 1 : 0);
         if (passed == routePassedCount) return;
 
         routePassedCount = passed;
