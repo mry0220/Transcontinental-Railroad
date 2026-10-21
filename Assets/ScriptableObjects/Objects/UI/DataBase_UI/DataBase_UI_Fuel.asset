@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: DataBase_UI_Fuel
   m_EditorClassIdentifier: Assembly-CSharp::DataBase_UI
   UIs:
-  - {fileID: 11400000, guid: aa1ff375bacebb14eb98fd88b48ba469, type: 2}
-  - {fileID: 11400000, guid: a31ff833174fd8248abea9acd57636f6, type: 2}
-  - {fileID: 11400000, guid: c15f0cce4d42b8e4baaa59e5c0a814fa, type: 2}
+  - {fileID: 11400000, guid: cf95b430e6cdefd44a5e77fca86800d0, type: 2}
+  - {fileID: 11400000, guid: 7f11155a04ced8345b9de7d0374a7851, type: 2}

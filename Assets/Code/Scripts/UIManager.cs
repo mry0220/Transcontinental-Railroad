@@ -7,7 +7,8 @@ public class UIManager : MonoBehaviour
     #region InspectorConfig
     //==== Inspector Config====
     [SerializeField] private DataBase_Unit unitDB;
-
+    [Header("UI Sprites")]
+    [SerializeField] private DataBase_UI uiDB;
     #endregion
 
     #region References
@@ -194,7 +195,21 @@ public class UIManager : MonoBehaviour
         menuOverlay.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
+    private Sprite GetUISprite(string id)
+    {
+        var data = uiDB != null ? uiDB.GetUI(id) : null;
+        return data != null ? data.icon : null;
+    }
+
+    private void ApplySprite(VisualElement element,string id)
+    {
+        var sprite = GetUISprite(id);
+        if(sprite != null) element.style.backgroundImage = new StyleBackground(sprite);
+    }
+
     #endregion
+
+   
 
     #region TitleScreen
     private VisualElement titleScreen;
@@ -207,6 +222,8 @@ public class UIManager : MonoBehaviour
 
         var still = new VisualElement();
         still.AddToClassList("title-still");
+        still.pickingMode = PickingMode.Ignore;
+        ApplySprite(still, UIIds.TitleStill);
 
         var logo = new VisualElement();
         logo.AddToClassList("title-logo");
@@ -272,6 +289,7 @@ public class UIManager : MonoBehaviour
 
         var characterFrame = new VisualElement();
         characterFrame.AddToClassList("stage-select-character");
+        ApplySprite(characterFrame, UIIds.StageSelectnavigator);
         stageSelectScreen.Add(characterFrame);
 
         stageListPanel = new VisualElement();

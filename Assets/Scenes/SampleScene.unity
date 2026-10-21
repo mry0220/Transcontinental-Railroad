@@ -148,7 +148,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a75ef5b700d9b43a6617989a275877, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuelManager
-  fillingAmount: 10000
   moveFuelCoefficient: 1
   minStartFuel: 100
   payingAmount: 100
@@ -514,6 +513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   unitDB: {fileID: 11400000, guid: e4585e16e0cb76a469bf50c64e82e6f4, type: 2}
+  uiDB: {fileID: 11400000, guid: 8bfc122aac4a8a84192a6f586b1acc98, type: 2}
 --- !u!1 &1775603191
 GameObject:
   m_ObjectHideFlags: 0
