@@ -11,7 +11,7 @@
 
 .route-bar {
     position: absolute;
-    top: 18px;
+    top: 30px;
     right: 11%;
     width: 36%;
     height: 8%;
@@ -20,18 +20,18 @@
 
 .route-line {
     position: absolute;
-    left: -25px;
-    right: -29px;
-    top: -21px;
-    height: 60px;
+    left: -20px;
+    right: -24px;
+    top: -9px;
+    height: 35px;
     margin: 0;
     background-color: rgba(0, 0, 0, 0);
     -unity-background-scale-mode: stretch-to-fill;
-    -unity-slice-left: 70;
-    -unity-slice-right: 70;
+    -unity-slice-left: 45;
+    -unity-slice-right: 46;
     -unity-slice-top: 0;
     -unity-slice-bottom: 0;
-    -unity-slice-scale: 0.41px;
+    -unity-slice-scale: 0.51px;
 }
 
 .route-marker {
@@ -67,10 +67,10 @@
 
 .route-train {
     position: absolute;
-    top: -21px;
-    width: 44px;
-    height: 44px;
-    margin: 0 0 0 -22px;
+    top: -23px;
+    width: 52px;
+    height: 40px;
+    margin: 0 0 0 -26px;
     background-color: rgba(0, 0, 0, 0);
     -unity-background-scale-mode: scale-to-fit;
 }
@@ -473,7 +473,7 @@
 
 .us-train-list .unity-scroller--horizontal,
 .us-unit-list .unity-scroller--horizontal {
-    height: 48px;
+    height: 104px;
 }
 
 .us-train-list .unity-scroller__low-button,
@@ -483,24 +483,38 @@
     display: none;
 }
 
+.us-train-list .unity-scroller__slider,
+.us-unit-list .unity-scroller__slider,
+.us-train-list .unity-base-slider__drag-container,
+.us-unit-list .unity-base-slider__drag-container {
+    height: 104px;
+}
+
 .us-train-list .unity-base-slider__tracker,
 .us-unit-list .unity-base-slider__tracker {
-    height: 48px;
     margin: 0;
     border-width: 0;
     background-color: rgba(0, 0, 0, 0);
+}
+
+.scroll-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
     -unity-background-scale-mode: stretch-to-fill;
-    -unity-slice-left: 70;
-    -unity-slice-right: 70;
+    -unity-slice-left: 45;
+    -unity-slice-right: 46;
     -unity-slice-top: 0;
     -unity-slice-bottom: 0;
-    -unity-slice-scale: 0.33px;
+    -unity-slice-scale: 0.59px;
 }
 
 .us-train-list .unity-base-slider__dragger,
 .us-unit-list .unity-base-slider__dragger {
     top: 0;
-    height: 48px;
+    height: 104px;
     border-width: 0;
     background-color: rgba(0, 0, 0, 0);
 }
@@ -513,10 +527,10 @@
 .scroll-train-icon {
     position: absolute;
     left: 50%;
-    top: -1px;
-    width: 36px;
-    height: 36px;
-    margin: 0 0 0 -18px;
+    top: 7px;
+    width: 114px;
+    height: 88px;
+    margin: 0 0 0 -57px;
     -unity-background-scale-mode: scale-to-fit;
 }
 

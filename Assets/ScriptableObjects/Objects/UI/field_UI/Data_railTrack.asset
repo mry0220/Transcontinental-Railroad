@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Data_UI
   _id: rail_track
   _displayname: 
-  _icon: {fileID: 8973482002761429877, guid: 8a1cd550a95ea394caa284e3fb8d4e5d, type: 3}
+  _icon: {fileID: 21300000, guid: 8a1cd550a95ea394caa284e3fb8d4e5d, type: 3}

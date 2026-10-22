@@ -214,10 +214,15 @@ public class UIManager : MonoBehaviour
 
     private void ApplyRailToScrollView(ScrollView scrollView)
     {
-        var tracker = scrollView.horizontalScroller.Q(className: "unity-base-slider__tracker");
-        if (tracker != null) ApplySprite(tracker, UIIds.RailTrack);
+        var scroller = scrollView.horizontalScroller;
 
-        var dragger = scrollView.horizontalScroller.Q(className: "unity-base-slider__dragger");
+        var rail = new VisualElement();
+        rail.AddToClassList("scroll-rail");
+        rail.pickingMode = PickingMode.Ignore;
+        ApplySprite(rail, UIIds.RailTrack);
+        scroller.hierarchy.Insert(0, rail);
+
+        var dragger = scroller.Q(className: "unity-base-slider__dragger");
         if(dragger != null)
         {
             var icon = new VisualElement();
