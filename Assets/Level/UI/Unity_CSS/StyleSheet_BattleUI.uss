@@ -238,6 +238,7 @@
     justify-content: space-between;
     align-items: center;
     background-color: rgb(24, 26, 34);
+    -unity-background-scale-mode: scale-and-crop;
 }
 
 .stage-select-character {
@@ -407,6 +408,7 @@
     padding: 72px 4% 3% 4%;
     flex-direction: column;
     background-color: rgb(24, 26, 34);
+    -unity-background-scale-mode: scale-and-crop;
 }
 
 .us-top {
