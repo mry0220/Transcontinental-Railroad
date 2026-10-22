@@ -15,7 +15,7 @@ public class NavigatorExpression
         return lines[UnityEngine.Random.Range(0, lines.Count)];
     }
 }
-[CreateAssetMenu(fileName = "Data_Navigator",menuName ="ScriptableObjects/UI/Data_Navigator")]
+[CreateAssetMenu(fileName = "Data_Navigator",menuName ="Scriptable Objects/UI/Data_Navigator")]
 public class Data_Navigator : ScriptableObject
 {
     [Tooltip("0番が初期表情")]

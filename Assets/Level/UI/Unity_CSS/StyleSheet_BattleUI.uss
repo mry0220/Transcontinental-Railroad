@@ -236,10 +236,38 @@
 }
 
 .stage-select-character {
-    left : 10%;
-    width: 435;
-    height: 1015;
+    width: 40%;
+    height: 80%;
     margin: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.navigator-image {
+    position: absolute;
+    left: 0;
+    top: 22%;
+    width: 100%;
+    height: 78%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.navigator-bubble {
+    position: absolute;
+    left: 8%;
+    top: 0;
+    width: 84%;
+    min-height: 18%;
+    padding: 16px 20px;
+    border-radius: 16px;
+    justify-content: center;
+}
+
+.navigator-bubble-text {
+    white-space: normal;
+    font-size: 20px;
+    color: rgb(30, 30, 30);
+    -unity-text-align: middle-center;
 }
 
 .stage-select-list-panel {

@@ -262,6 +262,11 @@ public class UIManager : MonoBehaviour
     {
         stageSelectScreen.style.display =
             phase == PrepPhase.StageSelect ? DisplayStyle.Flex : DisplayStyle.None;
+        if(phase == PrepPhase.StageSelect)
+        {
+            navigatorReset?.Pause();
+            ShowNavigatorExpression(0);
+        }
         unitSelectScreen.style.display =
             phase == PrepPhase.UnitSelect ? DisplayStyle.Flex : DisplayStyle.None;
         fuelSetScreen.style.display =
@@ -375,16 +380,40 @@ public class UIManager : MonoBehaviour
         string line = expr.PickLine();
         navigatorBubble.style.display = string.IsNullOrEmpty(line) ? DisplayStyle.None : DisplayStyle.Flex;
         navigatorBubbleLabel.text = line;
+
+        var bubbleSprite = expr.bubbleSprite != null ? expr.bubbleSprite : navigatorData.DefaultBubble;
+        if(bubbleSprite != null)
+        {
+            navigatorBubble.style.backgroundImage = new StyleBackground(bubbleSprite);
+            navigatorBubble.style.backgroundColor = new StyleColor(Color.clear);
+        }
+        else
+        {
+            navigatorBubble.style.backgroundImage = StyleKeyword.None;
+            navigatorBubble.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.92f));
+        }
     }
 
     private void OnNavigatorTapped()
     {
+        if (navigatorData == null || navigatorData.Count <= 1) return;
 
+        int next;
+        do { next = UnityEngine.Random.Range(0, navigatorData.Count); }
+        while (next == navigatorIndex);
+
+        ShowNavigatorExpression(next);
+        ScheduleNavigatorReset();
     }
 
     private void ScheduleNavigatorReset()
     {
+        navigatorReset?.Pause();
+        if (navigatorData == null || navigatorData.ResetSeconds <= 0f) return;
 
+        navigatorReset = navigatorImage.schedule
+            .Execute(() => ShowNavigatorExpression(0))
+            .StartingIn((long)(navigatorData.ResetSeconds * 1000f));
     }
 
     #endregion
