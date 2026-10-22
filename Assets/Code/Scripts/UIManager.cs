@@ -347,6 +347,7 @@ public class UIManager : MonoBehaviour
 
         stageListPanel = new VisualElement();
         stageListPanel.AddToClassList("stage-select-list-panel");
+        ApplySprite(stageListPanel,UIIds.StageMenuPanel);
         stageSelectScreen.Add(stageListPanel);
 
         var header = new Label("StageMenu");
@@ -378,6 +379,7 @@ public class UIManager : MonoBehaviour
 
                 var button = new Button(() => OnStageChosen?.Invoke(index)) { text = label };
                 button.AddToClassList("stage-select-button");
+                ApplySprite(button, UIIds.StageButton);
                 stageListContainer.Add(button);
             }
             else
@@ -385,6 +387,7 @@ public class UIManager : MonoBehaviour
                 var slot = new VisualElement();
                 slot.AddToClassList("stage-select-button");
                 slot.AddToClassList("stage-select-empty");
+                ApplySprite(slot, UIIds.StageButton);
                 stageListContainer.Add(slot);
             }
         }

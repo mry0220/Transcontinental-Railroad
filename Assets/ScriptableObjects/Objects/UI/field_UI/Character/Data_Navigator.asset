@@ -28,7 +28,7 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: e27af159846807d47a2d555e1bf665b5, type: 3}
     bubbleSprite: {fileID: 0}
     lines:
-    - "\u3042\u306F"
+    - "\u3084\u3063\u307B\u30FC"
   - id: 3
     sprite: {fileID: 21300000, guid: e59026ad8e06cf24aa4872b01910669d, type: 3}
     bubbleSprite: {fileID: 0}

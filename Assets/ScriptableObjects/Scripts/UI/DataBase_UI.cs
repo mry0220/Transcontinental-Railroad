@@ -7,6 +7,8 @@ public static class UIIds
     public const string DefaultBackGround = "default_background"; 
     public const string RailTrack = "rail_track";
     public const string TrainIcon = "train_icon";
+    public const string StageMenuPanel = "stage_menu_panel";
+    public const string StageButton = "stage_button";
 }
 
 [CreateAssetMenu(fileName = "DataBase_UI", menuName = "Scriptable Objects/UI/DataBase_UI")]
