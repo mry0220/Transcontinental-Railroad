@@ -5,6 +5,7 @@ public static class UIIds
 {
     public const string TitleStill = "title_still";
     public const string StageSelectnavigator = "stageselect_navigator";
+    public const string RailTrack = "rail_track";
 }
 
 [CreateAssetMenu(fileName = "DataBase_UI", menuName = "Scriptable Objects/UI/DataBase_UI")]

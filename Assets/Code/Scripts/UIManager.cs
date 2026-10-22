@@ -202,14 +202,21 @@ public class UIManager : MonoBehaviour
         return data != null ? data.icon : null;
     }
 
+
+
+
+    #endregion
     private void ApplySprite(VisualElement element,string id)
     {
         var sprite = GetUISprite(id);
         if(sprite != null) element.style.backgroundImage = new StyleBackground(sprite);
     }
 
-    #endregion
-
+    private void ApplyRailToScrollView(ScrollView scrollView)
+    {
+        var tracker = scrollView.horizontalScroller.Q(className: "unity-base-slider__tracker");
+        if (tracker != null) ApplySprite(tracker, UIIds.RailTrack);
+    }
    
 
     #region TitleScreen
@@ -482,10 +489,12 @@ public class UIManager : MonoBehaviour
         bottom.AddToClassList("us-bottom");
 
         trainList = new ScrollView(ScrollViewMode.Horizontal);
+        ApplyRailToScrollView(trainList);
         trainList.AddToClassList("us-train-list");
         bottom.Add(trainList);
 
         unitList = new ScrollView(ScrollViewMode.Horizontal);
+        ApplyRailToScrollView(unitList);
         unitList.AddToClassList("us-unit-list");
         unitListMask = new VisualElement();
         unitListMask.AddToClassList("us-mask");
@@ -870,6 +879,7 @@ public class UIManager : MonoBehaviour
         var line = new VisualElement();
         line.AddToClassList("route-line");
         line.pickingMode = PickingMode.Ignore;
+        ApplySprite(line, UIIds.RailTrack);
         routeBar.Add(line);
 
         routeTrain = new VisualElement();

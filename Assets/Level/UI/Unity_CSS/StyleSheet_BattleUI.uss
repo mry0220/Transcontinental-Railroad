@@ -20,13 +20,18 @@
 
 .route-line {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 25%;
-    width: auto;
-    height: 20%;
+    left: -25px;
+    right: -29px;
+    top: -21px;
+    height: 60px;
     margin: 0;
-    background-color: rgb(200, 200, 200);
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 70;
+    -unity-slice-right: 70;
+    -unity-slice-top: 0;
+    -unity-slice-bottom: 0;
+    -unity-slice-scale: 0.41px;
 }
 
 .route-marker {
@@ -465,6 +470,8 @@
     height: 100%;
     margin: 0;
 }
+
+
 
 .us-candidate {
     width: 30%;
