@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.ShaderKeywordFilter;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -279,7 +280,16 @@ public class UIManager : MonoBehaviour
 
     #region StageSelect
 
+    [Header("Navigator")]
+    [SerializeField] private Data_Navigator navigatorData;
+    private VisualElement navigatorImage;
+    private VisualElement navigatorBubble;
+    private Label navigatorBubbleLabel;
+    private int navigatorIndex;
+    private IVisualElementScheduledItem navigatorReset;
+
     private VisualElement stageSelectScreen;
+    private VisualElement stageListPanel;
     private VisualElement stageListContainer;
     private const int StageSlotCount = 6;
     private void SetupStageSelectScreen()
@@ -289,8 +299,23 @@ public class UIManager : MonoBehaviour
 
         var characterFrame = new VisualElement();
         characterFrame.AddToClassList("stage-select-character");
-        ApplySprite(characterFrame, UIIds.StageSelectnavigator);
         stageSelectScreen.Add(characterFrame);
+
+        navigatorImage = new VisualElement();
+        navigatorImage.AddToClassList("navigator-image");
+        navigatorImage.pickingMode = PickingMode.Ignore;
+        characterFrame.Add(navigatorImage);
+
+        navigatorBubble = new VisualElement();
+        navigatorBubble.AddToClassList("navigator-bubble");
+        navigatorBubble.pickingMode = PickingMode.Ignore;
+        navigatorBubbleLabel = new Label();
+        navigatorBubbleLabel.AddToClassList("navigator-bubble-text");
+        navigatorBubbleLabel.pickingMode = PickingMode.Ignore;
+        navigatorBubble.Add(navigatorBubbleLabel);
+        characterFrame.Add(navigatorBubble);
+
+        characterFrame.RegisterCallback<PointerDownEvent>(_ => OnNavigatorTapped());
 
         stageListPanel = new VisualElement();
         stageListPanel.AddToClassList("stage-select-list-panel");
@@ -336,7 +361,31 @@ public class UIManager : MonoBehaviour
             }
         }
     }
-    private VisualElement stageListPanel;
+
+    private void ShowNavigatorExpression(int index)
+    {
+        if (navigatorData == null || navigatorData.Count == 0) return;
+
+        navigatorIndex = Mathf.Clamp(index, 0, navigatorData.Count - 1);
+        var expr = navigatorData.Get(navigatorIndex);
+
+        if (expr.sprite != null) navigatorImage.style.backgroundImage = new StyleBackground(expr.sprite);
+        else navigatorImage.style.backgroundImage = StyleKeyword.None;
+
+        string line = expr.PickLine();
+        navigatorBubble.style.display = string.IsNullOrEmpty(line) ? DisplayStyle.None : DisplayStyle.Flex;
+        navigatorBubbleLabel.text = line;
+    }
+
+    private void OnNavigatorTapped()
+    {
+
+    }
+
+    private void ScheduleNavigatorReset()
+    {
+
+    }
 
     #endregion
 
