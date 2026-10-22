@@ -216,6 +216,16 @@ public class UIManager : MonoBehaviour
     {
         var tracker = scrollView.horizontalScroller.Q(className: "unity-base-slider__tracker");
         if (tracker != null) ApplySprite(tracker, UIIds.RailTrack);
+
+        var dragger = scrollView.horizontalScroller.Q(className: "unity-base-slider__dragger");
+        if(dragger != null)
+        {
+            var icon = new VisualElement();
+            icon.AddToClassList("scroll-train-icon");
+            icon.pickingMode = PickingMode.Ignore;
+            ApplySprite(icon, UIIds.TrainIcon);
+            dragger.Add(icon);
+        }
     }
    
 
@@ -885,6 +895,7 @@ public class UIManager : MonoBehaviour
         routeTrain = new VisualElement();
         routeTrain.AddToClassList("route-train");
         routeTrain.pickingMode = PickingMode.Ignore;
+        ApplySprite(routeTrain, UIIds.TrainIcon);
         routeBar.Add(routeTrain);
 
         routeBar.style.display = DisplayStyle.None;
