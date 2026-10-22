@@ -250,7 +250,7 @@
    width: 100%;
    height: 100%;
    -unity-background-scale-mode: scale-to-fit;
-   scale: 1.2 1.2;
+   scale: 1.5 1.5;
     transform-origin: 50% 0%;
 }
 
@@ -267,14 +267,15 @@
     -unity-slice-top: 30;
     -unity-slice-right: 30;
     -unity-slice-bottom: 30;
-    -unity-background-image-tint-color: rgba(120, 120, 120, 0.65);
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.85);
 }
 
 .navigator-bubble-text {
     white-space: normal;
     font-size: 20px;
-    color: rgb(40, 28, 12);
+    color: rgb(255, 255, 255);
     -unity-text-align: middle-center;
+    
 }
 
 .stage-select-list-panel {
