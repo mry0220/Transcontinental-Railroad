@@ -99,5 +99,5 @@ MonoBehaviour:
     bubbleSprite: {fileID: 0}
     lines:
     - "\u6C17\u6301..\u60AA\u3063"
-  _defaultBubble: {fileID: 0}
+  _defaultBubble: {fileID: 4727633781103762509, guid: e58e90e2d1bbd0c4dae51175155f5d6b, type: 3}
   _resetSecounds: 4
