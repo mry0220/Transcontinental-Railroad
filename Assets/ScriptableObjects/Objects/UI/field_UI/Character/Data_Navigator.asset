@@ -70,7 +70,7 @@ MonoBehaviour:
     lines:
     - "\u306F\u3041"
   - id: 11
-    sprite: {fileID: 0}
+    sprite: {fileID: 21300000, guid: 5719c6f1902f95045ab6efb87b497951, type: 3}
     bubbleSprite: {fileID: 0}
     lines:
     - "\u3063\u306A\u3093\u3059\u304B\uFF1F"
@@ -100,4 +100,4 @@ MonoBehaviour:
     lines:
     - "\u6C17\u6301..\u60AA\u3063"
   _defaultBubble: {fileID: 4727633781103762509, guid: e58e90e2d1bbd0c4dae51175155f5d6b, type: 3}
-  _resetSecounds: 4
+  _resetSecounds: 5

@@ -323,6 +323,7 @@ public class UIManager : MonoBehaviour
     {
         stageSelectScreen = new VisualElement();
         stageSelectScreen.AddToClassList("stage-select-screen");
+        ApplySprite(stageSelectScreen,UIIds.DefaultBackGround);
 
         var characterFrame = new VisualElement();
         characterFrame.AddToClassList("stage-select-character");
@@ -463,6 +464,7 @@ public class UIManager : MonoBehaviour
     {
         unitSelectScreen = new VisualElement();
         unitSelectScreen.AddToClassList("unit-select-screen");
+        ApplySprite(unitSelectScreen, UIIds.DefaultBackGround);
 
         //上段:出撃Trainと出撃Unit
         var top = new VisualElement();

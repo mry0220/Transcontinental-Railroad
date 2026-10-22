@@ -4,7 +4,7 @@ using UnityEngine;
 public static class UIIds
 {
     public const string TitleStill = "title_still";
-    public const string StageSelectnavigator = "stageselect_navigator";
+    public const string DefaultBackGround = "default_background"; 
     public const string RailTrack = "rail_track";
     public const string TrainIcon = "train_icon";
 }
