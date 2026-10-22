@@ -12,6 +12,92 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fca45ea3dfb4e6e41a747fcb4668fc9d, type: 3}
   m_Name: Data_Navigator
   m_EditorClassIdentifier: Assembly-CSharp::Data_Navigator
-  _expressions: []
+  _expressions:
+  - id: 0
+    sprite: {fileID: 21300000, guid: f39b2cdbef9b15a4fa2155d91af78e74, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u51FA\u767A\u6642\u523B\u3092\u6C7A\u3081\u3066\u304F\u3060\u3055\u3044"
+  - id: 1
+    sprite: {fileID: 21300000, guid: c1343b4278c550543a383d0f8b966f70, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3053\u3093\u306B\u3061\u306F\uFF01\uFF01"
+    - "\u884C\u304D\u307E\u3057\u3087\u3046!!!"
+  - id: 2
+    sprite: {fileID: 21300000, guid: e27af159846807d47a2d555e1bf665b5, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3042\u306F"
+  - id: 3
+    sprite: {fileID: 21300000, guid: e59026ad8e06cf24aa4872b01910669d, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3069\u3046\u3057\u305F\u3093\u3067\u3059\u304B\u3041??"
+  - id: 4
+    sprite: {fileID: 21300000, guid: d3bee6bb8423e9c49a2964c92ce80f5b, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u60A9\u3093\u3067\u307E\u3059\uFF1F"
+  - id: 5
+    sprite: {fileID: 21300000, guid: 904e4ad82d0cfe8498e2920c87330c64, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3046\u30FC\u3093..."
+  - id: 6
+    sprite: {fileID: 21300000, guid: 6c7501182f2658d478c1e48c9ff02138, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u306F\u3041\uFF01\uFF1F\u3061\u3087"
+  - id: 7
+    sprite: {fileID: 21300000, guid: 8270b74c4c7bb1848b5aaca56c94deb5, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3048\uFF01\uFF1F"
+  - id: 8
+    sprite: {fileID: 21300000, guid: 7f683399b5071774397eeae08a99a1ce, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u307B\u3093\u3068\u3084\u3081\u3066\u304F\u3060\u3055\u3044"
+  - id: 9
+    sprite: {fileID: 21300000, guid: 71b1fc13314e42b4cb8a476c4a968764, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u6700\u3063\u4F4E"
+  - id: 10
+    sprite: {fileID: 21300000, guid: 032361651d685d74c910f0e16a1b9574, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u306F\u3041"
+  - id: 11
+    sprite: {fileID: 0}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3063\u306A\u3093\u3059\u304B\uFF1F"
+  - id: 12
+    sprite: {fileID: 21300000, guid: 18eab1aa4ca3cd547afdbc1f57b0150a, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3078\u3047\uFF5E"
+  - id: 13
+    sprite: {fileID: 21300000, guid: 58058bb5e1d0762468e704380b2fa900, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3061\u3087\u3063...\u3044\u3044\u52A0\u6E1B\u306B\u3063\uFF01"
+  - id: 14
+    sprite: {fileID: 21300000, guid: 2089fd38d3a86b347bb97676447f4451, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u3063..\u75DB\u3044\u3067\u3059"
+  - id: 15
+    sprite: {fileID: 21300000, guid: 4d2fbc078f385b04abdedffc7055c897, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u306A\u3093\u3067\u77E5\u3063\u3066!?"
+  - id: 16
+    sprite: {fileID: 21300000, guid: d952e405ed2af4f419890868fd081aba, type: 3}
+    bubbleSprite: {fileID: 0}
+    lines:
+    - "\u6C17\u6301..\u60AA\u3063"
   _defaultBubble: {fileID: 0}
   _resetSecounds: 4
