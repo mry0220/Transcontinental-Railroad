@@ -9,6 +9,12 @@ public static class UIIds
     public const string TrainIcon = "train_icon";
     public const string StageMenuPanel = "stage_menu_panel";
     public const string StageButton = "stage_button";
+    public const string UnitSlotBg = "unit_slot_bg";
+    public const string UnitSlotFrame = "unit_slot_frame";
+    public const string SelectBoxBg = "select_box_bg";
+    public const string MenuButton = "menu_button";
+    public const string SectionEventIcon = "section_event_icon";
+    public const string SectionBattleIcon = "section_battle_icon";
 }
 
 [CreateAssetMenu(fileName = "DataBase_UI", menuName = "Scriptable Objects/UI/DataBase_UI")]

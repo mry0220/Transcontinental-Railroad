@@ -147,14 +147,9 @@ public class UIManager : MonoBehaviour
     {
         menuButton = new Button(() => OnMenuRequested?.Invoke());
         menuButton.AddToClassList("menu-button");
+        ApplySprite(menuButton,UIIds.MenuButton);
 
-        for (int i = 0; i < 3; i++)
-        {
-            var line = new VisualElement();
-            line.AddToClassList("menu-button-line");
-            line.pickingMode = PickingMode.Ignore;
-            menuButton.Add(line);
-        }
+        
 
         root.Add(menuButton);
     }
@@ -449,6 +444,7 @@ public class UIManager : MonoBehaviour
     private VisualElement unitSelectScreen;
     private VisualElement trainImage;
     private Button[] unitSlotButtons = new Button[Loadout.SlotCount];
+    private VisualElement[] unitSlotIcons = new VisualElement[Loadout.SlotCount];
     private ScrollView trainList;
     private ScrollView unitList;
     private Button unitSelectConfirmButton;
@@ -475,6 +471,7 @@ public class UIManager : MonoBehaviour
 
         var trainPanel = new VisualElement();
         trainPanel.AddToClassList("us-train-panel");
+        ApplySprite(trainPanel,UIIds.SelectBoxBg);
         trainImage = new VisualElement();
         trainImage.AddToClassList("us-train-image");
         RegisterStatusPopup(trainImage, () => _unitSelectLoadout != null ? _unitSelectLoadout.Train : null);
@@ -492,6 +489,25 @@ public class UIManager : MonoBehaviour
                 OnUnitSlotChosen?.Invoke(slotIndex);
                 });
             slot.AddToClassList("us-unit-slot");
+
+            var slotBg = new VisualElement();
+            slotBg.AddToClassList("us-slot-bg");
+            slotBg.pickingMode = PickingMode.Ignore;
+            ApplySprite(slotBg, UIIds.UnitSlotBg);
+            slot.Add(slotBg);
+
+            var slotIcon = new VisualElement();
+            slotIcon.AddToClassList("us-slot-icon");
+            slotIcon.pickingMode = PickingMode.Ignore;
+            slot.Add(slotIcon);
+            unitSlotIcons[i] = slotIcon;
+            
+            var slotFrame = new VisualElement();
+            slotFrame.AddToClassList("us-slot-frame");
+            slotFrame.pickingMode = PickingMode.Ignore;
+            ApplySprite(slotFrame, UIIds.UnitSlotFrame);
+            slot.Add(slotFrame);
+
             unitSlotButtons[i] = slot;
             RegisterStatusPopup(slot, () => _unitSelectLoadout != null ? _unitSelectLoadout.Slots[slotIndex] : null);
             slotRow.Add(slot);
@@ -544,6 +560,22 @@ public class UIManager : MonoBehaviour
         unitSelectScreen.style.display = DisplayStyle.None;
         root.Add(unitSelectScreen);
     }
+
+    private void BuildCandidateBox(Button button,Sprite icon)
+    {
+        var bg = new VisualElement();
+        bg.AddToClassList("us-candidate-bg");
+        bg.pickingMode = PickingMode.Ignore;
+        ApplySprite(bg, UIIds.SelectBoxBg);
+        button.Add(bg);
+
+        var img = new VisualElement();
+        img.AddToClassList("us-candidate-icon");
+        img.pickingMode = PickingMode.Ignore;
+        SetIcon(img, icon);
+        button.Add(img);
+    }
+
     public void SetUnitSelectCandidates(List<Item_Train> trains)
     {
         trainList.Clear();
@@ -561,7 +593,7 @@ public class UIManager : MonoBehaviour
                 });
                 button.AddToClassList("us-candidate");
                 RegisterStatusPopup(button, () => train);
-                SetIcon(button, train.icon);
+                BuildCandidateBox(button, train.icon);
                 trainList.Add(button);
                 trainCandidateButtons[train] = button;
             }
@@ -583,7 +615,7 @@ public class UIManager : MonoBehaviour
                 button.AddToClassList("us-candidate");
                 button.AddToClassList("us-candidate-unit");
                 RegisterStatusPopup(button, () => unit);
-                SetIcon(button, unit.icon);
+                BuildCandidateBox(button, unit.icon);
                 unitList.Add(button);
                 unitCandidateButtons[unit] = button;
             }
@@ -598,7 +630,7 @@ public class UIManager : MonoBehaviour
 
         for (int i = 0; i < unitSlotButtons.Length; i++)
         {
-            SetIcon(unitSlotButtons[i],GetFormationSprite(loadout.Slots[i]));
+            SetIcon(unitSlotIcons[i],GetFormationSprite(loadout.Slots[i]));
         }
 
         foreach (var pair in trainCandidateButtons)
@@ -932,6 +964,14 @@ public class UIManager : MonoBehaviour
                 _ => "route-marker-goal"
             });
             marker.pickingMode = PickingMode.Ignore;
+            switch (markers[i].type)
+            {
+                case SectionType.Battle:
+                    ApplySprite(marker,UIIds.SectionBattleIcon); break;
+                case SectionType.Event:
+                    ApplySprite(marker, UIIds.SectionEventIcon); break;
+            }
+
             marker.style.left = new Length(markers[i].fraction * 100f, LengthUnit.Percent);
 
             routeBar.Add(marker);

@@ -22,7 +22,7 @@
     position: absolute;
     left: -20px;
     right: -24px;
-    top: -9px;
+    top: 20px;
     height: 35px;
     margin: 0;
     background-color: rgba(0, 0, 0, 0);
@@ -36,21 +36,18 @@
 
 .route-marker {
     position: absolute;
-    top: 35%;
-    width: 20px;
-    height: 20px;
+    top: 20%;
+    width: 40px;
+    height: 40px;
     margin: -9px 0 0 -9px;
-    border-radius: 9px;
-    border-width: 2px;
-    border-color: rgb(255, 255, 255);
 }
 
 .route-marker-battle {
-    background-color: rgb(220, 70, 70);
+    top:17%;
 }
 
 .route-marker-event {
-    background-color: rgb(240, 200, 60);
+    top:17%;
 }
 
 .route-marker-goal {
@@ -67,7 +64,7 @@
 
 .route-train {
     position: absolute;
-    top: -23px;
+    top: 5%;
     width: 52px;
     height: 40px;
     margin: 0 0 0 -26px;
@@ -292,8 +289,9 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    border-width: 0;
+    border-width: 1px;
     background-color: rgba(0, 0, 0, 0);
+    border-color: rgb(130,160,200);
     -unity-background-scale-mode: stretch-to-fill;
     -unity-slice-left: 8;
     -unity-slice-right: 8;
@@ -451,9 +449,15 @@
     width: 22%;
     height: 100%;
     margin: 0 3% 0 0;
-    border-width: 2px;
-    border-color: rgb(200, 200, 200);
-    background-color: rgba(255, 255, 255, 0.05);
+    padding: 14px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 32;
+    -unity-slice-right: 32;
+    -unity-slice-top: 32;
+    -unity-slice-bottom: 32;
+    -unity-slice-scale: 0.8px;
 }
 
 .us-train-image {
@@ -477,9 +481,45 @@
     height: 100%;
     margin: 0 4px;
     padding: 0;
-    border-width: 2px;
-    border-color: rgb(200, 200, 200);
-    background-color: rgba(255, 255, 255, 0.05);
+    border-width: 0;
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.us-unit-slot:hover,
+.us-unit-slot:active {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.us-slot-frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 38;
+    -unity-slice-right: 38;
+    -unity-slice-top: 38;
+    -unity-slice-bottom: 38;
+}
+
+.us-slot-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.us-slot-icon {
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    right: 14px;
+    bottom: 14px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -504,7 +544,7 @@
 
 .us-train-list .unity-scroller--horizontal,
 .us-unit-list .unity-scroller--horizontal {
-    height: 104px;
+    height: 174px;
 }
 
 .us-train-list .unity-scroller__low-button,
@@ -518,7 +558,7 @@
 .us-unit-list .unity-scroller__slider,
 .us-train-list .unity-base-slider__drag-container,
 .us-unit-list .unity-base-slider__drag-container {
-    height: 104px;
+    height: 174px;
 }
 
 .us-train-list .unity-base-slider__tracker,
@@ -532,7 +572,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 60;
     height: 40px;
     -unity-background-scale-mode: stretch-to-fill;
     -unity-slice-left: 45;
@@ -568,13 +608,44 @@
 
 
 .us-candidate {
-    width: 30%;
-    height: 50%;
+    width: 130px;
+    height: 130px;
     margin: 0 8px 0 0;
     padding: 0;
-    border-width: 2px;
-    border-color: rgb(120, 120, 120);
-    background-color: rgba(255, 255, 255, 0.05);
+    border-width: 0;
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.us-candidate:hover,
+.us-candidate:active {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.us-candidate-selected {
+    opacity: 0.5;
+}
+
+.us-candidate-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 32;
+    -unity-slice-right: 32;
+    -unity-slice-top: 32;
+    -unity-slice-bottom: 32;
+    -unity-slice-scale: 0.6px;
+}
+
+.us-candidate-icon {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    right: 10px;
+    bottom: 10px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
