@@ -592,25 +592,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxBackground
   targetCamera: {fileID: 519420031}
+  backgroundSprite: {fileID: 5007824815222018730, guid: 21f9586c9c2fa794fbe9793981656aad, type: 3}
+  backgroundSortingOrder: -30
   layers:
-  - sprite: {fileID: 3836954968553550457, guid: 76c10930d505649469a1bebe61810f17, type: 3}
-    speedFactor: 0
-    y: 0
+  - sprite: {fileID: 21300000, guid: 7a6a43abc49c20c47b3056f97cf6657e, type: 3}
+    speedFactor: 0.1
+    heightRatio: 1
+    yOffset: -1
     gapX: 0
     startShiftX: 0
+    sortingOrder: -20
+  - sprite: {fileID: 21300000, guid: fb4aaeec035f5ef40bb3b40d617120d4, type: 3}
+    speedFactor: 0.25
+    heightRatio: 1
+    yOffset: -0.5
+    gapX: 0
+    startShiftX: 6
+    sortingOrder: -15
+  - sprite: {fileID: 21300000, guid: cd8c242f635e0b043b2543ac56101c52, type: 3}
+    speedFactor: 0.5
+    heightRatio: 1
+    yOffset: 0
+    gapX: 0
+    startShiftX: 12
     sortingOrder: -10
-  - sprite: {fileID: -5157253929585866776, guid: cb4b9eccbf221104da76e944c1bbd4b8, type: 3}
-    speedFactor: 0.3
-    y: -2
+  - sprite: {fileID: 21300000, guid: 336b1b091250e744196fdb93155154e4, type: 3}
+    speedFactor: 10
+    heightRatio: 1
+    yOffset: -0.5
     gapX: 0
     startShiftX: 0
-    sortingOrder: -9
-  - sprite: {fileID: 4284628995527548546, guid: 40d71bdff4585c14a83fff007e15e018, type: 3}
-    speedFactor: 1
-    y: 0
-    gapX: 5
-    startShiftX: 0
-    sortingOrder: -3
+    sortingOrder: -5
 --- !u!4 &1890116381
 Transform:
   m_ObjectHideFlags: 0
