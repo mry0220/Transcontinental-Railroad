@@ -68,6 +68,7 @@ public class OperationPhaseManager : ITickable
     private RamStage _ramStage;
     private float _ramTimer;
     private float _ramSpeed;
+    private int _ramAllyCrushed;
     private Vector3 _trainHome;
     private bool _trainNeedsReset;
 
@@ -392,6 +393,14 @@ public class OperationPhaseManager : ITickable
         bool anyEnemyAlive = Combatant.All.Any(c => c.Affiliation == Base_Item.Affiliation.Enemy && !c.IsDead);
         if (!anyEnemyAlive)
         {
+            int defeated = Combatant.All.Count(c => c.Affiliation == Base_Item.Affiliation.Enemy && c.IsDead);
+            int reward = defeated * _fuelManager.EnemyDefeatRefund;
+            if(reward > 0)
+            {
+                _fuelManager.ConsumeAmount(-reward);
+                _eventLog.Add($"敵を{defeated}体劇は → FUEL +{reward}");
+            }
+
             Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
             _unitManager?.SettleBattle();
             _stateManager.TransitionOperationPhase(OperationPhase.Result);
@@ -432,6 +441,8 @@ public class OperationPhaseManager : ITickable
         _ramStage = RamStage.Alert;
         _ramTimer = 0f;
         _ramSpeed = 0f;
+        _ramAllyCrushed = 0;
+
 
         _stateManager.TransitionOperationPhase(OperationPhase.Ram);
         OnAlertChanged?.Invoke(true);
@@ -483,6 +494,7 @@ public class OperationPhaseManager : ITickable
                 if(_unitManager != null && _unitManager.CrushUnit(combatant))
                 {
                     _fuelManager.ConsumeAmount(-_ramSettings.allyCrushFuelRefund);
+                    _ramAllyCrushed++;
                     _runStats?.AddCrushedUnit();
                 }
             }
@@ -497,6 +509,10 @@ public class OperationPhaseManager : ITickable
         OnAlertChanged?.Invoke(false);
 
         CrushEntitiesUpTo(float.PositiveInfinity,train);
+        if(_ramAllyCrushed > 0)
+        {
+            _eventLog.Add($"乗員を{_ramAllyCrushed}体轢いた → FUEL +{_ramAllyCrushed * _ramSettings.allyCrushFuelRefund}");
+        }
 
         Combatant.DestroyDead(Base_Item.Affiliation.Enemy);
         _matchManager.Clear();

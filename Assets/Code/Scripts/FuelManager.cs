@@ -7,6 +7,8 @@ public class FuelManager : MonoBehaviour
     [SerializeField] private float moveFuelCoefficient = 1f;
     [SerializeField] private int minStartFuel = 1;
     [SerializeField] private int payingAmount = 1;
+    [SerializeField] private int enemyDefeatRefund = 10;
+    public int EnemyDefeatRefund => enemyDefeatRefund;
    
     public int MinStartFuel => minStartFuel;
 
