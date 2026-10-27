@@ -12,4 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0863814133d4df943a42c191dd3817e7, type: 3}
   m_Name: DataBase_Unit
   m_EditorClassIdentifier: Assembly-CSharp::DataBase_Unit
-  units: []
+  units:
+  - {fileID: 11400000, guid: 7fbb94defee5c924caa1b0599249d2f0, type: 2}
+  - {fileID: 11400000, guid: bdeed222bf2f74142afeb5b91ef7d7f8, type: 2}
+  - {fileID: 11400000, guid: b8db4870b603a914fae47dd96d6252da, type: 2}
+  - {fileID: 11400000, guid: f6821727a6e1b884287431eefebf6218, type: 2}
+  - {fileID: 11400000, guid: 382a1665f6434924295235e8f3b52071, type: 2}

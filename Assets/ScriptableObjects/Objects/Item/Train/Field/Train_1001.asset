@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bce6b4d60a82c9a4cb794456077f5d58, type: 3}
   m_Name: Train_1001
   m_EditorClassIdentifier: Assembly-CSharp::Item_Train
-  _formationSprite: {fileID: 0}
+  _formationSprite: {fileID: 21300000, guid: 0dd8b1e494863b9498c3833b1c89778e, type: 3}
   _affiliation: 0
-  _maxHP: 0
-  _attackPower: 0
+  _maxHP: 1500
+  _attackPower: 2
   _attackInterval: 0
   _attackPattern: 0
   _matchCapacity: 0
-  _moveSpeed: 0
+  _moveSpeed: 20
   _targetingStrategy: 0
   _attackRange: 0
-  _id: 
-  _displayname: 
-  _icon: {fileID: 0}
-  _prefab: {fileID: 0}
+  _id: Train_1001
+  _displayname: "\u5217\u8ECA"
+  _icon: {fileID: 21300000, guid: e2303c24ea845f545b3bfb5f11006d60, type: 3}
+  _prefab: {fileID: 2248990151873834915, guid: c652c7ff499991e48b7e90b0759e53cc, type: 3}

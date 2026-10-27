@@ -12,21 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82bbdb970cb89bc4cb5dcf8f4578c890, type: 3}
   m_Name: Unit_1004
   m_EditorClassIdentifier: Assembly-CSharp::Item_Unit
-  _formationSprite: {fileID: 0}
+  _formationSprite: {fileID: 21300000, guid: 8d582eff404d4d947b565c56f7370235, type: 3}
   _affiliation: 0
-  _maxHP: 0
-  _attackPower: 0
-  _attackInterval: 0
+  _maxHP: 30
+  _attackPower: 6
+  _attackInterval: 0.3
   _attackPattern: 0
-  _matchCapacity: 0
-  _moveSpeed: 0
+  _matchCapacity: 1
+  _moveSpeed: 3.5
   _targetingStrategy: 0
-  _attackRange: 0
-  _id: 
-  _displayname: 
-  _icon: {fileID: 0}
-  _prefab: {fileID: 0}
-  _reviveDuration: 5
-  _reviveFuelCost: 100
-  _fuelCost: 100
+  _attackRange: 6
+  _id: Unit_1004
+  _displayname: "\u30D8\u30EC\u30CD\u30FC"
+  _icon: {fileID: -293592837, guid: fc119ac3888fbc8479b669266ae1cafd, type: 3}
+  _prefab: {fileID: 2232264965599176081, guid: 1a86802874ae2934daf7b17b54418e83, type: 3}
+  _reviveDuration: 20
+  _reviveFuelCost: 150
+  _fuelCost: 200
   _skills: []
