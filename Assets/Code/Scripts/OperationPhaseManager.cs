@@ -422,6 +422,8 @@ public class OperationPhaseManager : ITickable
     {
         if (_stateManager.Current != GameState.Operation) return;
         if (_stateManager.CurrentOperationPhase != OperationPhase.Battle) return;
+        if (_fuelManager.CurrentFuel <= _ramSettings.fuelCost) return;
+        _fuelManager.ConsumeAmount(_ramSettings.fuelCost);
 
         _unitManager?.HideUnitPlacementPreview();
 

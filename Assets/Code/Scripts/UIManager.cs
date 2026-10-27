@@ -203,7 +203,13 @@ public class UIManager : MonoBehaviour
     private void ApplySprite(VisualElement element,string id)
     {
         var sprite = GetUISprite(id);
-        if(sprite != null) element.style.backgroundImage = new StyleBackground(sprite);
+        if(sprite == null)
+        {
+            Debug.LogWarning($"[UIManager]UIスプライトが未登録です:{id}");
+            return;
+        }
+
+        element.style.backgroundImage = new StyleBackground(sprite);
     }
 
     private void ApplyRailToScrollView(ScrollView scrollView)

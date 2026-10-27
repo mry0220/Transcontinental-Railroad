@@ -19,4 +19,7 @@ public class RamSettings
 
     [Tooltip("轢かれたUnitの復活コストにかける倍率")]
     public float crushedReviveCostMultiplier = 2f;
+
+    [Tooltip("Ram発動時に払う燃料")]
+    public int fuelCost = 100;
 }
