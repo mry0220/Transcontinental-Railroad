@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Item_Train
   _formationSprite: {fileID: 21300000, guid: 0dd8b1e494863b9498c3833b1c89778e, type: 3}
   _affiliation: 0
-  _maxHP: 1500
+  _maxHP: 6000
   _attackPower: 2
   _attackInterval: 0
   _attackPattern: 0

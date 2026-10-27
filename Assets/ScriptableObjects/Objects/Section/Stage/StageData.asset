@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16380343ca6efea4d9b94d1ab1fedd83, type: 3}
+  m_Name: StageData
+  m_EditorClassIdentifier: Assembly-CSharp::StageData
+  _stageName: 
+  _entries:
+  - _section: {fileID: 11400000, guid: 8473cdfcf52f15f4d96c8f7364cf8917, type: 2}
+    _distanceMin: 0
+    _distanceMax: 30
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 250
+    _distanceMax: 350
+  - _section: {fileID: 11400000, guid: 48f3513ab56a3a14faae1387be8da47e, type: 2}
+    _distanceMin: 350
+    _distanceMax: 450
+  - _section: {fileID: 11400000, guid: 01a7fa55f0d343a4d888574d9f60f2c2, type: 2}
+    _distanceMin: 250
+    _distanceMax: 350
+  - _section: {fileID: 11400000, guid: 3ecf7ba29b1661642971ad0df1d11df6, type: 2}
+    _distanceMin: 350
+    _distanceMax: 450
+  - _section: {fileID: 11400000, guid: 6c2b852ec551e644183ddcdd38427b99, type: 2}
+    _distanceMin: 300
+    _distanceMax: 400

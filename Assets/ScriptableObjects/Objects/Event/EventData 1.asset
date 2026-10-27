@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bff0d92db0d4fa43a0b6f2add3cf18e, type: 3}
+  m_Name: EventData 1
+  m_EditorClassIdentifier: Assembly-CSharp::EventData
+  _title: "\u8CA0\u50B7\u3057\u305F\u793E\u54E1\uFF1F"
+  _body: "\u76EE\u306E\u524D\u306B\u793E\u670D\u3092\u7740\u305F\u4EBA\u5F71\u304C\u898B\u3048\u308B"
+  _image: {fileID: -3557554893070573299, guid: 99356339abbb8654d82e89ca825e9bd2, type: 3}
+  _flavorText: 
+  _choices:
+  - label: "\u624B\u5F53\u3066\u3059\u308B"
+    description: '
+
+'
+    effects:
+    - type: 0
+      fuelAmount: -60
+      count: 0
+      target: 0
+      multiplier: 0
+      extraWave: {fileID: 0}
+      BattleFlavorText: 
+    - type: 2
+      fuelAmount: 0
+      count: 1
+      target: 0
+      multiplier: 0
+      extraWave: {fileID: 0}
+      BattleFlavorText: 
+  - label: "\u5148\u3092\u6025\u3050"
+    description: 
+    effects: []
