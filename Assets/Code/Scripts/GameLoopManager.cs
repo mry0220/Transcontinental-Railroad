@@ -553,7 +553,8 @@ public class GameLoopManager : MonoBehaviour
         string returnLabel = state switch
         {
             GameState.Prep => "タイトルへ戻る",
-            GameState.Operation => "準備画面へ戻る",
+            GameState.Operation => "運行準備へ戻る",
+            GameState.Title => "運行を終了する",
             _ => null
         };
 
@@ -576,14 +577,27 @@ public class GameLoopManager : MonoBehaviour
         CloseMenu();
         switch (stateManager.Current)
         {
+            case GameState.Title:
+                QuitGame();
+                break;
             case GameState.Prep:
                 stateManager.transitionTo(GameState.Title);
                 break;
             case GameState.Operation:
                 stateManager.transitionTo(GameState.Prep);
                 break;
+            
         }
 
+    }
+
+    private void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
     /// <summary>Presentation用。画面に出す値を、Logicから読み取って反映</summary>
     private void TickScreenView(float dt)
@@ -659,7 +673,7 @@ public class GameLoopManager : MonoBehaviour
         }
     }
 
-    #endregion
+#endregion
 
     #region Train
     private void SpawnTrain(Item_Train train)

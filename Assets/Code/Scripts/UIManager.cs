@@ -165,7 +165,7 @@ public class UIManager : MonoBehaviour
         var header = new Label("MENU");
         header.AddToClassList("menu-header");
 
-        var resumeButton = new Button(() => OnMenuResumeResuested?.Invoke()) { text = "再開" };
+        var resumeButton = new Button(() => OnMenuResumeResuested?.Invoke()) { text = "運行再開" };
         resumeButton.AddToClassList("menu-item-button");
 
         menuReturnButton = new Button(() => OnMenuReturnRequested?.Invoke());
