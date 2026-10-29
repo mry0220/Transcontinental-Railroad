@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SkillData
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
   _id: 
-  _displayName: "\u3048\u3044\u3048\u3044...\u3080\u3093\u3063!!"
+  _displayName: "\u85AC\u5264\u8ABF\u5408"
   _icon: {fileID: 0}
   _cooldown: 12
   _effectType: 0

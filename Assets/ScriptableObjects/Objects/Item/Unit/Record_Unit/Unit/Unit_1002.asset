@@ -30,4 +30,5 @@ MonoBehaviour:
   _reviveFuelCost: 80
   _fuelCost: 120
   _skills:
+  - {fileID: 11400000, guid: 75d3dde4b11b1da42aa976e81e213153, type: 2}
   - {fileID: 11400000, guid: 437fb9e7e11180a4694a642d9739d632, type: 2}

@@ -151,7 +151,7 @@ MonoBehaviour:
   moveFuelCoefficient: 0.6
   minStartFuel: 100
   payingAmount: 100
-  enemyDefeatRefund: 200
+  enemyDefeatRefund: 100
 --- !u!4 &83915110
 Transform:
   m_ObjectHideFlags: 0
@@ -731,7 +731,7 @@ MonoBehaviour:
     damageToEnemyColor: {r: 1, g: 1, b: 1, a: 1}
     damageToAllyColor: {r: 1, g: 0.4, b: 0.4, a: 1}
     showIndicators: 1
-    indicatorOffsetY: 0.9
+    indicatorOffsetY: 1.5
     indicatorIconSize: 0.35
     indicatorSlotGap: 0.08
     indicatorInnerColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
@@ -745,6 +745,9 @@ MonoBehaviour:
     indicatorSpeedColor: {r: 1, g: 1, b: 1, a: 1}
   stages:
   - {fileID: 11400000, guid: d81157ce15adc9842808083bf964be8d, type: 2}
+  - {fileID: 11400000, guid: 9ed2de98aada32b4aa34a74fb47f3b1f, type: 2}
+  - {fileID: 11400000, guid: 628ed775f9728634aa7772956ce555e0, type: 2}
+  - {fileID: 11400000, guid: 9e1e7765c059b4a41b6f8b80a0eda8d3, type: 2}
   fps: 60
   seed: 12345
   vSync: 0

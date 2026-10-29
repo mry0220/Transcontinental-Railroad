@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: SkillData 2
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
   _id: 
-  _displayName: "\uFF71\uFF78\uFF8F\uFF89\uFF77\uFF9C\uFF90\uFF71\uFF67-!!"
+  _displayName: "\u518D\u751F"
   _icon: {fileID: 0}
   _cooldown: 15
-  _effectType: 0
+  _effectType: 1
   _attackMultiplier: 1.5
   _speedMultiplier: 1
   _buffTarget: 0

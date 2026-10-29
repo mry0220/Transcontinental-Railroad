@@ -79,6 +79,7 @@ public class UIManager : MonoBehaviour
         SetupUnitSelectScreen();
         SetupFuelSetScreen();
         SetupBattleControls();
+        SetupSkillCast();
         SetupServantResultScreen();
         SetupEventPopup();
         SetupMenuButton();
@@ -680,7 +681,7 @@ public class UIManager : MonoBehaviour
 
     private void RegisterStatusPopup(VisualElement element,System.Func<Base_Item> getItem)
     {
-#if UNITY_ANDROID || UNITY_IOS
+#if false
         const float MoveTolerance = 12f;
         IVisualElementScheduledItem press = null;
         Vector2 downPos = Vector2.zero;
@@ -791,6 +792,13 @@ public class UIManager : MonoBehaviour
             AddPopupRow("出撃コスト", unit.fuelCost.ToString());
             AddPopupRow("復活コスト", unit.reviveFuelCost.ToString());
             AddPopupRow("復活時間", unit.reviveDuration.ToString());
+
+            var skills = unit.skills;
+            for (int s = 0; skills != null && s < skills.Count && s < SkillManager.MaxSkillsPreUnit; s++)
+            {
+                if (skills[s] == null) continue;
+                AddPopupRow($"スキル{s + 1}", skills[s].displayName);
+            }
         }
         var origin = unitSelectScreen.WorldToLocal(anchor.worldBound.position);
 
@@ -1067,6 +1075,7 @@ public class UIManager : MonoBehaviour
                 var skillIcon = new VisualElement();
                 skillIcon.AddToClassList("unit-icon");
                 skillIcon.AddToClassList("card-skill");
+                skillIcon.AddToClassList(GetSkillColorClass(skills[s]));
                 SetIcon(skillIcon, skills[s].icon != null ? skills[s].icon : unitData.icon);
                 skillIcon.userData = key;
 
@@ -1083,6 +1092,18 @@ public class UIManager : MonoBehaviour
                 skillIcons[key] = skillIcon;
             }
         }
+    }
+
+    private static string GetSkillColorClass(SkillData skill)
+    {
+        return skill.effectType switch
+        {
+            SkillEffectType.Heal => skill.healTarget == SkillHealTarget.TrainFuel
+                ? "card-skill-fuel"
+                : "card-skill-heal",
+            SkillEffectType.SingleAttack => "card-skill-attack",
+            _ => "card-skill-buff",
+        };
     }
 
     public void RefreshHand(IReadOnlyList<Card>cards)
@@ -1199,6 +1220,7 @@ public class UIManager : MonoBehaviour
             SetReviveVisible(itemId, false);
         }
         HideRevivePopup();
+        ClearSkillCast();
     }
 
     #endregion
@@ -1345,6 +1367,59 @@ public class UIManager : MonoBehaviour
         battleActionButton.EnableInClassList("battle-action-ram", mode == BattleActionMode.Ram);
     }
 
+    #endregion
+
+    #region SkillCast
+    private VisualElement skillCastContainer;
+    private const long SkillCastShowMs = 1600;
+    private const long SkillCastFadeMs = 300;
+    private const int SkillCastMax = 3;
+
+    private void SetupSkillCast()
+    {
+        skillCastContainer = new VisualElement();
+        skillCastContainer.AddToClassList("skill-cast-container");
+        skillCastContainer.pickingMode = PickingMode.Ignore;
+        root.Add(skillCastContainer);
+    }
+
+    /// <summary>スキル発動の表示。画面の左側に、発動者のアイコンとスキル名を出す</summary>
+    public void ShowSkillCast(Sprite unitIcon, SkillData skill)
+    {
+        if (skillCastContainer == null || skill == null) return;
+
+        var entry = new VisualElement();
+        entry.AddToClassList("skill-cast");
+        entry.AddToClassList("skill-cast-hidden");
+        entry.AddToClassList(GetSkillColorClass(skill));
+        entry.pickingMode = PickingMode.Ignore;
+
+        var icon = new VisualElement();
+        icon.AddToClassList("skill-cast-icon");
+        icon.pickingMode = PickingMode.Ignore;
+        SetIcon(icon, unitIcon);
+        entry.Add(icon);
+
+        var name = new Label(skill.displayName);
+        name.AddToClassList("skill-cast-name");
+        name.pickingMode = PickingMode.Ignore;
+        entry.Add(name);
+
+        // 3件を超えたら、古いものから消す
+        while (skillCastContainer.childCount >= SkillCastMax)
+            skillCastContainer[0].RemoveFromHierarchy();
+
+        skillCastContainer.Add(entry);
+
+        entry.schedule.Execute(() => entry.RemoveFromClassList("skill-cast-hidden")).StartingIn(20);
+        entry.schedule.Execute(() => entry.AddToClassList("skill-cast-hidden")).StartingIn(SkillCastShowMs);
+        entry.schedule.Execute(() => entry.RemoveFromHierarchy()).StartingIn(SkillCastShowMs + SkillCastFadeMs);
+    }
+
+    public void ClearSkillCast()
+    {
+        skillCastContainer?.Clear();
+    }
     #endregion
 
     #region RevivePopup

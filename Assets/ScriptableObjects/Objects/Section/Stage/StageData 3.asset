@@ -1,0 +1,130 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16380343ca6efea4d9b94d1ab1fedd83, type: 3}
+  m_Name: StageData 3
+  m_EditorClassIdentifier: Assembly-CSharp::StageData
+  _stageName: "\u7121\u9650\u53F7\u7DDA"
+  _entries:
+  - _section: {fileID: 11400000, guid: 8473cdfcf52f15f4d96c8f7364cf8917, type: 2}
+    _distanceMin: 0
+    _distanceMax: 0
+  - _section: {fileID: 11400000, guid: 19b96883105d711449e10c57165232b3, type: 2}
+    _distanceMin: 100
+    _distanceMax: 100
+  - _section: {fileID: 11400000, guid: 91b7ff7fa64b8f9498061ceb8ab5f795, type: 2}
+    _distanceMin: 200
+    _distanceMax: 200
+  - _section: {fileID: 11400000, guid: 91b7ff7fa64b8f9498061ceb8ab5f795, type: 2}
+    _distanceMin: 300
+    _distanceMax: 300
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 400
+    _distanceMax: 400
+  - _section: {fileID: 11400000, guid: 8473cdfcf52f15f4d96c8f7364cf8917, type: 2}
+    _distanceMin: 500
+    _distanceMax: 500
+  - _section: {fileID: 11400000, guid: 48f3513ab56a3a14faae1387be8da47e, type: 2}
+    _distanceMin: 600
+    _distanceMax: 600
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 700
+    _distanceMax: 700
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 800
+    _distanceMax: 800
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 900
+    _distanceMax: 900
+  - _section: {fileID: 11400000, guid: 8473cdfcf52f15f4d96c8f7364cf8917, type: 2}
+    _distanceMin: 1000
+    _distanceMax: 1000
+  - _section: {fileID: 11400000, guid: 48f3513ab56a3a14faae1387be8da47e, type: 2}
+    _distanceMin: 1100
+    _distanceMax: 1100
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 1200
+    _distanceMax: 1200
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 1200
+    _distanceMax: 1200
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 1300
+    _distanceMax: 1300
+  - _section: {fileID: 11400000, guid: 48f3513ab56a3a14faae1387be8da47e, type: 2}
+    _distanceMin: 1400
+    _distanceMax: 1400
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 1500
+    _distanceMax: 1500
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 1600
+    _distanceMax: 1600
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 1700
+    _distanceMax: 1700
+  - _section: {fileID: 11400000, guid: 48f3513ab56a3a14faae1387be8da47e, type: 2}
+    _distanceMin: 1800
+    _distanceMax: 1800
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 1900
+    _distanceMax: 1900
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 2000
+    _distanceMax: 2000
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 2100
+    _distanceMax: 2100
+  - _section: {fileID: 11400000, guid: 19b96883105d711449e10c57165232b3, type: 2}
+    _distanceMin: 2200
+    _distanceMax: 2200
+  - _section: {fileID: 11400000, guid: 19b96883105d711449e10c57165232b3, type: 2}
+    _distanceMin: 2300
+    _distanceMax: 2300
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 2400
+    _distanceMax: 2400
+  - _section: {fileID: 11400000, guid: ab9e160fcdf71c247ba4a07519b35ff5, type: 2}
+    _distanceMin: 2500
+    _distanceMax: 2500
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 2600
+    _distanceMax: 2600
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 2700
+    _distanceMax: 2700
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 2800
+    _distanceMax: 2800
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 2900
+    _distanceMax: 2900
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 3000
+    _distanceMax: 3000
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 3100
+    _distanceMax: 3100
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 2800
+    _distanceMax: 2800
+  - _section: {fileID: 11400000, guid: 11b39e16ab83c3d45a829de69b4d3c2f, type: 2}
+    _distanceMin: 3200
+    _distanceMax: 3200
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 3300
+    _distanceMax: 3300
+  - _section: {fileID: 11400000, guid: c5b1fb47f1d3f1240b8daa5cbcd144ef, type: 2}
+    _distanceMin: 3400
+    _distanceMax: 3400
+  - _section: {fileID: 11400000, guid: 036986d80d2166f4daa9d7add85ea491, type: 2}
+    _distanceMin: 3500
+    _distanceMax: 3500

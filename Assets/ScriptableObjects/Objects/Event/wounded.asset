@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2bff0d92db0d4fa43a0b6f2add3cf18e, type: 3}
-  m_Name: EventData 1
+  m_Name: wounded
   m_EditorClassIdentifier: Assembly-CSharp::EventData
   _title: "\u8CA0\u50B7\u3057\u305F\u793E\u54E1\uFF1F"
   _body: "\u76EE\u306E\u524D\u306B\u793E\u670D\u3092\u7740\u305F\u4EBA\u5F71\u304C\u898B\u3048\u308B"

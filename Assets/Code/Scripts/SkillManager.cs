@@ -38,6 +38,8 @@ public class SkillManager
     public const int MaxSkillsPreUnit = 2;
     private const int SkillOrderBase = 100;
 
+    public event Action<Item_Unit, SkillData> OnSkillUsed;
+
     private class Entry
     {
         public string unitId;
@@ -161,6 +163,8 @@ public class SkillManager
             }
 
             if (!Execute(entry.data, caster,targetId)) continue;
+
+            OnSkillUsed?.Invoke(_units.GetUnitData(unitId), entry.data);
 
             _hand.RemoveSkill(unitId, index);
             entry.inHand = false;

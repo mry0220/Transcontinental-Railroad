@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d17f0672279874347844941ffc768f0a, type: 3}
-  m_Name: SectionData2-2
+  m_Name: 2-8
   m_EditorClassIdentifier: Assembly-CSharp::SectionData
-  _type: 1
-  _wave: {fileID: 11400000, guid: 562e4a89c872649438ce8ec702745453, type: 2}
-  _eventData: {fileID: 11400000, guid: a9fe43020abb43f4b81716c4dc4ef099, type: 2}
+  _type: 2
+  _wave: {fileID: 11400000, guid: ca49594d4a92ef94dae3afb56992d08c, type: 2}
+  _eventData: {fileID: 0}

@@ -398,7 +398,7 @@ public class OperationPhaseManager : ITickable
             if(reward > 0)
             {
                 _fuelManager.ConsumeAmount(-reward);
-                _eventLog.Add($"敵を{defeated}体劇は → FUEL +{reward}");
+                _eventLog.Add($"敵を{defeated}体撃破 → FUEL +{reward}");
             }
 
             Combatant.DestroyDead(Base_Item.Affiliation.Enemy);

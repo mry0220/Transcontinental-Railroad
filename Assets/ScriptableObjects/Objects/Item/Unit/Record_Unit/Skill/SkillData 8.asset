@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: SkillData 8
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
   _id: 
-  _displayName: 
+  _displayName: "\u5091\u4F5C\u30D5\u30A1\u30A6\u30B9\u30C8"
   _icon: {fileID: 0}
-  _cooldown: 10
+  _cooldown: 30
   _effectType: 0
-  _attackMultiplier: 1.5
+  _attackMultiplier: 5
   _speedMultiplier: 1
   _buffTarget: 0
-  _duration: 5
+  _duration: 99
   _healTarget: 0
   _healRatio: 0.3
   _fuelAmount: 50

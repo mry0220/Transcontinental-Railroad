@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16380343ca6efea4d9b94d1ab1fedd83, type: 3}
   m_Name: StageData
   m_EditorClassIdentifier: Assembly-CSharp::StageData
-  _stageName: 
+  _stageName: "\u8A66\u9A13\u904B\u8EE2"
   _entries:
   - _section: {fileID: 11400000, guid: 8473cdfcf52f15f4d96c8f7364cf8917, type: 2}
     _distanceMin: 0

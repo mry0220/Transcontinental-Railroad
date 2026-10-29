@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2bff0d92db0d4fa43a0b6f2add3cf18e, type: 3}
-  m_Name: EventData 3
+  m_Name: Meister
   m_EditorClassIdentifier: Assembly-CSharp::EventData
   _title: "\u8155\u5229\u304D\u306E\u6280\u5E2B"
   _body: "\u8155\u5229\u304D\u306E\u6280\u5E2B\u306E\u5DE5\u623F\u304C\u898B\u3048\u305F"

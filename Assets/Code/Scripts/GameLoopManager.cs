@@ -239,6 +239,13 @@ public class GameLoopManager : MonoBehaviour
             _handBinder = new HandUnitBinder(_hand, unitManager);
             _hand.OnChanged += () => uIManager?.RefreshHand(_hand.Cards);
             _skillManager = new SkillManager(_hand, unitManager, fuelManager);
+
+            if (uIManager != null)
+            {
+                _skillManager.OnSkillUsed += (unit, skill) =>
+                    uIManager.ShowSkillCast(unit != null ? unit.icon : null, skill);
+            }
+
             Scheduler.Register(new ActionTickable(_skillManager.Tick), TickPhase.Simulation, 12,
                 () => stateManager != null
                 && stateManager.Current == GameState.Operation

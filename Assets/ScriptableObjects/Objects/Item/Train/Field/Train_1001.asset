@@ -15,11 +15,11 @@ MonoBehaviour:
   _formationSprite: {fileID: 21300000, guid: 0dd8b1e494863b9498c3833b1c89778e, type: 3}
   _affiliation: 0
   _maxHP: 6000
-  _attackPower: 2
+  _attackPower: 12
   _attackInterval: 0
   _attackPattern: 0
   _matchCapacity: 0
-  _moveSpeed: 20
+  _moveSpeed: 60
   _targetingStrategy: 0
   _attackRange: 0
   _id: Train_1001
